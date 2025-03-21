@@ -5,6 +5,7 @@ from src.database import db
 from src.modules.jobs import InactiveCallManager
 from src.pytgcalls import call, start_clients
 
+__version__ = "1.0.0"
 
 class Telegram(Client):
     def __init__(self) -> None:
@@ -23,8 +24,8 @@ class Telegram(Client):
         self.call_manager = InactiveCallManager(self)
         self.db = db
 
-    async def start(self, *args, **kwargs) -> None:
-        await super().start()
+    async def start(self, login: bool = True) -> None:
+        await super().start(login)
         await self.db.ping()
         await start_clients()
         await call.add_bot(self)
@@ -32,11 +33,9 @@ class Telegram(Client):
         await self.call_manager.start_scheduler()
         self.logger.info("✅ Bot started successfully.")
 
-    async def stop(self, *args, **kwargs) -> None:
-        await super().stop()
-        # await self.call_manager.stop_scheduler()
+    async def stop(self) -> None:
         await self.db.close()
-
+        await self.call_manager.stop_scheduler()
+        await super().stop()
 
 client = Telegram()
-__version__ = "1.0.0"
