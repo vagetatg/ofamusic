@@ -1,0 +1,6 @@
+**
+!*.py
+!src/
+!requirements.txt
+!start
+!cookies.txt

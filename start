@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "Starting TgMusicBot..."
+
+python3 -m src
