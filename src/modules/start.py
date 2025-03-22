@@ -8,8 +8,7 @@ from src.database import db
 from src.modules.utils import Filter, sec_to_min
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import AddMeButton
-from src.modules.utils.cacher import chat_cache
-from src.modules.utils.play_helpers import check_user_status
+from src.modules.utils.play_helpers import check_user_status, chat_invite_cache, user_status_cache
 from src.pytgcalls import call
 
 
@@ -157,9 +156,9 @@ async def reload_cmd(c: Client, message: types.Message):
             "❌ Something went wrong. Assistant not found for this chat."
         )
 
-    if not await chat_cache.is_active(chat_id):
-        await chat_cache.clear_chat(chat_id)
-
+    chat_invite_cache.pop(chat_id, None)
+    user_key = f"{chat_id}:{ub.me.id}"
+    user_status_cache.pop(user_key, None)
     load_admins, _ = await load_admin_cache(c, chat_id, True)
 
     ub_stats = await check_user_status(c, chat_id, ub.me.id)
