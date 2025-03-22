@@ -21,7 +21,7 @@ downloading for a seamless experience.
 ✅ **Spotify Downloader** – Download high-quality music directly from Spotify.  
 ✅ **Unlimited Access** – No download limits, no interruptions.
 
-> [View Gist (Docs)](https://gist.github.com/AshokShau/7528cddc5b264035dee40523a44ff153)
+> [Click here for more details](https://gist.github.com/AshokShau/7528cddc5b264035dee40523a44ff153)
 
 🚀 **Get started today!**  
 👉 [Contact on Telegram](https://t.me/AshokShau) to get access!
@@ -47,6 +47,8 @@ downloading for a seamless experience.
 ---
 
 ## ‍🛠️ Installation
+
+> First [Fork](https://github.com/AshokShau/TgMusicBot/fork) the repository.
 
 ### 🚀 Using Docker (Recommended)
 
@@ -107,6 +109,17 @@ downloading for a seamless experience.
    bash start
    ```
 
+</details>
+
+---
+
+<details>
+  <summary><strong>🚀 Deploy on Heroku</strong></summary>
+  <p align="center">
+    <a href="https://heroku.com/deploy?template=https://github.com/AshokShau/TgMusicBot">
+      <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-black?style=for-the-badge&logo=heroku" width="220" height="38.45" alt="Deploy">
+    </a>
+  </p>
 </details>
 
 ---
