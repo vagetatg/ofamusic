@@ -14,7 +14,7 @@ chat_invite_cache = TTLCache(maxsize=1000, ttl=600)
 
 
 async def get_url(
-    msg: types.Message, reply: Union[types.Message, None]
+        msg: types.Message, reply: Union[types.Message, None]
 ) -> Optional[str]:
     if reply:
         text_content = reply.text or ""
@@ -27,7 +27,7 @@ async def get_url(
         if entity.type and entity.type["@type"] == "textEntityTypeUrl":
             offset = entity.offset
             length = entity.length
-            url = text_content[offset : offset + length]
+            url = text_content[offset: offset + length]
             LOGGER.info(f"Extracted URL: {url}")
             return url
     return None
@@ -61,7 +61,7 @@ async def del_msg(msg: types.Message):
 
 
 async def edit_text(
-    reply_message: types.Message, *args: Any, **kwargs: Any
+        reply_message: types.Message, *args: Any, **kwargs: Any
 ) -> Union["types.Error", "types.Message"]:
     if isinstance(reply_message, types.Error):
         LOGGER.warning(f"Error getting message: {reply_message}")
@@ -108,7 +108,7 @@ async def join_ub(chat_id: int, c: Client, ub: pyrogram.Client):
 
 
 async def unban_ub(c: Client, chat_id: int, user_id: int):
-    unban = await c.setChatMemberStatus(
+    await c.setChatMemberStatus(
         chat_id=chat_id,
         member_id=types.MessageSenderUser(user_id),
         status=types.ChatMemberStatusMember(),
@@ -116,7 +116,7 @@ async def unban_ub(c: Client, chat_id: int, user_id: int):
 
 
 async def check_user_status(
-    c: Client, chat_id: int, user_id: int
+        c: Client, chat_id: int, user_id: int
 ) -> Union[types.ChatMemberStatus, types.Error]:
     user_status = user_status_cache.get((chat_id, user_id))
     if not user_status:

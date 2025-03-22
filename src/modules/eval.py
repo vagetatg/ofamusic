@@ -28,7 +28,7 @@ from src.modules.utils.play_helpers import del_msg
 
 
 def format_exception(
-    exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
+        exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
 ) -> str:
     """Formats an exception traceback as a string, similar to the Python interpreter."""
 
@@ -224,7 +224,7 @@ async def sys_stats(client: Client, message: types.Message):
     architecture = platform.machine()
     mac_address = ":".join(re.findall("..", "%012x" % uuid.getnode()))
     sp = platform.system()
-    ram = f"{str(round(psutil.virtual_memory().total / 1024.0**3))} ɢʙ"
+    ram = f"{str(round(psutil.virtual_memory().total / 1024.0 ** 3))} ɢʙ"
     p_core = psutil.cpu_count(logical=False)
     t_core = psutil.cpu_count(logical=True)
 
@@ -239,9 +239,9 @@ async def sys_stats(client: Client, message: types.Message):
         cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
 
     hdd = psutil.disk_usage("/")
-    total = hdd.total / (1024.0**3)
-    used = hdd.used / (1024.0**3)
-    free = hdd.free / (1024.0**3)
+    total = hdd.total / (1024.0 ** 3)
+    used = hdd.used / (1024.0 ** 3)
+    free = hdd.free / (1024.0 ** 3)
     platform_release = platform.release()
     platform_version = platform.version()
     chats = len(await db.get_all_chats())

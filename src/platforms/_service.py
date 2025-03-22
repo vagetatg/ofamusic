@@ -146,7 +146,7 @@ class SpotifyDownload:
 
             chunk_size = 8192  # 8KB chunks
             async with aiofiles.open(self.encrypted_file, "rb") as fin, aiofiles.open(
-                self.decrypted_file, "wb"
+                    self.decrypted_file, "wb"
             ) as fout:
                 while chunk := await fin.read(chunk_size):
                     decrypted_chunk = cipher.decrypt(chunk)

@@ -1,7 +1,12 @@
 {
   "name": "TgMusicBot",
   "description": "A Telegram Music Bot deployed on Heroku.",
-  "keywords": ["telegram", "music", "bot", "python"],
+  "keywords": [
+    "telegram",
+    "music",
+    "bot",
+    "python"
+  ],
   "website": "https://github.com/AshokShau",
   "repository": "https://github.com/AshokShau/TgMusicBot",
   "logo": "https://te.legra.ph/file/6f99c49bdb4679acad717.jpg",

@@ -37,7 +37,8 @@ downloading for a seamless experience.
 👉 **User-Friendly Interface** - Simple and intuitive commands for easy interaction.  
 👉 **Optimized Performance** - Fully **async**, efficient, and **lightweight**.  
 👉 **Easy Deployment** - Comes with a **Docker** container setup.  
-👉 **Open-Source & Free** - Built using **[PyTdBot](https://github.com/pytdbot/client)** and **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
+👉 **Open-Source & Free** - Built using **[PyTdBot](https://github.com/pytdbot/client)** and *
+*[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
 
 ## 📝 Requirements
 
@@ -136,11 +137,12 @@ downloading for a seamless experience.
 
 Contributions are welcome! 🚀 If you'd like to contribute:
 
-1. **Fork** the [repository](https://github.com/AshokShau/TgMusicBot).  
-2. **Make meaningful changes** – improve features, fix bugs, or optimize performance.  
-3. **Submit a pull request** with a clear explanation of your changes.  
+1. **Fork** the [repository](https://github.com/AshokShau/TgMusicBot).
+2. **Make meaningful changes** – improve features, fix bugs, or optimize performance.
+3. **Submit a pull request** with a clear explanation of your changes.
 
-💡 _Please avoid submitting PRs for minor edits like fixing typos or tweaking the README unless they improve clarity significantly._ Let's keep contributions valuable and impactful! 💪  
+💡 _Please avoid submitting PRs for minor edits like fixing typos or tweaking the README unless they improve clarity
+significantly._ Let's keep contributions valuable and impactful! 💪
 
 ---
 
@@ -156,20 +158,20 @@ This project is licensed under the **AGPL-3.0 License**. See the [LICENSE](/LICE
 
 - **Shoutout to all the bug hunters** - Finding issues faster than I can pretend they don’t exist. 🐞🔍
 - **Shoutout to all the contributors** - Your contributions make this project possible. 💖
----
-
-## 💖 Support the Project  
-
-Love **TgMusicBot**? ☕ Help keep it running by supporting development!  
-
-Your contributions allow me to maintain, improve, and add new features to the bot.  
-
-💰 **Donate via Crypto, PayPal, or UPI** – [Contact me on Telegram for details](https://t.me/AshokShau).  
-
-Every bit of support is truly appreciated! ❤️  
 
 ---
 
+## 💖 Support the Project
+
+Love **TgMusicBot**? ☕ Help keep it running by supporting development!
+
+Your contributions allow me to maintain, improve, and add new features to the bot.
+
+💰 **Donate via Crypto, PayPal, or UPI** – [Contact me on Telegram for details](https://t.me/AshokShau).
+
+Every bit of support is truly appreciated! ❤️
+
+---
 
 ## 🔗 Links
 

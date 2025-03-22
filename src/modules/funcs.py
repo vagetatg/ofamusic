@@ -28,7 +28,7 @@ async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message]:
 
 
 async def handle_playback_action(
-    _: Client, msg: types.Message, action, success_msg: str, fail_msg: str
+        _: Client, msg: types.Message, action, success_msg: str, fail_msg: str
 ) -> None:
     """Handle playback actions like stop, pause, resume, mute, unmute."""
     chat_id = await is_admin_or_reply(msg)
@@ -389,7 +389,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         return
 
     async def send_response(
-        msg: str, alert: bool = False, delete: bool = False, markup=None
+            msg: str, alert: bool = False, delete: bool = False, markup=None
     ) -> None:
         if alert:
             await message.answer(msg, show_alert=True)

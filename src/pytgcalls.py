@@ -101,7 +101,7 @@ class MusicBot:
         return types.Error(code=400, message="Client not found")
 
     async def start_client(
-        self, api_id: int, api_hash: str, session_string: str
+            self, api_id: int, api_hash: str, session_string: str
     ) -> None:
         client_name = f"client{self.client_counter}"
         user_bot = PyroClient(
@@ -127,9 +127,9 @@ class MusicBot:
                 elif isinstance(update, UpdatedGroupCallParticipant):
                     return
                 elif (
-                    isinstance(update, ChatUpdate)
-                    and update.status.KICKED
-                    or update.status.LEFT_GROUP
+                        isinstance(update, ChatUpdate)
+                        and update.status.KICKED
+                        or update.status.LEFT_GROUP
                 ):
                     await chat_cache.clear_chat(update.chat_id)
                     return
@@ -137,11 +137,11 @@ class MusicBot:
                 return
 
     async def play_media(
-        self,
-        chat_id: int,
-        file_path: str,
-        video: bool = False,
-        ffmpeg_parameters: Optional[str] = None,
+            self,
+            chat_id: int,
+            file_path: str,
+            video: bool = False,
+            ffmpeg_parameters: Optional[str] = None,
     ):
         """Play media on a specific client."""
         LOGGER.info(f"Playing media for chat {chat_id}: {file_path}")
