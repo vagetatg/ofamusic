@@ -92,11 +92,6 @@
       "value": "",
       "required": false
     },
-    "COOKIES_PATH": {
-      "description": "Path to cookies file",
-      "value": "",
-      "required": false
-    },
     "API_KEY": {
       "description": "API key for the bot",
       "value": "",

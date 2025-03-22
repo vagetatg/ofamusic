@@ -9,7 +9,7 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from yt_dlp import YoutubeDL, utils
 
-from config import COOKIES_PATH, DOWNLOADS_DIR, PROXY_URL
+from config import DOWNLOADS_DIR, PROXY_URL
 from src.logger import LOGGER
 from src.platforms._httpx import HttpxClient
 from src.platforms.dataclass import TrackInfo
@@ -34,7 +34,14 @@ class YouTubeDownload:
 
     async def _download_with_yt_dlp(self) -> Optional[str]:
         """Download audio using yt-dlp with proxy support."""
+        def cookies():
+            cookie_dir = "cookies"
+            cookies_files = [f for f in os.listdir(cookie_dir) if f.endswith(".txt")]
+            cookie_file = os.path.join(cookie_dir, cookies_files[0])
+            return cookie_file
+
         ydl_opts = {
+            "cookies": cookies(),
             "format": "bestaudio/best",
             "postprocessors": [
                 {
@@ -49,9 +56,6 @@ class YouTubeDownload:
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             },
         }
-
-        if COOKIES_PATH and os.path.exists(COOKIES_PATH):
-            ydl_opts["cookies"] = COOKIES_PATH
 
         if PROXY_URL:
             ydl_opts["proxy"] = PROXY_URL
