@@ -51,7 +51,7 @@ class YouTubeDownload:
         }
 
         if COOKIES_PATH and os.path.exists(COOKIES_PATH):
-            ydl_opts["cookies"] = COOKIES_PATH
+            ydl_opts["cookiefile"] = COOKIES_PATH
 
         if PROXY_URL:
             ydl_opts["proxy"] = PROXY_URL
