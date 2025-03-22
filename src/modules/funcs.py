@@ -203,6 +203,10 @@ async def change_speed(_: Client, msg: types.Message) -> None:
         return
 
     args = extract_number(msg.text)
+    if args is None:
+        return await msg.reply_text(
+            "🛑 Usage: /speed speed (must be a number between 0.5 and 4.0)"
+        )
 
     if not await is_admin(chat_id, msg.from_id):
         return await msg.reply_text("You need to be an admin to use this command")
@@ -210,18 +214,9 @@ async def change_speed(_: Client, msg: types.Message) -> None:
     if not await chat_cache.is_active(chat_id):
         return await msg.reply_text("❌ No song is currently playing in this chat!")
 
-    if args is None:
-        return await msg.reply_text(
-            "🛑 Usage: /speed speed (must be a number between 0.5 and 2.0)"
-        )
-
     speed = round(float(args), 2)
-    curr_song = await chat_cache.get_current_song(chat_id)
-    if not curr_song:
-        return await msg.reply_text("❌ No song is currently playing in this chat!")
-
     try:
-        await call.speed_change(chat_id, curr_song.file_path, speed)
+        await call.speed_change(chat_id, speed)
         await msg.reply_text(
             f"🚀 Speed changed to {speed}\n│ \n└ Action by: {await msg.mention()}"
         )

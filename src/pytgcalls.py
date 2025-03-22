@@ -316,13 +316,19 @@ class MusicBot:
             chat_id, file_path_or_url, ffmpeg_parameters=ffmpeg_params
         )
 
-    async def speed_change(self, chat_id, file_path, speed=1.0):
+    async def speed_change(self, chat_id, speed=1.0):
         """
         Change the speed of the current call.
         Supports speed factors from 0.5x to 4.0x.
         """
         if speed < 0.5 or speed > 4.0:
             raise ValueError("Speed must be between 0.5 and 4.0.")
+
+        curr_song = await chat_cache.get_current_song(chat_id)
+        if not curr_song:
+            raise ValueError("No song is currently playing in this chat!")
+
+        file_path = curr_song.file_path
 
         file_name, file_extension = os.path.splitext(os.path.basename(file_path))
         output_file_name = f"{file_name}_speed_{speed}x_{chat_id}{file_extension}"
