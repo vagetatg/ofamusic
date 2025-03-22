@@ -92,7 +92,7 @@
       "value": "",
       "required": false
     },
-    "cookies.txt": {
+    "COOKIES_PATH": {
       "description": "Path to cookies file",
       "value": "",
       "required": false
