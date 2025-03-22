@@ -112,9 +112,6 @@ class Filter:
             chat_ids = [chat_ids]
 
         async def filter_func(_, event) -> bool:
-            if hasattr(event, "chat_id"):
-                return event.chat_id in chat_ids
-
-            return False
+            return event.chat_id in chat_ids if hasattr(event, "chat_id") else False
 
         return filters.create(filter_func)

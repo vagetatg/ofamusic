@@ -62,8 +62,7 @@ class ChatCacher:
 
     async def set_loop_count(self, chat_id: int, loop: int) -> bool:
         async with self.lock:
-            queue = self.chat_cache.get(chat_id, {}).get("queue", deque())
-            if queue:
+            if queue := self.chat_cache.get(chat_id, {}).get("queue", deque()):
                 queue[0].loop = loop
                 return True
             return False

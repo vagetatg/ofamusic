@@ -9,8 +9,8 @@ async def create_directories() -> None:
     try:
         await os.makedirs(config.DOWNLOADS_DIR, exist_ok=True)
         await os.makedirs("database/photos", exist_ok=True)
-    except Exception:
-        raise SystemExit(1)
+    except Exception as e:
+        raise SystemExit(1) from e
 
 
 if __name__ == "__main__":

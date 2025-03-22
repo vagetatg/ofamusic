@@ -44,7 +44,7 @@ def format_exception(
     stack = "".join(traceback.format_list(tb))
     msg = str(exp)
     if msg:
-        msg = ": " + msg
+        msg = f": {msg}"
 
     return f"Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}"
 
@@ -55,7 +55,7 @@ async def exec_eval(c: Client, m: types.Message):
         return None
 
     text = m.text.split(None, 1)
-    if not len(text) > 1:
+    if len(text) <= 1:
         return await m.reply_text("Usage: /eval &lt code &gt")
 
     code = text[1]
@@ -157,7 +157,7 @@ async def broadcast(_: Client, message: types.Message):
     if reply := message.reply_to_message_id:
         reply = await message.getRepliedMessage()
         if isinstance(reply, types.Error):
-            await message.reply_text("Failed to get reply message." + str(reply))
+            await message.reply_text(f"Failed to get reply message.{str(reply)}")
             return
 
     if not reply:
@@ -224,7 +224,7 @@ async def sys_stats(client: Client, message: types.Message):
     architecture = platform.machine()
     mac_address = ":".join(re.findall("..", "%012x" % uuid.getnode()))
     sp = platform.system()
-    ram = str(round(psutil.virtual_memory().total / (1024.0**3))) + " ɢʙ"
+    ram = f"{str(round(psutil.virtual_memory().total / 1024.0**3))} ɢʙ"
     p_core = psutil.cpu_count(logical=False)
     t_core = psutil.cpu_count(logical=True)
 

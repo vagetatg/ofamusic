@@ -49,10 +49,7 @@ def extract_argument(text: str, enforce_digit: bool = False) -> str | None:
         return None
 
     argument = args[1].strip()
-    if enforce_digit and not argument.isdigit():
-        return None
-
-    return argument
+    return None if enforce_digit and not argument.isdigit() else argument
 
 
 async def del_msg(msg: types.Message):
@@ -116,9 +113,6 @@ async def unban_ub(c: Client, chat_id: int, user_id: int):
         member_id=types.MessageSenderUser(user_id),
         status=types.ChatMemberStatusMember(),
     )
-
-    if isinstance(unban, types.Error):
-        pass
 
 
 async def check_user_status(

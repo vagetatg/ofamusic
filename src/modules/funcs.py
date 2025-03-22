@@ -97,8 +97,7 @@ async def queue_info(_: Client, msg: types.Message) -> None:
         f"   └ <b>Played Time:</b> {sec_to_min(await call.played_time(chat.id))} min"
     )
 
-    queue_remaining = _queue[1:]
-    if queue_remaining:
+    if queue_remaining := _queue[1:]:
         text += "\n<b>⏭ Next in Queue:</b>\n"
         for i, song in enumerate(queue_remaining, start=1):
             text += (
