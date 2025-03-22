@@ -34,14 +34,22 @@ class YouTubeDownload:
 
     async def _download_with_yt_dlp(self) -> Optional[str]:
         """Download audio using yt-dlp with proxy support."""
-        def cookies():
+
+        def get_cookie_file() -> Optional[str]:
+            """Retrieve the first available cookie file from the cookies directory."""
             cookie_dir = "cookies"
+            if not os.path.exists(cookie_dir):
+                LOGGER.warning(f"Cookie directory '{cookie_dir}' does not exist.")
+                return None
+
             cookies_files = [f for f in os.listdir(cookie_dir) if f.endswith(".txt")]
-            cookie_file = os.path.join(cookie_dir, cookies_files[0])
-            return cookie_file
+            if not cookies_files:
+                LOGGER.warning(f"No cookie files found in '{cookie_dir}'.")
+                return None
+
+            return os.path.join(cookie_dir, cookies_files[0])
 
         ydl_opts = {
-            "cookies": cookies(),
             "format": "bestaudio/best",
             "postprocessors": [
                 {
@@ -57,6 +65,12 @@ class YouTubeDownload:
             },
         }
 
+        # Add cookies if available
+        cookie_file = get_cookie_file()
+        if cookie_file:
+            ydl_opts["cookies"] = cookie_file
+
+        # Add proxy if configured
         if PROXY_URL:
             ydl_opts["proxy"] = PROXY_URL
 
@@ -70,7 +84,7 @@ class YouTubeDownload:
             LOGGER.error(f"❌ Download error for {self.video_url}: {e}")
             return None
         except Exception as e:
-            LOGGER.error(f"❌ Unexpected error downloading {self.video_url}: {e}")
+            LOGGER.error(f"❌ Unexpected error downloading {self.video_url}: {e}", exc_info=True)
             return None
 
 
@@ -132,7 +146,7 @@ class SpotifyDownload:
 
             chunk_size = 8192  # 8KB chunks
             async with aiofiles.open(self.encrypted_file, "rb") as fin, aiofiles.open(
-                self.decrypted_file, "wb"
+                    self.decrypted_file, "wb"
             ) as fout:
                 while chunk := await fin.read(chunk_size):
                     decrypted_chunk = cipher.decrypt(chunk)
