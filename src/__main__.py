@@ -3,6 +3,7 @@ from aiofiles import os
 import config
 from src import client
 
+
 async def create_directories() -> None:
     """Create necessary directories."""
     try:

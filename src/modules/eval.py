@@ -281,6 +281,7 @@ async def sys_stats(client: Client, message: types.Message):
         parse_mode="html",
     )
 
+
 @Client.on_message(Filter.command("json"))
 async def _json(_: Client, msg: types.Message) -> None:
     if int(msg.from_id) != OWNER_ID:
@@ -292,4 +293,3 @@ async def _json(_: Client, msg: types.Message) -> None:
         reply_msg = await msg.getRepliedMessage()
         await msg.reply_text(str(reply_msg))
     await msg.reply_text(str(msg))
-

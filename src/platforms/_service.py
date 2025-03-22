@@ -65,9 +65,7 @@ class YouTubeDownload:
             },
         }
 
-        # Add cookies if available
-        cookie_file = get_cookie_file()
-        if cookie_file:
+        if cookie_file := get_cookie_file():
             ydl_opts["cookies"] = cookie_file
 
         # Add proxy if configured
@@ -84,7 +82,9 @@ class YouTubeDownload:
             LOGGER.error(f"❌ Download error for {self.video_url}: {e}")
             return None
         except Exception as e:
-            LOGGER.error(f"❌ Unexpected error downloading {self.video_url}: {e}", exc_info=True)
+            LOGGER.error(
+                f"❌ Unexpected error downloading {self.video_url}: {e}", exc_info=True
+            )
             return None
 
 
@@ -146,7 +146,7 @@ class SpotifyDownload:
 
             chunk_size = 8192  # 8KB chunks
             async with aiofiles.open(self.encrypted_file, "rb") as fin, aiofiles.open(
-                    self.decrypted_file, "wb"
+                self.decrypted_file, "wb"
             ) as fout:
                 while chunk := await fin.read(chunk_size):
                     decrypted_chunk = cipher.decrypt(chunk)

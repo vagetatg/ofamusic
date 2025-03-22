@@ -336,8 +336,10 @@ class MusicBot:
 
         ffmpeg_command = [
             "ffmpeg",
-            "-i", file_path,
-            "-vf", f"setpts=PTS/{speed}",
+            "-i",
+            file_path,
+            "-vf",
+            f"setpts=PTS/{speed}",
         ]
 
         if 0.5 <= speed <= 2.0:
@@ -355,7 +357,7 @@ class MusicBot:
         process = await asyncio.create_subprocess_exec(
             *ffmpeg_command,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
         )
 
         stdout, stderr = await process.communicate()

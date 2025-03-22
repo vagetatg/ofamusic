@@ -192,9 +192,11 @@ async def seek_song(_: Client, msg: types.Message) -> None:
         LOGGER.error(f"Error seeking song: {e}")
         await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {str(e)}")
 
+
 def extract_number(text: str) -> float | None:
     match = re.search(r"[-+]?\d*\.?\d+", text)
     return float(match.group()) if match else None
+
 
 @Client.on_message(Filter.command("speed"))
 async def change_speed(_: Client, msg: types.Message) -> None:
