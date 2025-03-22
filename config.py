@@ -37,7 +37,6 @@ OWNER_ID = int(getenv("OWNER_ID", 5938660179))
 MONGO_URI = getenv("MONGO_URI", None)
 DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")
 API_URL = getenv("API_URL", None)
-COOKIES_PATH = getenv("COOKIES_PATH", None)
 API_KEY = getenv("API_KEY", None)
 PROXY_URL = getenv("PROXY_URL", None)
 YOUTUBE_IMG_URL = "https://te.legra.ph/file/6298d377ad3eb46711644.jpg"

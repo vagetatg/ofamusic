@@ -65,7 +65,7 @@ async def fetch_image(url: str) -> Image.Image | None:
 def clean_text(text: str, limit: int = 17) -> str:
     """Sanitizes and truncates text to fit within the limit."""
     text = text.strip()[:limit]
-    return text + "..." if len(text) == limit else text
+    return f"{text}..." if len(text) == limit else text
 
 
 def add_controls(img: Image.Image) -> Image.Image:
@@ -151,7 +151,4 @@ async def gen_thumb(song: CachedTrack) -> str:
     draw.text((478, 321), get_duration(duration), (192, 192, 192), font=FONTS["dfont"])
 
     await asyncio.to_thread(bg.save, save_dir)
-    if await aiopath.exists(save_dir):
-        return save_dir
-
-    return config.YOUTUBE_IMG_URL
+    return save_dir if await aiopath.exists(save_dir) else config.YOUTUBE_IMG_URL
