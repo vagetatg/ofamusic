@@ -46,7 +46,7 @@ async def start_clients() -> None:
         LOGGER.info("✅ Clients started successfully.")
     except Exception as exc:
         LOGGER.error(f"Error starting clients: {exc}", exc_info=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from exc
 
 
 class CallError(Exception):
@@ -101,7 +101,7 @@ class MusicBot:
         return types.Error(code=400, message="Client not found")
 
     async def start_client(
-        self, api_id: int, api_hash: str, session_string: str
+            self, api_id: int, api_hash: str, session_string: str
     ) -> None:
         client_name = f"client{self.client_counter}"
         user_bot = PyroClient(
@@ -127,9 +127,9 @@ class MusicBot:
                 elif isinstance(update, UpdatedGroupCallParticipant):
                     return
                 elif (
-                    isinstance(update, ChatUpdate)
-                    and update.status.KICKED
-                    or update.status.LEFT_GROUP
+                        isinstance(update, ChatUpdate)
+                        and update.status.KICKED
+                        or update.status.LEFT_GROUP
                 ):
                     await chat_cache.clear_chat(update.chat_id)
                     return
@@ -137,11 +137,11 @@ class MusicBot:
                 return
 
     async def play_media(
-        self,
-        chat_id: int,
-        file_path: str,
-        video: bool = False,
-        ffmpeg_parameters: Optional[str] = None,
+            self,
+            chat_id: int,
+            file_path: str,
+            video: bool = False,
+            ffmpeg_parameters: Optional[str] = None,
     ):
         """Play media on a specific client."""
         LOGGER.info(f"Playing media for chat {chat_id}: {file_path}")
@@ -151,7 +151,7 @@ class MusicBot:
             audio_parameters=AudioQuality.MEDIUM if video else AudioQuality.STUDIO,
             video_parameters=VideoQuality.FHD_1080p if video else VideoQuality.SD_360p,
             video_flags=(
-                MediaStream.Flags.IGNORE if not video else MediaStream.Flags.AUTO_DETECT
+                MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE
             ),
             ffmpeg_parameters=ffmpeg_parameters,
         )
@@ -159,18 +159,20 @@ class MusicBot:
         try:
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].play(chat_id, _stream)
-        except (errors.ChatAdminRequired, exceptions.NoActiveGroupCall):
+        except (errors.ChatAdminRequired, exceptions.NoActiveGroupCall) as e:
             await chat_cache.clear_chat(chat_id)
-            raise CallError("No active group call \nPlease start a call and try again")
-        except exceptions.UnMuteNeeded:
+            raise CallError(
+                "No active group call \nPlease start a call and try again"
+            ) from e
+        except exceptions.UnMuteNeeded as e:
             raise CallError(
                 "Needed to unmute the userbot first \nPlease unmute my assistant and try again"
-            )
+            ) from e
         except Exception as e:
             LOGGER.exception(
                 f"Error playing media for chat {chat_id}: {e}", exc_info=True
             )
-            raise CallError(f"Error playing media: {e}")
+            raise CallError(f"Error playing media: {e}") from e
 
     async def play_next(self, chat_id: int):
         """Handles song queue logic."""
@@ -233,20 +235,19 @@ class MusicBot:
         _track_id = song.track_id
         _platform = song.platform
         if _platform == "telegram":
-            return None
+            pass
         elif _platform == "youtube":
             youtube = YouTubeData(_track_id)
             if track := await youtube.get_track():
                 return await youtube.download_track(track)
-            return None
         elif _platform == "spotify":
             spotify = SpotifyData(_track_id)
             if track := await spotify.get_track():
                 return await spotify.download_track(track)
-            return None
         else:
             LOGGER.error(f"Unknown platform: {_platform}")
-            return None
+
+        return None
 
     async def _handle_no_songs(self, chat_id: int):
         """Handles the case when there are no songs left in the queue."""
@@ -315,6 +316,56 @@ class MusicBot:
         await self.play_media(
             chat_id, file_path_or_url, ffmpeg_parameters=ffmpeg_params
         )
+
+    async def speed_change(self, chat_id, speed=1.0):
+        """
+        Change the speed of the current call.
+        Supports speed factors from 0.5x to 4.0x.
+        """
+        if speed < 0.5 or speed > 4.0:
+            raise ValueError("Speed must be between 0.5 and 4.0.")
+
+        curr_song = await chat_cache.get_current_song(chat_id)
+        if not curr_song:
+            raise ValueError("No song is currently playing in this chat!")
+
+        file_path = curr_song.file_path
+
+        file_name, file_extension = os.path.splitext(os.path.basename(file_path))
+        output_file_name = f"{file_name}_speed_{speed}x_{chat_id}{file_extension}"
+        output_file = os.path.join(os.path.dirname(file_path), output_file_name)
+
+        ffmpeg_command = [
+            "ffmpeg",
+            "-i",
+            file_path,
+            "-vf",
+            f"setpts=PTS/{speed}",
+        ]
+
+        if 0.5 <= speed <= 2.0:
+            ffmpeg_command.extend(["-filter:a", f"atempo={speed}"])
+        else:
+            atempo_filters = []
+            remaining_speed = speed
+            while remaining_speed > 2.0:
+                atempo_filters.append("atempo=2.0")
+                remaining_speed /= 2.0
+            atempo_filters.append(f"atempo={remaining_speed}")
+            ffmpeg_command.extend(["-filter:a", ",".join(atempo_filters)])
+
+        ffmpeg_command.append(output_file)
+        process = await asyncio.create_subprocess_exec(
+            *ffmpeg_command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        stdout, stderr = await process.communicate()
+        if process.returncode != 0:
+            raise RuntimeError(f"FFmpeg failed with error: {stderr.decode()}")
+
+        return await self.play_media(chat_id, output_file)
 
     async def change_volume(self, chat_id, volume):
         """Change the volume of the current call."""

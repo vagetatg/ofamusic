@@ -21,7 +21,7 @@ downloading for a seamless experience.
 ✅ **Spotify Downloader** – Download high-quality music directly from Spotify.  
 ✅ **Unlimited Access** – No download limits, no interruptions.
 
-> [View Gist (Docs)](https://gist.github.com/AshokShau/7528cddc5b264035dee40523a44ff153)
+> [Click here for more details](https://gist.github.com/AshokShau/7528cddc5b264035dee40523a44ff153)
 
 🚀 **Get started today!**  
 👉 [Contact on Telegram](https://t.me/AshokShau) to get access!
@@ -37,7 +37,8 @@ downloading for a seamless experience.
 👉 **User-Friendly Interface** - Simple and intuitive commands for easy interaction.  
 👉 **Optimized Performance** - Fully **async**, efficient, and **lightweight**.  
 👉 **Easy Deployment** - Comes with a **Docker** container setup.  
-👉 **Open-Source & Free** - Built using **[PyTdBot](https://github.com/pytdbot/client)** and **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
+👉 **Open-Source & Free** - Built using **[PyTdBot](https://github.com/pytdbot/client)** and *
+*[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
 
 ## 📝 Requirements
 
@@ -47,6 +48,8 @@ downloading for a seamless experience.
 ---
 
 ## ‍🛠️ Installation
+
+> First [Fork](https://github.com/AshokShau/TgMusicBot/fork) the repository.
 
 ### 🚀 Using Docker (Recommended)
 
@@ -111,6 +114,17 @@ downloading for a seamless experience.
 
 ---
 
+<details>
+  <summary><strong>🚀 Deploy on Heroku</strong></summary>
+  <p align="center">
+    <a href="https://heroku.com/deploy?template=https://github.com/AshokShau/TgMusicBot">
+      <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-black?style=for-the-badge&logo=heroku" width="220" height="38.45" alt="Deploy">
+    </a>
+  </p>
+</details>
+
+---
+
 ## 🎮 Usage
 
 1. **Add [@FallenBeatzBot](https://t.me/FallenBeatzBot) to a group** and grant **admin permissions**.
@@ -123,11 +137,12 @@ downloading for a seamless experience.
 
 Contributions are welcome! 🚀 If you'd like to contribute:
 
-1. **Fork** the [repository](https://github.com/AshokShau/TgMusicBot).  
-2. **Make meaningful changes** – improve features, fix bugs, or optimize performance.  
-3. **Submit a pull request** with a clear explanation of your changes.  
+1. **Fork** the [repository](https://github.com/AshokShau/TgMusicBot).
+2. **Make meaningful changes** – improve features, fix bugs, or optimize performance.
+3. **Submit a pull request** with a clear explanation of your changes.
 
-💡 _Please avoid submitting PRs for minor edits like fixing typos or tweaking the README unless they improve clarity significantly._ Let's keep contributions valuable and impactful! 💪  
+💡 _Please avoid submitting PRs for minor edits like fixing typos or tweaking the README unless they improve clarity
+significantly._ Let's keep contributions valuable and impactful! 💪
 
 ---
 
@@ -143,20 +158,20 @@ This project is licensed under the **AGPL-3.0 License**. See the [LICENSE](/LICE
 
 - **Shoutout to all the bug hunters** - Finding issues faster than I can pretend they don’t exist. 🐞🔍
 - **Shoutout to all the contributors** - Your contributions make this project possible. 💖
----
-
-## 💖 Support the Project  
-
-Love **TgMusicBot**? ☕ Help keep it running by supporting development!  
-
-Your contributions allow me to maintain, improve, and add new features to the bot.  
-
-💰 **Donate via Crypto, PayPal, or UPI** – [Contact me on Telegram for details](https://t.me/AshokShau).  
-
-Every bit of support is truly appreciated! ❤️  
 
 ---
 
+## 💖 Support the Project
+
+Love **TgMusicBot**? ☕ Help keep it running by supporting development!
+
+Your contributions allow me to maintain, improve, and add new features to the bot.
+
+💰 **Donate via Crypto, PayPal, or UPI** – [Contact me on Telegram for details](https://t.me/AshokShau).
+
+Every bit of support is truly appreciated! ❤️
+
+---
 
 ## 🔗 Links
 

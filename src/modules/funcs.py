@@ -1,3 +1,4 @@
+import re
 from typing import Union
 
 from pytdbot import types, Client
@@ -27,7 +28,7 @@ async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message]:
 
 
 async def handle_playback_action(
-    _: Client, msg: types.Message, action, success_msg: str, fail_msg: str
+        _: Client, msg: types.Message, action, success_msg: str, fail_msg: str
 ) -> None:
     """Handle playback actions like stop, pause, resume, mute, unmute."""
     chat_id = await is_admin_or_reply(msg)
@@ -69,15 +70,6 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
         await msg.reply_text("⚠️ Failed to set play type. Please try again.")
 
 
-@Client.on_message(Filter.command("json"))
-async def _json(_: Client, msg: types.Message) -> None:
-    reply = msg.reply_to_message_id
-    if reply:
-        reply_msg = await msg.getRepliedMessage()
-        await msg.reply_text(str(reply_msg))
-    await msg.reply_text(str(msg))
-
-
 @Client.on_message(Filter.command("queue"))
 async def queue_info(_: Client, msg: types.Message) -> None:
     if msg.chat_id > 0:
@@ -105,8 +97,7 @@ async def queue_info(_: Client, msg: types.Message) -> None:
         f"   └ <b>Played Time:</b> {sec_to_min(await call.played_time(chat.id))} min"
     )
 
-    queue_remaining = _queue[1:]
-    if queue_remaining:
+    if queue_remaining := _queue[1:]:
         text += "\n<b>⏭ Next in Queue:</b>\n"
         for i, song in enumerate(queue_remaining, start=1):
             text += (
@@ -145,7 +136,7 @@ async def modify_loop(_: Client, msg: types.Message) -> None:
 
     if not args:
         return await msg.reply_text(
-            "🛑 Usage: /loop <times>\n\nExample: /loop 5 will loop the current song 5 times or 0 to disable"
+            "🛑 Usage: /loop times\n\nExample: /loop 5 will loop the current song 5 times or 0 to disable"
         )
 
     loop = int(args)
@@ -160,6 +151,7 @@ async def modify_loop(_: Client, msg: types.Message) -> None:
 
 @Client.on_message(Filter.command("seek"))
 async def seek_song(_: Client, msg: types.Message) -> None:
+    LOGGER.info("O SEEK")
     chat_id = msg.chat_id
     if chat_id > 0:
         return
@@ -167,7 +159,7 @@ async def seek_song(_: Client, msg: types.Message) -> None:
     args = extract_argument(msg.text, enforce_digit=True)
     if not args:
         return await msg.reply_text(
-            "🛑 Usage: /seek <seconds> (must be a number greater than 20)"
+            "🛑 Usage: /seek seconds (must be a number greater than 20)"
         )
 
     seek_time = int(args)
@@ -200,6 +192,40 @@ async def seek_song(_: Client, msg: types.Message) -> None:
         await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {str(e)}")
 
 
+def extract_number(text: str) -> float | None:
+    match = re.search(r"[-+]?\d*\.?\d+", text)
+    return float(match.group()) if match else None
+
+
+@Client.on_message(Filter.command("speed"))
+async def change_speed(_: Client, msg: types.Message) -> None:
+    chat_id = msg.chat_id
+    if chat_id > 0:
+        return
+
+    args = extract_number(msg.text)
+    if args is None:
+        return await msg.reply_text(
+            "🛑 Usage: /speed speed (must be a number between 0.5 and 4.0)"
+        )
+
+    if not await is_admin(chat_id, msg.from_id):
+        return await msg.reply_text("You need to be an admin to use this command")
+
+    if not await chat_cache.is_active(chat_id):
+        return await msg.reply_text("❌ No song is currently playing in this chat!")
+
+    speed = round(float(args), 2)
+    try:
+        await call.speed_change(chat_id, speed)
+        await msg.reply_text(
+            f"🚀 Speed changed to {speed}\n│ \n└ Action by: {await msg.mention()}"
+        )
+    except Exception as e:
+        LOGGER.error(f"Error changing speed: {e}")
+        await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {str(e)}")
+
+
 @Client.on_message(Filter.command("remove"))
 async def remove_song(_: Client, msg: types.Message) -> None:
     chat_id = msg.chat_id
@@ -215,7 +241,7 @@ async def remove_song(_: Client, msg: types.Message) -> None:
 
     if not args:
         return await msg.reply_text(
-            "🛑 Usage: /remove <track number> (must be a valid number)"
+            "🛑 Usage: /remove track number (must be a valid number)"
         )
 
     track_num = int(args)
@@ -363,7 +389,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         return
 
     async def send_response(
-        msg: str, alert: bool = False, delete: bool = False, markup=None
+            msg: str, alert: bool = False, delete: bool = False, markup=None
     ) -> None:
         if alert:
             await message.answer(msg, show_alert=True)

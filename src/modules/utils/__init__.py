@@ -47,7 +47,7 @@ class Filter:
 
         async def filter_func(_, event) -> bool:
             if isinstance(event, types.Message) and isinstance(
-                event.content, types.MessageText
+                    event.content, types.MessageText
             ):
                 return any(
                     event.content.text.text.startswith(f"/{cmd.lower()}")
@@ -55,7 +55,7 @@ class Filter:
                 )
 
             if isinstance(event, types.UpdateNewMessage) and isinstance(
-                event.message, types.MessageText
+                    event.message, types.MessageText
             ):
                 return any(
                     event.message.text.text.startswith(f"/{cmd.lower()}")
@@ -72,12 +72,12 @@ class Filter:
 
         async def filter_func(_, event) -> bool:
             if isinstance(event, types.Message) and isinstance(
-                event.content, types.MessageText
+                    event.content, types.MessageText
             ):
                 return bool(re.search(pattern, event.content.text))
 
             if isinstance(event, types.UpdateNewMessage) and isinstance(
-                event.message, types.MessageText
+                    event.message, types.MessageText
             ):
                 return bool(re.search(pattern, event.message.text.text))
 
@@ -112,9 +112,6 @@ class Filter:
             chat_ids = [chat_ids]
 
         async def filter_func(_, event) -> bool:
-            if hasattr(event, "chat_id"):
-                return event.chat_id in chat_ids
-
-            return False
+            return event.chat_id in chat_ids if hasattr(event, "chat_id") else False
 
         return filters.create(filter_func)

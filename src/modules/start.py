@@ -46,6 +46,7 @@ async def help_cmd(c: Client, message: types.Message):
     text = f"""<b>Help for {c.me.first_name}:</b>
 <b>/start:</b> Start the bot.
 <b>/reload:</b> Reload chat administrator list.
+<b>/speed:</b> Change the playback speed of the current song. (0.5 - 4.0)
 <b>/play:</b> Reply to an audio or provide a song name to play music.  
 <b>/skip:</b> Skip the current song.  
 <b>/remove x:</b> Remove x song from the queue.

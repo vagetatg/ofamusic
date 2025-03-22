@@ -44,7 +44,7 @@ def _get_platform_url(platform: str, track_id: str) -> str:
 
 
 async def update_message_with_thumbnail(
-    c: Client, msg: types.Message, text: str, thumbnail: str
+        c: Client, msg: types.Message, text: str, thumbnail: str
 ) -> None:
     """Update a message with a thumbnail and text."""
     if not thumbnail:
@@ -86,11 +86,11 @@ def format_now_playing(song: CachedTrack) -> str:
 
 
 async def play_music(
-    c: Client,
-    msg: types.Message,
-    url_data: PlatformTracks,
-    user_by: str,
-    tg_file_path: str = None,
+        c: Client,
+        msg: types.Message,
+        url_data: PlatformTracks,
+        user_by: str,
+        tg_file_path: str = None,
 ) -> None:
     """Handle playing music from a given URL or file."""
     if not url_data:

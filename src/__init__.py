@@ -7,6 +7,7 @@ from src.pytgcalls import call, start_clients
 
 __version__ = "1.0.0"
 
+
 class Telegram(Client):
     def __init__(self) -> None:
         super().__init__(
@@ -37,5 +38,6 @@ class Telegram(Client):
         await self.db.close()
         await self.call_manager.stop_scheduler()
         await super().stop()
+
 
 client = Telegram()
