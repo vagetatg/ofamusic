@@ -21,6 +21,8 @@ downloading for a seamless experience.
 ✅ **Spotify Downloader** – Download high-quality music directly from Spotify.  
 ✅ **Unlimited Access** – No download limits, no interruptions.
 
+> [View Gist (Docs)](https://gist.github.com/AshokShau/7528cddc5b264035dee40523a44ff153)
+
 🚀 **Get started today!**  
 👉 [Contact on Telegram](https://t.me/AshokShau) to get access!
 
