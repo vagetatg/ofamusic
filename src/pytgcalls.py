@@ -316,6 +316,48 @@ class MusicBot:
             chat_id, file_path_or_url, ffmpeg_parameters=ffmpeg_params
         )
 
+    async def speed_change(self, chat_id, file_path, speed=1.0):
+        """
+        Change the speed of the current call.
+        Supports speed factors from 0.5x to 4.0x.
+        """
+        if speed < 0.5 or speed > 4.0:
+            raise ValueError("Speed must be between 0.5 and 4.0.")
+
+        file_name, file_extension = os.path.splitext(os.path.basename(file_path))
+        output_file_name = f"{file_name}_speed_{speed}x_{chat_id}{file_extension}"
+        output_file = os.path.join(os.path.dirname(file_path), output_file_name)
+
+        ffmpeg_command = [
+            "ffmpeg",
+            "-i", file_path,
+            "-vf", f"setpts=PTS/{speed}",
+        ]
+
+        if 0.5 <= speed <= 2.0:
+            ffmpeg_command.extend(["-filter:a", f"atempo={speed}"])
+        else:
+            atempo_filters = []
+            remaining_speed = speed
+            while remaining_speed > 2.0:
+                atempo_filters.append("atempo=2.0")
+                remaining_speed /= 2.0
+            atempo_filters.append(f"atempo={remaining_speed}")
+            ffmpeg_command.extend(["-filter:a", ",".join(atempo_filters)])
+
+        ffmpeg_command.append(output_file)
+        process = await asyncio.create_subprocess_exec(
+            *ffmpeg_command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        stdout, stderr = await process.communicate()
+        if process.returncode != 0:
+            raise RuntimeError(f"FFmpeg failed with error: {stderr.decode()}")
+
+        return await self.play_media(chat_id, output_file)
+
     async def change_volume(self, chat_id, volume):
         """Change the volume of the current call."""
         client_name = await self._get_client_name(chat_id)

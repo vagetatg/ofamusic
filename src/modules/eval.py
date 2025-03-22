@@ -280,3 +280,16 @@ async def sys_stats(client: Client, message: types.Message):
 <b>CPU Frequency:</b> {cpu_freq}""",
         parse_mode="html",
     )
+
+@Client.on_message(Filter.command("json"))
+async def _json(_: Client, msg: types.Message) -> None:
+    if int(msg.from_id) != OWNER_ID:
+        await del_msg(msg)
+        return None
+
+    reply = msg.reply_to_message_id
+    if reply:
+        reply_msg = await msg.getRepliedMessage()
+        await msg.reply_text(str(reply_msg))
+    await msg.reply_text(str(msg))
+
