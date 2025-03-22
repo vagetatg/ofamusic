@@ -4,7 +4,7 @@
   "repository": "https://github.com/AshokShau/TgMusicBot",
   "logo": "https://te.legra.ph/file/6f99c49bdb4679acad717.jpg",
   "keywords": ["telegram", "music", "bot", "python"],
-  "stack": "container",
+  "stack": "heroku-24",
   "env": {
     "API_ID": {
       "description": "Your Telegram API ID",
@@ -43,7 +43,8 @@
     },
     "STRING5": {
       "description": "Your fifth session string",
-      "value": ""
+      "value": "",
+      "required": false
     },
     "STRING6": {
       "description": "Your sixth session string",
@@ -67,7 +68,8 @@
     },
     "STRING10": {
       "description": "Your tenth session string",
-      "value": ""
+      "value": "",
+      "required": false
     },
     "OWNER_ID": {
       "description": "Your Telegram User ID",
@@ -75,7 +77,8 @@
     },
     "MONGO_URI": {
       "description": "Your MongoDB URI",
-      "value": ""
+      "value": "",
+      "required": true
     },
     "DOWNLOADS_DIR": {
       "description": "Directory to store downloads",
