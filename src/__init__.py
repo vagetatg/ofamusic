@@ -10,6 +10,7 @@ __version__ = "1.0.0"
 
 class Telegram(Client):
     def __init__(self) -> None:
+        self._check_config()
         super().__init__(
             token=config.TOKEN,
             api_id=config.API_ID,
@@ -39,5 +40,13 @@ class Telegram(Client):
         await self.call_manager.stop_scheduler()
         await super().stop()
 
+    @staticmethod
+    def _check_config() -> None:
+        if not isinstance(config.MONGO_URI, str):
+            raise TypeError("MONGO_URI must be a string")
+
+        session_strings = [s for s in config.SESSION_STRINGS if s]
+        if not session_strings:
+            raise ValueError("No STRING session provided\n\nAdd STRING session in .env")
 
 client = Telegram()
