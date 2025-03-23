@@ -75,7 +75,6 @@ class MusicBot:
                 else None
             )
 
-        # for groups
         _ub = await db.get_assistant(chat_id)
         if _ub and _ub in self.available_clients:
             return _ub

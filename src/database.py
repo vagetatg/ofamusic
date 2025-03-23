@@ -24,7 +24,7 @@ class Database:
             LOGGER.info("Database connection completed.")
         except Exception as e:
             LOGGER.error(f"Database connection failed: {e}")
-            raise
+            raise e
 
     async def get_chat(self, chat_id: int) -> Optional[dict]:
         """Retrieve a chat document by chat_id."""
