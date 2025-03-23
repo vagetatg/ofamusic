@@ -37,8 +37,7 @@ downloading for a seamless experience.
 👉 **User-Friendly Interface** - Simple and intuitive commands for easy interaction.  
 👉 **Optimized Performance** - Fully **async**, efficient, and **lightweight**.  
 👉 **Easy Deployment** - Comes with a **Docker** container setup.  
-👉 **Open-Source & Free** - Built using **[PyTdBot](https://github.com/pytdbot/client)** and *
-*[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
+👉 **Open-Source & Free** - Built using **[PyTdBot](https://github.com/pytdbot/client)** and **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
 
 ## 📝 Requirements
 
