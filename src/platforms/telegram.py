@@ -1,6 +1,9 @@
-from typing import Union, Optional
+import asyncio
+from typing import Optional
 
-from pytdbot import types
+from pyrogram import types, errors
+
+from src.logger import LOGGER
 
 
 class Telegram:
@@ -12,27 +15,30 @@ class Telegram:
 
     def is_valid(self) -> bool:
         """Checks if the message contains a playable media file (audio or video)."""
-        if not self.msg or isinstance(self.msg, types.Error):
+        if not self.msg:
             return False
-
-        return isinstance(self.msg.content, (types.MessageVideo, types.MessageAudio))
+        return bool(self.msg.audio or self.msg.video or self.msg.voice)
 
     def get_file_name(self) -> str:
         """Retrieves the file name from the media message."""
         if not self.is_valid():
             return "Unknown Media"
-
-        content = self.msg.content
-        if isinstance(content, types.MessageVideo):
-            return getattr(content.video, "file_name", "Video.mp4")
-        if isinstance(content, types.MessageAudio):
-            return getattr(content.audio, "file_name", "Audio.mp3")
-
+        if self.msg.audio and self.msg.audio.file_name:
+            return self.msg.audio.file_name
+        elif self.msg.video and self.msg.video.file_name:
+            return self.msg.video.file_name
+        elif self.msg.voice:
+            return "Voice Message"
         return "Unknown Media"
 
-    async def dl(self) -> Union[types.Error, types.LocalFile]:
+    async def dl(self) -> str:
         """Downloads the media file asynchronously."""
-        if not self.is_valid():
-            return types.Error(message="Invalid file for download or play.")
-
-        return await self.msg.download()
+        try:
+            return await self.msg.download()
+        except errors.FloodWait as e:
+            LOGGER.warning(f"FloodWait detected, waiting {e.value}s")
+            await asyncio.sleep(e.value + 1)
+            return await self.msg.download()
+        except Exception as e:
+            LOGGER.error(f"Error downloading media: {e}")
+            return ""

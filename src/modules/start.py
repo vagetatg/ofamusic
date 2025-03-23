@@ -1,30 +1,28 @@
 from datetime import datetime
-from types import NoneType
 
 from cachetools import TTLCache
-from pytdbot import Client, types
+from pyrogram import Client, filters, types
 
 from src.database import db
-from src.modules.utils import Filter, sec_to_min
+from src.modules.utils import sec_to_min
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import AddMeButton
 from src.modules.utils.play_helpers import check_user_status, chat_invite_cache, user_status_cache
 from src.pytgcalls import call
 
 
-@Client.on_message(Filter.command("start"))
+@Client.on_message(filters.command("start"))
 async def start_cmd(c: Client, message: types.Message):
-    me: types.User = await c.getMe()
-    chat_id = message.chat_id
+    chat_id = message.chat.id
     if chat_id < 0:
         await db.add_chat(chat_id)
     else:
         await db.add_user(chat_id)
 
     text = f"""
-    нєу {await message.mention(parse_mode='html')} 👋
+    нєу {message.from_user.mention} 👋
 
-<b>Welcome to {me.first_name} </b>
+<b>Welcome to {c.me.first_name} </b>
 
 Your ultimate music companion for Telegram voice chats! 
 
@@ -33,14 +31,11 @@ Your ultimate music companion for Telegram voice chats!
 <b>📢 Note:</b> This bot works best in groups and requires admin permissions to function.
     """
 
-    reply = await message.reply_text(text, parse_mode="html", reply_markup=AddMeButton)
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending start message: {reply.message}")
-
+    await message.reply_text(text, reply_markup=AddMeButton)
     return None
 
 
-@Client.on_message(Filter.command("help"))
+@Client.on_message(filters.command("help"))
 async def help_cmd(c: Client, message: types.Message):
     text = f"""<b>Help for {c.me.first_name}:</b>
 <b>/start:</b> Start the bot.
@@ -67,12 +62,10 @@ async def help_cmd(c: Client, message: types.Message):
 <b>Note:</b> This bot works best in groups and requires admin permissions to function.
 """
 
-    reply = await message.reply_text(text=text, parse_mode="html")
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending help message: {reply.message}")
+    await message.reply_text(text=text)
 
 
-@Client.on_message(Filter.command("privacy"))
+@Client.on_message(filters.command("privacy"))
 async def privacy_handler(c: Client, message: types.Message):
     bot_name = c.me.first_name
     text = f"""
@@ -127,71 +120,42 @@ If you have any questions or concerns about our privacy policy, feel free to con
 rate_limit_cache = TTLCache(maxsize=100, ttl=180)
 
 
-@Client.on_message(Filter.command("reload"))
+@Client.on_message(filters.command("reload"))
 async def reload_cmd(c: Client, message: types.Message):
-    user_id = message.from_id
-    chat_id = message.chat_id
+    user_id = message.from_user.id
+    chat_id = message.chat.id
     if chat_id > 0:
         return
 
     if user_id in rate_limit_cache:
         last_used_time = rate_limit_cache[user_id]
         time_remaining = 180 - (datetime.now() - last_used_time).total_seconds()
-        reply = await message.reply_text(
+        await message.reply_text(
             f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min."
         )
-        if isinstance(reply, types.Error):
-            c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
         return
 
     rate_limit_cache[user_id] = datetime.now()
     reply = await message.reply_text("🔄 Reloading...")
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
-        return
-
     ub = await call.get_client(chat_id)
-    if isinstance(ub, (types.Error, NoneType)):
-        return await reply.edit_text(
-            "❌ Something went wrong. Assistant not found for this chat."
-        )
-
     chat_invite_cache.pop(chat_id, None)
     user_key = f"{chat_id}:{ub.me.id}"
     user_status_cache.pop(user_key, None)
     load_admins, _ = await load_admin_cache(c, chat_id, True)
 
     ub_stats = await check_user_status(c, chat_id, ub.me.id)
-    if isinstance(ub_stats, types.Error):
-        ub_stats = ub_stats.message
-
     loaded = "✅" if load_admins else "❌"
     text = (
         f"<b>Assistant Status:</b> {ub_stats}\n"
         f"<b>Admins Loaded:</b> {loaded}\n"
-        f"<b>» Reloaded by:</b> {await message.mention()}"
+        f"<b>» Reloaded by:</b> {message.from_user.mention}"
     )
 
-    reply = await reply.edit_text(text, parse_mode="html")
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
-
+    await reply.edit_text(text, )
     return
 
 
-@Client.on_message(Filter.command("ping"))
-async def ping_cmd(c: Client, message: types.Message):
-    reply = await message.reply_text("🏓 Pong!")
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending message: {reply}")
-
-    return
-
-
-@Client.on_message(Filter.command("song"))
+@Client.on_message(filters.command("song"))
 async def song_cmd(c: Client, message: types.Message):
-    reply = await message.reply_text("🎶 USE: @SpTubeBot")
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending message: {reply}")
-
+    await message.reply_text("🎶 USE: @SpTubeBot")
     return

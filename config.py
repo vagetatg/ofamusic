@@ -46,5 +46,5 @@ API_URL = getenv("API_URL", None)
 API_KEY = getenv("API_KEY", None)
 PROXY_URL = getenv("PROXY_URL", None)
 
-DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")
+DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "downloads")
 YOUTUBE_IMG_URL = "https://te.legra.ph/file/6298d377ad3eb46711644.jpg"

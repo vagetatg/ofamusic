@@ -1,4 +1,4 @@
-from pytdbot import Client, types
+from pyrogram import Client, enums
 
 import config
 from src.database import db
@@ -12,33 +12,29 @@ class Telegram(Client):
     def __init__(self) -> None:
         self._check_config()
         super().__init__(
-            token=config.TOKEN,
+            name="TgMusic",
+            bot_token=config.TOKEN,
             api_id=config.API_ID,
             api_hash=config.API_HASH,
-            default_parse_mode="html",
-            td_verbosity=2,
-            td_log=types.LogStreamEmpty(),
-            plugins=types.plugins.Plugins(folder="src/modules"),
-            files_directory="",
-            database_encryption_key="",
-            options={"ignore_background_updates": True},
+            plugins={"root": "src.modules"},
+            workers=5,
+            parse_mode=enums.ParseMode.DEFAULT,
         )
         self.call_manager = InactiveCallManager(self)
         self.db = db
 
-    async def start(self, login: bool = True) -> None:
-        await super().start(login)
+    async def start(self, use_qr=False, except_ids=None) -> None:
+        await super().start(use_qr, except_ids)
         await self.db.ping()
         await start_clients()
         await call.add_bot(self)
         await call.register_decorators()
         await self.call_manager.start_scheduler()
-        self.logger.info("✅ Bot started successfully.")
 
-    async def stop(self) -> None:
+    async def stop(self, block=True) -> None:
         await self.db.close()
         await self.call_manager.stop_scheduler()
-        await super().stop()
+        await super().stop(block)
 
     @staticmethod
     def _check_config() -> None:
@@ -48,5 +44,6 @@ class Telegram(Client):
         session_strings = [s for s in config.SESSION_STRINGS if s]
         if not session_strings:
             raise ValueError("No STRING session provided\n\nAdd STRING session in .env")
+
 
 client = Telegram()

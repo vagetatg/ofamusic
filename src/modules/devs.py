@@ -6,29 +6,31 @@ import platform
 import re
 import socket
 import sys
+import time
 import traceback
 import uuid
 from html import escape
 from sys import version as pyver
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import psutil
+import pyrogram
 from meval import meval
 from ntgcalls import __version__ as ntgver
+from pyrogram import Client, filters, types, errors
 from pyrogram import __version__ as pyrover
-from pytdbot import VERSION as py_td_ver
-from pytdbot import types, Client
-from pytgcalls import __version__ as pytgver
+from pyrogram.enums import ChatType
+from pytgcalls.__version__ import __version__ as pytgver
 
 from config import OWNER_ID
-from src.database import db
+from src import db
 from src.logger import LOGGER
-from src.modules.utils import Filter
 from src.modules.utils.play_helpers import del_msg
+from src.pytgcalls import call
 
 
 def format_exception(
-        exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
+        exp: BaseException, tb: Optional[List[traceback.FrameSummary]] = None
 ) -> str:
     """Formats an exception traceback as a string, similar to the Python interpreter."""
 
@@ -49,21 +51,20 @@ def format_exception(
     return f"Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}"
 
 
-@Client.on_message(Filter.command("eval"))
-async def exec_eval(c: Client, m: types.Message):
-    if int(m.from_id) != OWNER_ID:
-        return None
-
+@Client.on_message(filters.command("eval") & filters.user(OWNER_ID))
+async def exec_eval(c: Client, m: pyrogram.types.Message):
     text = m.text.split(None, 1)
     if len(text) <= 1:
-        return await m.reply_text("Usage: /eval &lt code &gt")
+        await m.reply_text("🛑 Usage: /eval code")
+        return
 
     code = text[1]
     out_buf = io.StringIO()
 
     async def _eval() -> Tuple[str, Optional[str]]:
-        async def send(*args: Any, **kwargs: Any) -> types.Message:
-            return await m.reply_text(*args, **kwargs)
+        # Message sending helper for convenience
+        async def send(*args: Any, **kwargs: Any) -> pyrogram.types.Message:
+            return await m.reply(*args, **kwargs)
 
         def _print(*args: Any, **kwargs: Any) -> None:
             if "file" not in kwargs:
@@ -77,7 +78,8 @@ async def exec_eval(c: Client, m: types.Message):
             "c": c,
             "m": m,
             "msg": m,
-            "types": types,
+            "message": m,
+            "raw": pyrogram.raw,
             "send": send,
             "print": _print,
             "inspect": inspect,
@@ -85,8 +87,10 @@ async def exec_eval(c: Client, m: types.Message):
             "re": re,
             "sys": sys,
             "traceback": traceback,
+            "pyrogram": pyrogram,
             "uuid": uuid,
             "io": io,
+            "tgcall": call,
         }
 
         try:
@@ -102,7 +106,6 @@ async def exec_eval(c: Client, m: types.Message):
             # Re-raise exception if it wasn't caused by the snippet
             if first_snip_idx == -1:
                 raise e
-
             # Return formatted stripped traceback
             stripped_tb = tb[first_snip_idx:]
             formatted_tb = format_exception(e, tb=stripped_tb)
@@ -123,42 +126,26 @@ async def exec_eval(c: Client, m: types.Message):
 <pre language="python">{escape(out)}</pre>"""
 
     if len(result) > 4096:
-        filename = f"/tmp/{uuid.uuid4().hex}.txt"
-        with open(filename, "w", encoding="utf-8") as file:
-            file.write(out)
-
-        caption = f"""{prefix}<b>ᴇᴠᴀʟ:</b>
-    <pre language="python">{escape(code)}</pre>
-    """
-        await m.reply_document(
-            document=types.InputFileLocal(filename),
-            caption=caption,
-            disable_notification=True,
-            parse_mode="html",
-        )
+        with io.BytesIO(str.encode(out)) as out_file:
+            out_file.name = str(uuid.uuid4()).split("-")[0].lower() + ".txt"
+            caption = f"""{prefix}<b>ᴇᴠᴀʟ:</b>
+<pre language="python">{escape(code)}</pre>
+"""
+            await m.reply_document(document=out_file, caption=caption)
         return None
 
-    await m.reply_text(str(result), parse_mode="html")
+    await m.reply_text(result)
 
 
 REQUEST = 10
 semaphore = asyncio.Semaphore(REQUEST)
 
 
-@Client.on_message(Filter.command("broadcast"))
-async def broadcast(_: Client, message: types.Message):
-    LOGGER.info(f"Broadcast command used by {message.from_id}")
-    if int(message.from_id) != OWNER_ID:
-        await del_msg(message)
-        return None
-
+@Client.on_message(filters.command("broadcast") & filters.user(OWNER_ID))
+async def broadcast(_, message: types.Message):
     all_users: list[int] = await db.get_all_users()
     all_chats: list[int] = await db.get_all_chats()
-    if reply := message.reply_to_message_id:
-        reply = await message.getRepliedMessage()
-        if isinstance(reply, types.Error):
-            await message.reply_text(f"Failed to get reply message.{str(reply)}")
-            return
+    reply = message.reply_to_message
 
     if not reply:
         await message.reply_text("Reply to a message to broadcast it.")
@@ -168,35 +155,38 @@ async def broadcast(_: Client, message: types.Message):
         await message.reply_text("No users or chats to broadcast to.")
         return
 
-    async def broadcast_target(target_list, reply_message: types.Message, _semaphore):
+    async def broadcast_target(target_list, reply_message, _semaphore):
         sent, failed = 0, 0
         for target_id in target_list:
             try:
                 async with _semaphore:
-                    _reply = await reply_message.forward(target_id)
-                    if isinstance(_reply, types.Error):
-                        if _reply.code == 429:
-                            retry_after = _reply.message.split("retry after ")[1]
-                            await asyncio.sleep(int(retry_after))
-                            _reply = await reply_message.forward(target_id)
-                        elif _reply.code == 400:
-                            if target_id < 0:
-                                await db.remove_chat(target_id)
-                            else:
-                                await db.remove_user(target_id)
-                            failed += 1
-                            continue
-                        LOGGER.error(f"Failed to send to {target_id}: {_reply}")
-                        failed += 1
-                        continue
+                    await reply_message.copy(target_id)
                 sent += 1
+            except errors.FloodWait as e:
+                LOGGER.warning(f"FloodWait detected for {target_id}, waiting {e.value}s")
+                await asyncio.sleep(e.value + 1)
+                async with _semaphore:
+                    await reply_message.copy(target_id)
+                sent += 1
+            except errors.ChannelInvalid:
+                failed += 1
+                await db.remove_chat(target_id)
+            except (errors.UserDeactivated, errors.InputUserDeactivated):
+                failed += 1
+                await db.remove_user(target_id)
+            except errors.UserIsBlocked:
+                failed += 1
+                await db.remove_user(target_id)
+            except errors.TopicIdInvalid:
+                failed += 1
+            except errors.PeerIdInvalid:
+                failed += 1
             except Exception as e:
                 LOGGER.error(f"Failed to send to {target_id}: {e}")
                 failed += 1
         return sent, failed
 
     user_sent, user_failed = await broadcast_target(all_users, reply, semaphore)
-    await asyncio.sleep(5)
     chat_sent, chat_failed = await broadcast_target(all_chats, reply, semaphore)
 
     total_sent = user_sent + chat_sent
@@ -209,14 +199,58 @@ async def broadcast(_: Client, message: types.Message):
     )
 
 
-@Client.on_message(Filter.command("stats"))
-async def sys_stats(client: Client, message: types.Message):
-    if int(message.from_id) != OWNER_ID:
-        await del_msg(message)
-        return None
+@Client.on_message(filters.command("leave") & filters.user(OWNER_ID))
+async def leave_cmd(client, message: types.Message):
+    try:
+        await message.delete()
+    except Exception as e:
+        LOGGER.warning(f"Error deleting message: {e}")
+
+    args = message.text.split(" ")
+    chat_id = message.chat.id if len(args) < 2 else args[1]
+    try:
+        await client.leave_chat(chat_id)
+    except Exception as e:
+        await message.reply_text(f"Error leaving the chat: {e}")
+    return
+
+
+@Client.on_message(filters.command("ping") & filters.user(OWNER_ID))
+async def ping_cmd(_, message: types.Message):
+    chat_id = 1 if message.chat.type == ChatType.PRIVATE else message.chat.id
+    reply = await message.reply_text("🔎 Pinging...", disable_notification=True, disable_web_page_preview=True)
+    try:
+        ping, cpu_usage = await call.stats_call(chat_id=chat_id)
+        memory_info = psutil.virtual_memory()
+        memory_usage = f"{memory_info.percent}%"
+        uptime = int(time.time() - psutil.boot_time())
+        load_avg = os.getloadavg() if hasattr(os, "getloadavg") else (0, 0, 0)
+
+        text = (
+            f"<b>» Pong!</b>\n\n"
+            f"<b>» NTgCalls Ping:</b> {ping} ms\n"
+            f"<b>» CPU Usage:</b> {cpu_usage:.3f}%\n"
+            f"<b>» Memory Usage:</b> {memory_usage}\n"
+            f"<b>» System Uptime:</b> {uptime // 3600}h {uptime % 3600 // 60}m {uptime % 60}s\n"
+            f"<b>» Load Average:</b> {load_avg[0]:.2f}, {load_avg[1]:.2f}, {load_avg[2]:.2f}"
+        )
+        await reply.edit_text(text)
+    except Exception as e:
+        LOGGER.warning(f"Error sending ping: {e}")
+        str_e = str(e).replace("Telegram says", "\nERROR")
+        await reply.edit_text("An error occurred while sending the ping.\n\n" + str_e)
+
+    return
+
+
+@Client.on_message(filters.command("stats") & filters.user(OWNER_ID))
+async def sys_stats(client, message: types.Message):
+    await del_msg(message)
+    if message.chat.type != ChatType.PRIVATE:
+        return await message.reply_text("This command can only be used in PM.")
 
     sysroot = await message.reply_text(
-        f"ɢᴇᴛᴛɪɴɢ {client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs, ɪᴛ'ʟʟ ᴛᴀᴋᴇ ᴀ ᴡʜɪʟᴇ..."
+        f"ɢᴇᴛᴛɪɴɢ {client.me.mention} sʏsᴛᴇᴍ sᴛᴀᴛs, ɪᴛ'ʟʟ ᴛᴀᴋᴇ ᴀ ᴡʜɪʟᴇ..."
     )
 
     hostname = socket.gethostname()
@@ -249,7 +283,7 @@ async def sys_stats(client: Client, message: types.Message):
 
     await sysroot.edit_text(
         f"""
-<b><u>{client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs</u></b>
+<b><u>{client.me.mention} sʏsᴛᴇᴍ sᴛᴀᴛs</u></b>
 
 <b>Chats:</b> {chats}
 <b>Users:</b> {users}
@@ -258,8 +292,6 @@ async def sys_stats(client: Client, message: types.Message):
 <b>Pyrogram:</b> {pyrover}
 <b>Py-TgCalls:</b> {pytgver}
 <b>NTGCalls:</b> {ntgver}
-<b>PyTdBot:</b> {py_td_ver}
-
 
 <b>IP:</b> {ip_address}
 <b>MAC:</b> {mac_address}
@@ -278,18 +310,4 @@ async def sys_stats(client: Client, message: types.Message):
 <b>Physical Cores:</b> {p_core}
 <b>Total Cores:</b> {t_core}
 <b>CPU Frequency:</b> {cpu_freq}""",
-        parse_mode="html",
     )
-
-
-@Client.on_message(Filter.command("json"))
-async def _json(_: Client, msg: types.Message) -> None:
-    if int(msg.from_id) != OWNER_ID:
-        await del_msg(msg)
-        return None
-
-    reply = msg.reply_to_message_id
-    if reply:
-        reply_msg = await msg.getRepliedMessage()
-        await msg.reply_text(str(reply_msg))
-    await msg.reply_text(str(msg))

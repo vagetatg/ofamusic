@@ -125,7 +125,7 @@ def get_duration(duration: int, time: str = "0:24") -> str:
 
 async def gen_thumb(song: CachedTrack) -> str:
     """Generates and saves a thumbnail for the song."""
-    save_dir = f"database/photos/{song.track_id}.png"
+    save_dir = f"downloads/photos/{song.track_id}.png"
     if await aiopath.exists(save_dir):
         return save_dir
 

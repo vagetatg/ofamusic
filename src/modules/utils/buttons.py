@@ -1,99 +1,97 @@
-from pytdbot import types
+from pyrogram import types
 
-PlayButton = types.ReplyMarkupInlineKeyboard(
+PlayButton = types.InlineKeyboardMarkup(
     [
         [
             types.InlineKeyboardButton(
-                text="▶️ Skip", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
+                text="▶️ Skip", callback_data="play_skip"
             ),
             types.InlineKeyboardButton(
-                text="⏹️ End", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
+                text="⏹️ End", callback_data="play_stop"
             ),
         ],
         [
             types.InlineKeyboardButton(
                 text="⏸️ Pause",
-                type=types.InlineKeyboardButtonTypeCallback(b"play_pause"),
+                callback_data="play_pause",
             ),
             types.InlineKeyboardButton(
                 text="⏯️ Resume",
-                type=types.InlineKeyboardButtonTypeCallback(b"play_resume"),
+                callback_data="play_resume",
             ),
         ],
     ]
 )
 
-PauseButton = types.ReplyMarkupInlineKeyboard(
+PauseButton = types.InlineKeyboardMarkup(
     [
         [
             types.InlineKeyboardButton(
-                text="▶️ Skip", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
+                text="▶️ Skip", callback_data="play_skip"
             ),
             types.InlineKeyboardButton(
-                text="⏹️ End", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
+                text="⏹️ End", callback_data="play_stop"
             ),
         ],
         [
             types.InlineKeyboardButton(
                 text="⏯️ Resume",
-                type=types.InlineKeyboardButtonTypeCallback(b"play_resume"),
+                callback_data="play_resume",
             ),
         ],
     ]
 )
 
-ResumeButton = types.ReplyMarkupInlineKeyboard(
+ResumeButton = types.InlineKeyboardMarkup(
     [
         [
             types.InlineKeyboardButton(
-                text="▶️ Skip", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
+                text="▶️ Skip", callback_data="play_skip"
             ),
             types.InlineKeyboardButton(
-                text="⏹️ End", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
+                text="⏹️ End", callback_data="play_stop"
             ),
         ],
         [
             types.InlineKeyboardButton(
                 text="⏸️ Pause",
-                type=types.InlineKeyboardButtonTypeCallback(b"play_pause"),
+                callback_data="play_pause",
             ),
         ],
     ]
 )
 
-SupportButton = types.ReplyMarkupInlineKeyboard(
+SupportButton = types.InlineKeyboardMarkup(
     [
         [
             types.InlineKeyboardButton(
                 text="❄ Channel",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/FallenProjects"),
+                url="https://t.me/FallenProjects",
             ),
             types.InlineKeyboardButton(
                 text="✨ Group",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/GuardxSupport"),
+                url="https://t.me/GuardxSupport",
             ),
         ]
     ]
 )
 
-AddMeButton = types.ReplyMarkupInlineKeyboard(
+AddMeButton = types.InlineKeyboardMarkup(
     [
         [
             types.InlineKeyboardButton(
                 text="Add me to your group",
-                type=types.InlineKeyboardButtonTypeUrl(
-                    "https://t.me/FallenBeatzBot?startgroup=true"
-                ),
+                url="https://t.me/FallenBeatzBot?startgroup=true",
             ),
         ],
         [
             types.InlineKeyboardButton(
                 text="❄ Channel",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/FallenProjects"),
+                url="https://t.me/FallenProjects",
             ),
             types.InlineKeyboardButton(
                 text="✨ Group",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/GuardxSupport"),
+                url="https://t.me/GuardxSupport",
             ),
         ],
     ]

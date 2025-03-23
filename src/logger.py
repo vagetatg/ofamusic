@@ -12,6 +12,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 logging.getLogger("apscheduler").setLevel(logging.WARNING)
 logging.getLogger("youtube").setLevel(logging.WARNING)
+
 # logging.getLogger("ntgcalls").setLevel(logging.DEBUG)
 # logging.getLogger("pytgcalls").setLevel(logging.DEBUG)
 

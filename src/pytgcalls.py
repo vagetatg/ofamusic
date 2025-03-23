@@ -5,8 +5,7 @@ import re
 from types import NoneType
 from typing import Optional
 
-from pyrogram import Client as PyroClient, errors
-from pytdbot import Client, types
+from pyrogram import errors, Client, types
 from pytgcalls import PyTgCalls, exceptions
 from pytgcalls.types import (
     MediaStream,
@@ -86,24 +85,21 @@ class MusicBot:
 
         raise RuntimeError("No available clients to assign!")
 
-    async def get_client(self, chat_id: int) -> PyroClient:
+    async def get_client(self, chat_id: int) -> Client | None:
         """Get the Pyrogram client for a specific chat ID."""
         client_name = await self._get_client_name(chat_id)
         ub = self.calls[client_name].mtproto_client
 
         if isinstance(ub, NoneType):
-            return types.Error(code=400, message="Client not found")
+            return None
 
-        if not isinstance(ub.me, NoneType):
-            return ub
-
-        return types.Error(code=400, message="Client not found")
+        return None if isinstance(ub.me, NoneType) else ub
 
     async def start_client(
             self, api_id: int, api_hash: str, session_string: str
     ) -> None:
         client_name = f"client{self.client_counter}"
-        user_bot = PyroClient(
+        user_bot = Client(
             client_name, api_id=api_id, api_hash=api_hash, session_string=session_string
         )
         calls = PyTgCalls(user_bot, cache_duration=100)
@@ -193,10 +189,7 @@ class MusicBot:
         """Download and play a song."""
         LOGGER.info(f"Playing song for chat {chat_id}")
         try:
-            reply: types.Message = await self.bot.sendTextMessage(
-                chat_id, "⏹️ Loading... Please wait."
-            )
-
+            reply: types.Message = await self.bot.send_message(chat_id, "⏹️ Loading... Please wait.")
             file_path = song.file_path or await self.song_download(song)
             if not file_path:
                 await reply.edit_text("❌ Error downloading song. Playing next...")
@@ -206,25 +199,7 @@ class MusicBot:
             await self.play_media(chat_id, file_path)
             text = f"<b>Now playing <a href='{song.thumbnail or 'https://t.me/FallenProjects'}'>:</a></b>\n\n‣ <b>Title:</b> {song.name}\n‣<b>Duration:</b> {sec_to_min(song.duration) or await get_audio_duration(file_path)}\n‣<b>Requested by:</b> {song.user}"
             thumb = await gen_thumb(song)
-            parse = await self.bot.parseTextEntities(text, types.TextParseModeHTML())
-            if isinstance(parse, types.Error):
-                LOGGER.error(f"{parse}")
-                parse = text
-
-            input_message_content = types.InputMessagePhoto(
-                photo=types.InputFileLocal(thumb), caption=parse
-            )
-
-            reply = await self.bot.editMessageMedia(
-                chat_id=chat_id,
-                message_id=reply.id,
-                input_message_content=input_message_content,
-                reply_markup=PlayButton,
-            )
-
-            if isinstance(reply, types.Error):
-                LOGGER.warning(f"Error editing message: {reply}")
-
+            await reply.edit_media(types.InputMediaPhoto(media=thumb, caption=text), reply_markup=PlayButton)
         except Exception as e:
             LOGGER.error(f"Error playing song for chat {chat_id}: {e}")
 
@@ -257,33 +232,21 @@ class MusicBot:
                 buttons = [
                     [
                         types.InlineKeyboardButton(
-                            f"{track.name[:18]} - {track.artist}",
-                            type=types.InlineKeyboardButtonTypeCallback(
-                                f"play_{platform}_{track.id}".encode()
-                            ),
+                            text=f"{track.name[:18]} - {track.artist}",
+                            callback_data=f"play_{platform}_{track.id}",
                         )
                     ]
                     for track in recommendations.tracks
                 ]
 
-                reply = await self.bot.sendTextMessage(
+                await self.bot.send_message(
                     chat_id,
                     text="No more songs in queue. Here are some recommendations for you:\n\n",
-                    reply_markup=types.ReplyMarkupInlineKeyboard(buttons),
+                    reply_markup=types.InlineKeyboardMarkup(buttons),
                 )
-
-                if isinstance(reply, types.Error):
-                    LOGGER.warning(f"Error sending message: {reply}")
-
                 return
 
-            reply = await self.bot.sendTextMessage(
-                chat_id, text="No more songs in queue. Use /play to add some."
-            )
-
-            if isinstance(reply, types.Error):
-                LOGGER.warning(f"Error sending message: {reply}")
-
+            await self.bot.send_message(chat_id, text="No more songs in queue. Use /play to add some.")
         except Exception as e:
             LOGGER.warning(
                 f"Error handling empty queue for chat {chat_id}: {e}", exc_info=True
@@ -329,7 +292,8 @@ class MusicBot:
             raise ValueError("No song is currently playing in this chat!")
 
         file_path = curr_song.file_path
-        return await self.play_media(chat_id, file_path, ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}")
+        return await self.play_media(chat_id, file_path,
+                                     ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}")
 
     async def change_volume(self, chat_id, volume):
         """Change the volume of the current call."""
