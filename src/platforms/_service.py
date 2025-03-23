@@ -59,14 +59,17 @@ class YouTubeDownload:
                 }
             ],
             "outtmpl": str(self.output_file.with_suffix("")),
+            "geo_bypass": True,
+            "nocheckcertificate": True,
             "quiet": True,
+            "no_warnings": True,
             "http_headers": {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             },
         }
 
         if cookie_file := get_cookie_file():
-            ydl_opts["cookies"] = cookie_file
+            ydl_opts["cookiefile"] = cookie_file
 
         # Add proxy if configured
         if PROXY_URL:
