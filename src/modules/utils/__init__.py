@@ -2,7 +2,7 @@ __all__ = [
     "Filter",
     "sec_to_min",
     "get_audio_duration",
-    "PlayButton",
+    "play_button",
     "PauseButton",
     "ResumeButton",
     "SupportButton",
@@ -15,7 +15,7 @@ from mutagen import File
 from pytdbot import filters, types
 
 from src.logger import LOGGER
-from .buttons import PlayButton, PauseButton, ResumeButton, SupportButton
+from .buttons import play_button, PauseButton, ResumeButton, SupportButton
 
 
 def sec_to_min(seconds):

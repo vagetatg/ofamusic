@@ -22,7 +22,7 @@ import config
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils import sec_to_min, get_audio_duration
-from src.modules.utils.buttons import PlayButton
+from src.modules.utils.buttons import play_button, update_progress_bar
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.thumbnails import gen_thumb
 from src.platforms.dataclass import CachedTrack
@@ -75,6 +75,7 @@ class MusicBot:
                 else None
             )
 
+        # for groups
         _ub = await db.get_assistant(chat_id)
         if _ub and _ub in self.available_clients:
             return _ub
@@ -219,12 +220,14 @@ class MusicBot:
                 chat_id=chat_id,
                 message_id=reply.id,
                 input_message_content=input_message_content,
-                reply_markup=PlayButton,
+                reply_markup=play_button(0, song.duration),
             )
 
             if isinstance(reply, types.Error):
                 LOGGER.warning(f"Error editing message: {reply}")
+                return
 
+            await update_progress_bar(self.bot, reply, 3, song.duration)
         except Exception as e:
             LOGGER.error(f"Error playing song for chat {chat_id}: {e}")
 
