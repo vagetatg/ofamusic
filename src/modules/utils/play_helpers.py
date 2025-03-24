@@ -3,7 +3,7 @@ import contextlib
 from typing import Union
 
 from cachetools import TTLCache
-from pyrogram import errors, types, Client, enums
+from pyrogram import Client, enums, errors, types
 
 from src.logger import LOGGER
 
@@ -31,7 +31,7 @@ async def get_url(message_1: types.Message) -> Union[str, None]:
                     offset, length = entity.offset, entity.length
                     break
 
-    return None if offset in (None,) else text[offset: offset + length]
+    return None if offset in (None,) else text[offset : offset + length]
 
 
 def extract_argument(text: str, enforce_digit: bool = False) -> str | None:
@@ -83,7 +83,9 @@ async def edit_text(msg: types.Message, text: str, **kwargs) -> types.Message | 
 
 async def join_ub(chat_id: int, c: Client, ub: Client):
     """Handles the userbot joining a chat via invite link or approval."""
-    invite_link = chat_invite_cache.get(chat_id, (await c.get_chat(chat_id)).invite_link)
+    invite_link = chat_invite_cache.get(
+        chat_id, (await c.get_chat(chat_id)).invite_link
+    )
     if not invite_link:
         raise Exception("Invite link not found!")
 
@@ -101,7 +103,7 @@ async def join_ub(chat_id: int, c: Client, ub: Client):
     except Exception as e:
         # user_status_cache[user_key] = enums.ChatMemberStatus.BANNED
         raise Exception(
-            f"⚠️ Something went wrong while joining the chat.\nError: {str(e).replace("Telegram says", "")}"
+            f"⚠️ Something went wrong while joining the chat.\nError: {str(e).replace('Telegram says', '')}"
         ) from e
 
 
@@ -115,7 +117,9 @@ async def unban_ub(c: Client, chat_id: int, user_id: int):
         ) from e
 
 
-async def check_user_status(c: Client, chat_id: int, user_id: int) -> enums.ChatMemberStatus:
+async def check_user_status(
+    c: Client, chat_id: int, user_id: int
+) -> enums.ChatMemberStatus:
     user_key = f"{chat_id}:{user_id}"
     user_status = user_status_cache.get(user_key, None)
     if not user_status:
