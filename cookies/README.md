@@ -4,13 +4,11 @@
 
 To pass cookies effectively, use the **Netscape HTTP Cookie File** format. Follow these steps:
 
-1. **Save your cookies** in the `cookies` folder.
-
-2. **Use a browser extension** to export cookies easily:
+1. **Create a Netscape HTTP Cookie File**:
+    - **Use a browser extension** to export cookies easily:
     - [Get cookies.txt (Chrome Extension)](https://chromewebstore.google.com/detail/get-cookiestxt-clean/ahmnmhfbokciafffnknlekllgcnafnie?hl=en)
+    - [Get cookies.txt (Firefox Extension)](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
 
-3. **yt-dlp's FAQ**:
-    - Refer to [yt-dlp's FAQ](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp) for detailed
-      steps.
-    - For YouTube-specific instructions,
-      check [Exporting YouTube Cookies](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies).
+2. **Upload the Cookie File to [BatBin](https://batbin.me)**:
+   - Open [BatBin](https://batbin.me) and upload the cookie file.
+   - Copy the URL and paste it into the **COOKIES_URL** environment variable.
