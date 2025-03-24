@@ -332,7 +332,8 @@ class MusicBot:
             raise ValueError("No song is currently playing in this chat!")
 
         file_path = curr_song.file_path
-        return await self.play_media(chat_id, file_path, ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}")
+        return await self.play_media(chat_id, file_path,
+                                     ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}")
 
     async def change_volume(self, chat_id, volume):
         """Change the volume of the current call."""

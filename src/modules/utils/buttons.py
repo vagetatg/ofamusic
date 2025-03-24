@@ -66,14 +66,16 @@ async def update_progress_bar(
     update_interval = total_seconds // 15 if total_seconds > 150 else 6
     max_errors = 3
 
-    while current_seconds <= total_seconds and not not await chat_cache.is_active(chat_id):
+    while current_seconds <= total_seconds and await chat_cache.is_active(
+        chat_id
+    ):
         keyboard = play_button(current_seconds, total_seconds)
         edit = await client.editMessageReplyMarkup(
             chat_id,
             message_id,
             reply_markup=keyboard
         )
-    
+
         if isinstance(edit, types.Error):
             error_count += 1
             LOGGER.error(f"Error updating progress bar: {edit}")
@@ -81,7 +83,7 @@ async def update_progress_bar(
                 LOGGER.warning(f"Max errors ({max_errors}) reached, stopping updates")
                 break
             continue
-    
+
         error_count = 0  # Reset on successful update
         await asyncio.sleep(update_interval)
         current_seconds += update_interval

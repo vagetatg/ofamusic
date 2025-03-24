@@ -1,9 +1,11 @@
 import asyncio
-import uuid
-import aiohttp
-import aiofiles
 import os
+import uuid
 from urllib.parse import urlparse
+
+import aiofiles
+import aiohttp
+
 from src.logger import LOGGER
 
 
