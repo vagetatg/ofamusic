@@ -1,5 +1,3 @@
-import os
-
 from pytdbot import Client, types
 
 import config
@@ -8,6 +6,7 @@ from src.modules.jobs import InactiveCallManager
 from src.pytgcalls import call, start_clients
 
 __version__ = "1.0.0"
+
 
 class Telegram(Client):
     def __init__(self) -> None:
@@ -48,5 +47,6 @@ class Telegram(Client):
         session_strings = [s for s in config.SESSION_STRINGS if s]
         if not session_strings:
             raise ValueError("No STRING session provided\n\nAdd STRING session in .env")
+
 
 client = Telegram()

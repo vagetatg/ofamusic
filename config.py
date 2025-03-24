@@ -50,6 +50,7 @@ PROXY_URL = getenv("PROXY_URL", None)
 DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")
 YOUTUBE_IMG_URL = "https://te.legra.ph/file/6298d377ad3eb46711644.jpg"
 
+
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
     """Parse COOKIES_URL environment variable"""
     if not env_value:
@@ -61,5 +62,6 @@ def process_cookie_urls(env_value: Optional[str]) -> list[str]:
         urls.extend(part.split())
 
     return [url.strip() for url in urls if url.strip()]
+
 
 COOKIES_URL: list[str] = process_cookie_urls(getenv("COOKIES_URL"))

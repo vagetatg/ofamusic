@@ -10,5 +10,5 @@ To pass cookies effectively, use the **Netscape HTTP Cookie File** format. Follo
     - [Get cookies.txt (Firefox Extension)](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
 
 2. **Upload the Cookie File to [BatBin](https://batbin.me)**:
-   - Open [BatBin](https://batbin.me) and upload the cookie file.
-   - Copy the URL and paste it into the **COOKIES_URL** environment variable.
+    - Open [BatBin](https://batbin.me) and upload the cookie file.
+    - Copy the URL and paste it into the **COOKIES_URL** environment variable.

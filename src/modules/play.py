@@ -24,7 +24,6 @@ from src.modules.utils.play_helpers import (
     check_user_status,
     del_msg,
 )
-
 from src.modules.utils.thumbnails import gen_thumb
 from src.platforms.dataclass import CachedTrack, MusicTrack, PlatformTracks
 from src.platforms.downloader import MusicServiceWrapper
@@ -81,6 +80,7 @@ async def update_message_with_thumbnail(
         reply_msg = await edit_text(msg, text=str(reply_msg), reply_markup=button)
 
     return reply_msg
+
 
 def format_now_playing(song: CachedTrack) -> str:
     """Format the 'Now Playing' message."""
@@ -155,7 +155,8 @@ async def play_music(
 
         await chat_cache.add_song(chat_id, song)
         thumb = await gen_thumb(song)
-        reply =await update_message_with_thumbnail(c, msg, format_now_playing(song), thumb, play_button(0, song.duration))
+        reply = await update_message_with_thumbnail(c, msg, format_now_playing(song), thumb,
+                                                    play_button(0, song.duration))
         if isinstance(reply, types.Error):
             LOGGER.warning(f"Error editing message: {reply}")
             return
