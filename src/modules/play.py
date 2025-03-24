@@ -1,16 +1,18 @@
 from types import NoneType
 
 from pyrogram import Client, types, filters, enums
+from pyrogram.types import Message
 
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils import (
     SupportButton,
     get_audio_duration,
-    PlayButton,
+    play_button,
     sec_to_min,
 )
 from src.modules.utils.admins import load_admin_cache, is_admin
+from src.modules.utils.buttons import update_progress_bar
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.play_helpers import (
     get_url,
@@ -42,12 +44,12 @@ def _get_platform_url(platform: str, track_id: str) -> str:
         return ""
 
 
-async def update_message_with_thumbnail(msg: types.Message, text: str, thumbnail: str) -> None:
+async def update_message_with_thumbnail(msg: types.Message, text: str, thumbnail: str, button: types.InlineKeyboardMarkup) -> Message | None:
     """Update a message with a thumbnail and text."""
     if not thumbnail:
-        return await edit_text(msg, text=text, reply_markup=PlayButton)
+        return await edit_text(msg, text=text, reply_markup=button)
 
-    await msg.edit_media(media=types.InputMediaPhoto(thumbnail, caption=text), reply_markup=PlayButton)
+    return await msg.edit_media(media=types.InputMediaPhoto(thumbnail, caption=text), reply_markup=button)
 
 
 def format_now_playing(song: CachedTrack) -> str:
@@ -109,7 +111,7 @@ async def play_music(
                 f"‣ <b>Requested by:</b> {song.user}"
             )
             thumb = await gen_thumb(song)
-            return await update_message_with_thumbnail(msg, text, thumb)
+            return await update_message_with_thumbnail(msg, text, thumb, play_button(0, 0))
 
         try:
             await call.play_media(chat_id, song.file_path)
@@ -121,9 +123,9 @@ async def play_music(
 
         await chat_cache.add_song(chat_id, song)
         thumb = await gen_thumb(song)
-        return await update_message_with_thumbnail(
-            msg, format_now_playing(song), thumb
-        )
+        reply = await update_message_with_thumbnail(msg, format_now_playing(song), thumb, play_button(0, song.duration))
+        await update_progress_bar(reply, 3, song.duration)
+        return
 
     # Handle multiple tracks (queueing playlist/album)
     text = "<b>➻ Added to Queue:</b>\n<blockquote expandable>\n"
@@ -165,7 +167,9 @@ async def play_music(
             f"<b>👤 Requested by:</b> {user_by}"
         )
 
-    await edit_text(msg, text, reply_markup=PlayButton)
+    curr_song = await chat_cache.get_current_song(chat_id)
+    reply = await edit_text(msg, text, reply_markup=play_button(0, curr_song.duration))
+    await update_progress_bar(reply, 3, curr_song.duration)
     return
 
 

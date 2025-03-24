@@ -15,4 +15,4 @@ pydantic==2.11.0b2
 PyTgCrypto~=1.2.9.2
 python-dotenv~=1.0.1
 pytz~=2025.1
-yt-dlp~=2025.2.19
+yt-dlp~=2025.3.21

@@ -24,12 +24,12 @@ class Telegram(Client):
         self.db = db
 
     async def start(self, use_qr=False, except_ids=None) -> None:
-        await super().start(use_qr, except_ids)
         await self.db.ping()
         await start_clients()
         await call.add_bot(self)
         await call.register_decorators()
         await self.call_manager.start_scheduler()
+        await super().start(use_qr, except_ids)
 
     async def stop(self, block=True) -> None:
         await self.db.close()

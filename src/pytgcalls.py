@@ -21,7 +21,7 @@ import config
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils import sec_to_min, get_audio_duration
-from src.modules.utils.buttons import PlayButton
+from src.modules.utils.buttons import play_button, update_progress_bar
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.thumbnails import gen_thumb
 from src.platforms.dataclass import CachedTrack
@@ -199,7 +199,8 @@ class MusicBot:
             await self.play_media(chat_id, file_path)
             text = f"<b>Now playing <a href='{song.thumbnail or 'https://t.me/FallenProjects'}'>:</a></b>\n\n‣ <b>Title:</b> {song.name}\n‣<b>Duration:</b> {sec_to_min(song.duration) or await get_audio_duration(file_path)}\n‣<b>Requested by:</b> {song.user}"
             thumb = await gen_thumb(song)
-            await reply.edit_media(types.InputMediaPhoto(media=thumb, caption=text), reply_markup=PlayButton)
+            reply = await reply.edit_media(types.InputMediaPhoto(media=thumb, caption=text), reply_markup=play_button(0, song.duration))
+            await update_progress_bar(reply, 3, song.duration)
         except Exception as e:
             LOGGER.error(f"Error playing song for chat {chat_id}: {e}")
 
