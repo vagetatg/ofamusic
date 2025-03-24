@@ -43,8 +43,6 @@ class Telegram(Client):
 
     @staticmethod
     def _check_config() -> None:
-        if os.path.exists("database"):
-            os.remove("database")
         if not isinstance(config.MONGO_URI, str):
             raise TypeError("MONGO_URI must be a string")
         session_strings = [s for s in config.SESSION_STRINGS if s]
