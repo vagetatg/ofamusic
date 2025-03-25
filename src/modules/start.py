@@ -7,7 +7,11 @@ from src.database import db
 from src.modules.utils import sec_to_min
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import AddMeButton
-from src.modules.utils.play_helpers import check_user_status, chat_invite_cache, user_status_cache
+from src.modules.utils.play_helpers import (
+    check_user_status,
+    chat_invite_cache,
+    user_status_cache,
+)
 from src.pytgcalls import call
 
 
@@ -151,7 +155,9 @@ async def reload_cmd(c: Client, message: types.Message):
         f"<b>» Reloaded by:</b> {message.from_user.mention}"
     )
 
-    await reply.edit_text(text, )
+    await reply.edit_text(
+        text,
+    )
     return
 
 

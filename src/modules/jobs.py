@@ -19,9 +19,7 @@ class InactiveCallManager:
         async with semaphore:
             vc_users = await call.vc_users(chat_id)
             if len(vc_users) > 1:
-                LOGGER.debug(
-                    f"Active users detected in chat {chat_id}. Skipping..."
-                )
+                LOGGER.debug(f"Active users detected in chat {chat_id}. Skipping...")
                 return
 
             # Check if the call has been active for more than 20 seconds
@@ -54,7 +52,7 @@ class InactiveCallManager:
 
         # Process tasks in batches of 3 with a 1-second delay between batches
         for i in range(0, len(tasks), 3):
-            await asyncio.gather(*tasks[i: i + 3])
+            await asyncio.gather(*tasks[i : i + 3])
             await asyncio.sleep(1)
 
         LOGGER.debug("Inactive call checks completed.")

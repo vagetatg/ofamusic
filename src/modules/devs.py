@@ -30,7 +30,7 @@ from src.pytgcalls import call
 
 
 def format_exception(
-        exp: BaseException, tb: Optional[List[traceback.FrameSummary]] = None
+    exp: BaseException, tb: Optional[List[traceback.FrameSummary]] = None
 ) -> str:
     """Formats an exception traceback as a string, similar to the Python interpreter."""
 
@@ -163,7 +163,9 @@ async def broadcast(_, message: types.Message):
                     await reply_message.copy(target_id)
                 sent += 1
             except errors.FloodWait as e:
-                LOGGER.warning(f"FloodWait detected for {target_id}, waiting {e.value}s")
+                LOGGER.warning(
+                    f"FloodWait detected for {target_id}, waiting {e.value}s"
+                )
                 await asyncio.sleep(e.value + 1)
                 async with _semaphore:
                     await reply_message.copy(target_id)
@@ -218,7 +220,9 @@ async def leave_cmd(client, message: types.Message):
 @Client.on_message(filters.command("ping") & filters.user(OWNER_ID))
 async def ping_cmd(_, message: types.Message):
     chat_id = 1 if message.chat.type == ChatType.PRIVATE else message.chat.id
-    reply = await message.reply_text("🔎 Pinging...", disable_notification=True, disable_web_page_preview=True)
+    reply = await message.reply_text(
+        "🔎 Pinging...", disable_notification=True, disable_web_page_preview=True
+    )
     try:
         ping, cpu_usage = await call.stats_call(chat_id=chat_id)
         memory_info = psutil.virtual_memory()
@@ -273,9 +277,9 @@ async def sys_stats(client, message: types.Message):
         cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
 
     hdd = psutil.disk_usage("/")
-    total = hdd.total / (1024.0 ** 3)
-    used = hdd.used / (1024.0 ** 3)
-    free = hdd.free / (1024.0 ** 3)
+    total = hdd.total / (1024.0**3)
+    used = hdd.used / (1024.0**3)
+    free = hdd.free / (1024.0**3)
     platform_release = platform.release()
     platform_version = platform.version()
     chats = len(await db.get_all_chats())

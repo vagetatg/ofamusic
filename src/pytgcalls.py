@@ -96,7 +96,7 @@ class MusicBot:
         return None if isinstance(ub.me, NoneType) else ub
 
     async def start_client(
-            self, api_id: int, api_hash: str, session_string: str
+        self, api_id: int, api_hash: str, session_string: str
     ) -> None:
         client_name = f"client{self.client_counter}"
         user_bot = Client(
@@ -122,9 +122,9 @@ class MusicBot:
                 elif isinstance(update, UpdatedGroupCallParticipant):
                     return
                 elif (
-                        isinstance(update, ChatUpdate)
-                        and update.status.KICKED
-                        or update.status.LEFT_GROUP
+                    isinstance(update, ChatUpdate)
+                    and update.status.KICKED
+                    or update.status.LEFT_GROUP
                 ):
                     await chat_cache.clear_chat(update.chat_id)
                     return
@@ -132,11 +132,11 @@ class MusicBot:
                 return
 
     async def play_media(
-            self,
-            chat_id: int,
-            file_path: str,
-            video: bool = False,
-            ffmpeg_parameters: Optional[str] = None,
+        self,
+        chat_id: int,
+        file_path: str,
+        video: bool = False,
+        ffmpeg_parameters: Optional[str] = None,
     ):
         """Play media on a specific client."""
         LOGGER.info(f"Playing media for chat {chat_id}: {file_path}")
@@ -189,7 +189,9 @@ class MusicBot:
         """Download and play a song."""
         LOGGER.info(f"Playing song for chat {chat_id}")
         try:
-            reply: types.Message = await self.bot.send_message(chat_id, "⏹️ Loading... Please wait.")
+            reply: types.Message = await self.bot.send_message(
+                chat_id, "⏹️ Loading... Please wait."
+            )
             file_path = song.file_path or await self.song_download(song)
             if not file_path:
                 await reply.edit_text("❌ Error downloading song. Playing next...")
@@ -199,7 +201,10 @@ class MusicBot:
             await self.play_media(chat_id, file_path)
             text = f"<b>Now playing <a href='{song.thumbnail or 'https://t.me/FallenProjects'}'>:</a></b>\n\n‣ <b>Title:</b> {song.name}\n‣<b>Duration:</b> {sec_to_min(song.duration) or await get_audio_duration(file_path)}\n‣<b>Requested by:</b> {song.user}"
             thumb = await gen_thumb(song)
-            reply = await reply.edit_media(types.InputMediaPhoto(media=thumb, caption=text), reply_markup=play_button(0, song.duration))
+            reply = await reply.edit_media(
+                types.InputMediaPhoto(media=thumb, caption=text),
+                reply_markup=play_button(0, song.duration),
+            )
             await update_progress_bar(reply, 3, song.duration)
         except Exception as e:
             LOGGER.error(f"Error playing song for chat {chat_id}: {e}")
@@ -247,7 +252,9 @@ class MusicBot:
                 )
                 return
 
-            await self.bot.send_message(chat_id, text="No more songs in queue. Use /play to add some.")
+            await self.bot.send_message(
+                chat_id, text="No more songs in queue. Use /play to add some."
+            )
         except Exception as e:
             LOGGER.warning(
                 f"Error handling empty queue for chat {chat_id}: {e}", exc_info=True
@@ -293,8 +300,11 @@ class MusicBot:
             raise ValueError("No song is currently playing in this chat!")
 
         file_path = curr_song.file_path
-        return await self.play_media(chat_id, file_path,
-                                     ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}")
+        return await self.play_media(
+            chat_id,
+            file_path,
+            ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}",
+        )
 
     async def change_volume(self, chat_id, volume):
         """Change the volume of the current call."""

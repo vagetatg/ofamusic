@@ -44,12 +44,16 @@ def _get_platform_url(platform: str, track_id: str) -> str:
         return ""
 
 
-async def update_message_with_thumbnail(msg: types.Message, text: str, thumbnail: str, button: types.InlineKeyboardMarkup) -> Message | None:
+async def update_message_with_thumbnail(
+    msg: types.Message, text: str, thumbnail: str, button: types.InlineKeyboardMarkup
+) -> Message | None:
     """Update a message with a thumbnail and text."""
     if not thumbnail:
         return await edit_text(msg, text=text, reply_markup=button)
 
-    return await msg.edit_media(media=types.InputMediaPhoto(thumbnail, caption=text), reply_markup=button)
+    return await msg.edit_media(
+        media=types.InputMediaPhoto(thumbnail, caption=text), reply_markup=button
+    )
 
 
 def format_now_playing(song: CachedTrack) -> str:
@@ -63,10 +67,10 @@ def format_now_playing(song: CachedTrack) -> str:
 
 
 async def play_music(
-        msg: types.Message,
-        url_data: PlatformTracks,
-        user_by: str,
-        tg_file_path: str = None,
+    msg: types.Message,
+    url_data: PlatformTracks,
+    user_by: str,
+    tg_file_path: str = None,
 ) -> None:
     """Handle playing music from a given URL or file."""
     if not url_data:
@@ -111,7 +115,9 @@ async def play_music(
                 f"‣ <b>Requested by:</b> {song.user}"
             )
             thumb = await gen_thumb(song)
-            return await update_message_with_thumbnail(msg, text, thumb, play_button(0, 0))
+            return await update_message_with_thumbnail(
+                msg, text, thumb, play_button(0, 0)
+            )
 
         try:
             await call.play_media(chat_id, song.file_path)
@@ -123,7 +129,9 @@ async def play_music(
 
         await chat_cache.add_song(chat_id, song)
         thumb = await gen_thumb(song)
-        reply = await update_message_with_thumbnail(msg, format_now_playing(song), thumb, play_button(0, song.duration))
+        reply = await update_message_with_thumbnail(
+            msg, format_now_playing(song), thumb, play_button(0, song.duration)
+        )
         await update_progress_bar(reply, 3, song.duration)
         return
 
@@ -213,7 +221,9 @@ async def play_audio(c: Client, msg: types.Message) -> None:
 
     # Check user status and handle bans/restrictions
     user_key = f"{chat_id}:{assistant_id}"
-    user_status = user_status_cache.get(user_key) or await check_user_status(c, chat_id, assistant_id)
+    user_status = user_status_cache.get(user_key) or await check_user_status(
+        c, chat_id, assistant_id
+    )
 
     if user_status in {
         enums.ChatMemberStatus.BANNED,
@@ -223,7 +233,7 @@ async def play_audio(c: Client, msg: types.Message) -> None:
         try:
             if user_status == enums.ChatMemberStatus.BANNED:
                 await unban_ub(c, chat_id, assistant_id)
-            await join_ub(chat_id, c, ub)
+            await join_ub(c, ub,chat_id)
         except Exception as e:
             LOGGER.error(f"Error joining userbot: {e}")
             return await edit_text(reply_message, f"⚠️ Error joining userbot: {e}")
@@ -285,9 +295,11 @@ async def play_audio(c: Client, msg: types.Message) -> None:
         if wrapper.is_valid(url):
             _song = await wrapper.get_info()
             if not _song:
-                return await edit_text(reply_message,
-                                       text="❌ Unable to retrieve song info.\n\nPlease report this issue if you think it's a bug.",
-                                       reply_markup=SupportButton)
+                return await edit_text(
+                    reply_message,
+                    text="❌ Unable to retrieve song info.\n\nPlease report this issue if you think it's a bug.",
+                    reply_markup=SupportButton,
+                )
 
             return await play_music(reply_message, _song, user_by)
 

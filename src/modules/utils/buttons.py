@@ -1,5 +1,5 @@
 import asyncio
-from pyrogram import Client, types
+from pyrogram import types
 from src.logger import LOGGER
 from src.modules.utils.cacher import chat_cache
 
@@ -8,26 +8,32 @@ def play_button(current_seconds: int, total_seconds: int) -> types.InlineKeyboar
     if total_seconds == 0:
         button_text = " 🎵 Playing"
     else:
-        progress = round((current_seconds / total_seconds) * 10) if total_seconds > 0 else 0
+        progress = (
+            round((current_seconds / total_seconds) * 10) if total_seconds > 0 else 0
+        )
         bar = ["—"] * 10
         bar[min(progress, 9)] = "◉"
         progress_bar_text = "".join(bar)
         button_text = f"{current_seconds // 60}:{current_seconds % 60} {progress_bar_text} {total_seconds // 60}:{total_seconds % 60}"
 
-    return types.InlineKeyboardMarkup([
-        [types.InlineKeyboardButton(button_text, callback_data="timer")],
+    return types.InlineKeyboardMarkup(
         [
-            types.InlineKeyboardButton("▶️ Skip", callback_data="play_skip"),
-            types.InlineKeyboardButton("⏹️ End", callback_data="play_stop"),
-        ],
-        [
-            types.InlineKeyboardButton("⏸️ Pause", callback_data="play_pause"),
-            types.InlineKeyboardButton("⏯️ Resume", callback_data="play_resume"),
-        ],
-    ])
+            [types.InlineKeyboardButton(button_text, callback_data="timer")],
+            [
+                types.InlineKeyboardButton("▶️ Skip", callback_data="play_skip"),
+                types.InlineKeyboardButton("⏹️ End", callback_data="play_stop"),
+            ],
+            [
+                types.InlineKeyboardButton("⏸️ Pause", callback_data="play_pause"),
+                types.InlineKeyboardButton("⏯️ Resume", callback_data="play_resume"),
+            ],
+        ]
+    )
 
 
-async def update_progress_bar(message: types.Message, current_seconds: int, total_seconds: int) -> None:
+async def update_progress_bar(
+    message: types.Message, current_seconds: int, total_seconds: int
+) -> None:
     """Updates the progress bar in the message at regular intervals."""
     if not message:
         return
@@ -51,15 +57,12 @@ async def update_progress_bar(message: types.Message, current_seconds: int, tota
         await asyncio.sleep(update_interval)
         current_seconds += update_interval
 
+
 PauseButton = types.InlineKeyboardMarkup(
     [
         [
-            types.InlineKeyboardButton(
-                text="▶️ Skip", callback_data="play_skip"
-            ),
-            types.InlineKeyboardButton(
-                text="⏹️ End", callback_data="play_stop"
-            ),
+            types.InlineKeyboardButton(text="▶️ Skip", callback_data="play_skip"),
+            types.InlineKeyboardButton(text="⏹️ End", callback_data="play_stop"),
         ],
         [
             types.InlineKeyboardButton(
@@ -73,12 +76,8 @@ PauseButton = types.InlineKeyboardMarkup(
 ResumeButton = types.InlineKeyboardMarkup(
     [
         [
-            types.InlineKeyboardButton(
-                text="▶️ Skip", callback_data="play_skip"
-            ),
-            types.InlineKeyboardButton(
-                text="⏹️ End", callback_data="play_stop"
-            ),
+            types.InlineKeyboardButton(text="▶️ Skip", callback_data="play_skip"),
+            types.InlineKeyboardButton(text="⏹️ End", callback_data="play_stop"),
         ],
         [
             types.InlineKeyboardButton(

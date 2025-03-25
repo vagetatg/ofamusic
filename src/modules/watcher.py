@@ -52,7 +52,11 @@ async def handle_member_update(client: Client, member: ChatMemberUpdated):
     chat = member.chat
     new_status = member.new_chat_member.status if member.new_chat_member else None
     old_status = member.old_chat_member.status if member.old_chat_member else None
-    user = member.new_chat_member.user if member.new_chat_member else member.old_chat_member.user
+    user = (
+        member.new_chat_member.user
+        if member.new_chat_member
+        else member.old_chat_member.user
+    )
 
     if chat.type != ChatType.SUPERGROUP:
         await handle_non_supergroup(client, chat)
@@ -64,11 +68,19 @@ async def handle_member_update(client: Client, member: ChatMemberUpdated):
         return
 
     # Handle user joins
-    if new_status and new_status not in {Cms.RESTRICTED, Cms.BANNED} and old_status is None:
+    if (
+        new_status
+        and new_status not in {Cms.RESTRICTED, Cms.BANNED}
+        and old_status is None
+    ):
         await handle_user_join(client, ub, chat, user)
 
     # Handle user leaves
-    elif old_status and old_status not in {Cms.BANNED, Cms.RESTRICTED} and new_status is None:
+    elif (
+        old_status
+        and old_status not in {Cms.BANNED, Cms.RESTRICTED}
+        and new_status is None
+    ):
         await handle_user_leave(client, ub, chat, user)
 
     # Handle promotions/demotions
@@ -109,13 +121,23 @@ async def handle_user_leave(client: Client, ub: Client, chat, user):
         return
 
 
-async def handle_promotion_or_demotion(client: Client, chat, user, old_status, new_status):
+async def handle_promotion_or_demotion(
+    client: Client, chat, user, old_status, new_status
+):
     """Handles admin promotions and demotions."""
-    is_promoted = new_status in {Cms.ADMINISTRATOR, Cms.OWNER} and old_status not in {Cms.ADMINISTRATOR, Cms.OWNER}
-    is_demoted = old_status in {Cms.ADMINISTRATOR, Cms.OWNER} and new_status not in {Cms.ADMINISTRATOR, Cms.OWNER}
+    is_promoted = new_status in {Cms.ADMINISTRATOR, Cms.OWNER} and old_status not in {
+        Cms.ADMINISTRATOR,
+        Cms.OWNER,
+    }
+    is_demoted = old_status in {Cms.ADMINISTRATOR, Cms.OWNER} and new_status not in {
+        Cms.ADMINISTRATOR,
+        Cms.OWNER,
+    }
 
     if is_promoted or is_demoted:
-        LOGGER.info(f"User {user.id} was {'promoted' if is_promoted else 'demoted'} in {chat.id}.")
+        LOGGER.info(
+            f"User {user.id} was {'promoted' if is_promoted else 'demoted'} in {chat.id}."
+        )
         try:
             await load_admin_cache(client, chat.id, True)
         except Exception as e:

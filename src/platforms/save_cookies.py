@@ -29,7 +29,11 @@ async def fetch_content(session: aiohttp.ClientSession, url: str) -> str | None:
 async def save_bin_content(session: aiohttp.ClientSession, url: str) -> str | None:
     """Downloads content from BatBin and saves it as a .txt file."""
     parsed = urlparse(url)
-    filename = (parsed.path.strip("/").split('/')[-1] or str(uuid.uuid4()).split("-")[0]).split("?")[0].split("#")[0]
+    filename = (
+        (parsed.path.strip("/").split("/")[-1] or str(uuid.uuid4()).split("-")[0])
+        .split("?")[0]
+        .split("#")[0]
+    )
     filename += ".txt"
     filepath = os.path.join("cookies", filename)
 

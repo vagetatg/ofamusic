@@ -58,9 +58,10 @@ def process_cookie_urls(env_value: Optional[str]) -> list[str]:
 
     # Support both comma-separated and space-separated URLs
     urls = []
-    for part in env_value.split(','):
+    for part in env_value.split(","):
         urls.extend(part.split())
 
     return [url.strip() for url in urls if url.strip()]
+
 
 COOKIES_URL: list[str] = process_cookie_urls(getenv("COOKIES_URL"))

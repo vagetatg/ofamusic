@@ -34,7 +34,7 @@ class HttpxClient:
         """
         try:
             async with self.session.stream(
-                    "GET", url, timeout=self.download_timeout
+                "GET", url, timeout=self.download_timeout
             ) as response:
                 response.raise_for_status()
                 async with aiofiles.open(filename, "wb") as f:
@@ -53,7 +53,7 @@ class HttpxClient:
         return None
 
     async def make_request(
-            self, url: str, max_retries: int = 3, backoff_factor: float = 1.0
+        self, url: str, max_retries: int = 3, backoff_factor: float = 1.0
     ) -> Optional[Dict[str, Any]]:
         """
         Make an HTTP GET request with retries and exponential backoff.
@@ -87,7 +87,7 @@ class HttpxClient:
                 return None
 
             # Exponential backoff
-            await asyncio.sleep(backoff_factor * (2 ** attempt))
+            await asyncio.sleep(backoff_factor * (2**attempt))
 
         return None
 
