@@ -1,3 +1,9 @@
+#  Copyright (c) 2025 AshokShau.
+#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
+#  All rights reserved where applicable.
+#
+#
+
 from pytdbot import Client, types
 
 from src.database import db
@@ -51,8 +57,8 @@ async def chat_member(client: Client, update: types.UpdateChatMember):
 
     # User Left (Left or Kicked)
     if (
-            old_status in {"chatMemberStatusMember", "chatMemberStatusAdministrator"}
-            and new_status == "chatMemberStatusLeft"
+        old_status in {"chatMemberStatusMember", "chatMemberStatusAdministrator"}
+        and new_status == "chatMemberStatusLeft"
     ):
         LOGGER.info(f"User {user_id} left or was kicked from {chat_id}.")
         return
@@ -68,8 +74,8 @@ async def chat_member(client: Client, update: types.UpdateChatMember):
         return
 
     is_promoted = (
-            old_status != "chatMemberStatusAdministrator"
-            and new_status == "chatMemberStatusAdministrator"
+        old_status != "chatMemberStatusAdministrator"
+        and new_status == "chatMemberStatusAdministrator"
     )
     # Bot Promoted
     if user_id == client.options["my_id"] and is_promoted:
@@ -85,8 +91,8 @@ async def chat_member(client: Client, update: types.UpdateChatMember):
 
     # User Demoted
     is_demoted = (
-            old_status == "chatMemberStatusAdministrator"
-            and new_status != "chatMemberStatusAdministrator"
+        old_status == "chatMemberStatusAdministrator"
+        and new_status != "chatMemberStatusAdministrator"
     )
     if is_demoted:
         LOGGER.info(f"User {user_id} was demoted in {chat_id}.")

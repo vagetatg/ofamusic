@@ -1,3 +1,9 @@
+#  Copyright (c) 2025 AshokShau.
+#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
+#  All rights reserved where applicable.
+#
+#
+
 import asyncio
 import os
 import random
@@ -12,8 +18,8 @@ from yt_dlp import YoutubeDL, utils
 
 from config import DOWNLOADS_DIR, PROXY_URL
 from src.logger import LOGGER
-from src.platforms._httpx import HttpxClient
-from src.platforms.dataclass import TrackInfo
+from ._httpx import HttpxClient
+from .dataclass import TrackInfo
 
 
 async def get_cookie_file():
