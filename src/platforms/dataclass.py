@@ -33,7 +33,7 @@ class MusicTrack(BaseModel):
     year: int
     cover: str
     duration: int
-    platform: str = "spotify"
+    platform: str
 
 
 class PlatformTracks(BaseModel):

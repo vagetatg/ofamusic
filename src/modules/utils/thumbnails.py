@@ -43,6 +43,16 @@ def resize_youtube_thumbnail(img: Image.Image) -> Image.Image:
     return img.crop((left, top, right, bottom))
 
 
+def resize_jiosaavn_thumbnail(img: Image.Image) -> Image.Image:
+    """
+    Resize a JioSaavn thumbnail from 500x500 to 600x600.
+    It upscales the image while preserving quality.
+    """
+    target_size = 600
+    img = img.resize((target_size, target_size), Image.Resampling.LANCZOS)
+    return img
+
+
 async def fetch_image(url: str) -> Image.Image | None:
     if not url:
         return None
@@ -52,9 +62,10 @@ async def fetch_image(url: str) -> Image.Image | None:
             response = await client.get(url, timeout=5)
             response.raise_for_status()
             img = Image.open(BytesIO(response.content)).convert("RGBA")
-
             if url.startswith("https://i.ytimg.com"):
                 img = resize_youtube_thumbnail(img)
+            elif url.startswith("http://c.saavncdn.com"):
+                img = resize_jiosaavn_thumbnail(img)
 
             return img
         except Exception as e:

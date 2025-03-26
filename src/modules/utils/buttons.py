@@ -21,7 +21,7 @@ def play_button(current_seconds: int, total_seconds: int) -> types.ReplyMarkupIn
             [
                 types.InlineKeyboardButton(
                     text=button_text,
-                    type=types.InlineKeyboardButtonTypeCallback(b"timer"),
+                    type=types.InlineKeyboardButtonTypeCallback(b"play_timer"),
                 ),
             ],
             [
@@ -47,47 +47,61 @@ def play_button(current_seconds: int, total_seconds: int) -> types.ReplyMarkupIn
 
 
 async def update_progress_bar(
-        client: Client,
-        message: types.Message,
-        current_seconds: int,
-        total_seconds: int,
+    client: Client,
+    message: types.Message,
+    current_seconds: int,
+    total_seconds: int,
 ) -> None:
-    """Updates the progress bar in the message at regular intervals.
+    """Update the progress bar in the message
 
     Args:
-        client: The PyTd Client
+        client: The PyTdBot Client
         message: The message to update
         current_seconds: Current playback position in seconds
         total_seconds: Total duration in seconds
     """
+
     message_id = message.id
     chat_id = message.chat_id
     error_count = 0
-    update_interval = total_seconds // 15 if total_seconds > 150 else 6
     max_errors = 3
 
-    while current_seconds <= total_seconds and await chat_cache.is_active(
-        chat_id
-    ):
+    update_intervals = total_seconds // 15 if total_seconds > 150 else 6
+
+    while current_seconds <= total_seconds:
+        if not await chat_cache.is_active(chat_id):
+            LOGGER.debug(f"Playback stopped in {chat_id}, stopping progress updates.")
+            break
+
         keyboard = play_button(current_seconds, total_seconds)
-        edit = await client.editMessageReplyMarkup(
-            chat_id,
-            message_id,
-            reply_markup=keyboard
-        )
+        try:
+            edit = await client.editMessageReplyMarkup(
+                chat_id, message_id, reply_markup=keyboard
+            )
 
-        if isinstance(edit, types.Error):
-            error_count += 1
-            LOGGER.error(f"Error updating progress bar: {edit}")
-            if error_count >= max_errors:
-                LOGGER.warning(f"Max errors ({max_errors}) reached, stopping updates")
-                break
-            continue
+            if isinstance(edit, types.Error):
+                if edit.code == 400:  # Message deleted
+                    LOGGER.debug(f"Message {message_id} deleted, stopping updates.")
+                    break
+                if edit.code == 429:
+                    LOGGER.debug("Rate limit reached, stopping updates.")
+                    break
+                error_count += 1
+                LOGGER.error(f"Error updating progress bar: {edit}")
+                if error_count >= max_errors:
+                    LOGGER.warning("Max errors reached, stopping updates.")
+                    break
+                await asyncio.sleep(2**error_count)
+                continue
 
-        error_count = 0  # Reset on successful update
-        await asyncio.sleep(update_interval)
-        current_seconds += update_interval
+            error_count = 0
 
+        except Exception as e:
+            LOGGER.warning(f"Unexpected error updating progress bar: {e}")
+            break
+
+        await asyncio.sleep(update_intervals)
+        current_seconds = min(current_seconds + update_intervals, total_seconds)
 
 PauseButton = types.ReplyMarkupInlineKeyboard(
     [
