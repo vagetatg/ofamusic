@@ -130,10 +130,7 @@ class JiosaavnData(MusicService):
         try:
             with yt_dlp.YoutubeDL(self._ydl_opts) as ydl:
                 info = await asyncio.to_thread(ydl.extract_info, url, download=False)
-                if not info:
-                    return None
-
-                return {"results": [self.format_track(info)]}
+                return {"results": [self.format_track(info)]} if info else None
         except Exception as e:
             LOGGER.error(f"Error getting track data from {url}: {str(e)}")
             return None

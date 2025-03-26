@@ -243,26 +243,24 @@ class MusicBot:
         _platform = song.platform
 
         if _platform == "telegram":
-            return None  # Telegram files are already downloaded
+            pass
         elif _platform == "youtube":
             youtube = YouTubeData(_track_id)
             if track := await youtube.get_track():
                 return await youtube.download_track(track)
-            return None
         elif _platform == "spotify":
             spotify = SpotifyData(_track_id)
             if track := await spotify.get_track():
                 return await spotify.download_track(track)
-            return None
         elif _platform == "jiosaavn":
             _id = f"{song.name}/{song.track_id}"
             jiosaavn = JiosaavnData(_id)
             if track := await jiosaavn.get_track():
                 return await jiosaavn.download_track(track)
-            return None
         else:
             LOGGER.warning(f"Unknown platform: {_platform}")
-            return None
+
+        return None  # Telegram files are already downloaded
 
     async def _handle_no_songs(self, chat_id: int) -> None:
         """Handle the case when there are no songs left in the queue."""

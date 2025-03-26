@@ -288,10 +288,8 @@ async def play_audio(c: Client, msg: types.Message) -> None:
 
     args = extract_argument(msg.text)
     telegram = Telegram(reply)
-    is_video = (
-        True
-        if telegram.is_valid() and isinstance(reply.content, types.MessageVideo)
-        else False
+    is_video = bool(
+        telegram.is_valid() and isinstance(reply.content, types.MessageVideo)
     )
     wrapper = MusicServiceWrapper(url or args)
     await del_msg(msg)
