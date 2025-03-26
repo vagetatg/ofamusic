@@ -1,3 +1,10 @@
+#  Copyright (c) 2025 AshokShau.
+#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
+#  All rights reserved where applicable.
+#
+#
+
+import re
 from types import NoneType
 
 from pytdbot import Client, types
@@ -39,13 +46,23 @@ def _get_platform_url(platform: str, track_id: str) -> str:
         return f"https://youtube.com/watch?v={track_id}"
     elif platform == "spotify":
         return f"https://open.spotify.com/track/{track_id}"
+    elif platform == "jiosaavn":
+        title, song_id = track_id.rsplit("/", 1)
+        title = title.lower()
+        title = re.sub(r'[\(\)"\',]', "", title)
+        title = title.replace(" ", "-")
+        return f"https://www.jiosaavn.com/song/{title}/{song_id}"
+
     else:
         LOGGER.error(f"Unknown platform: {platform}")
         return ""
 
-
 async def update_message_with_thumbnail(
-        c: Client, msg: types.Message, text: str, thumbnail: str, button: types.ReplyMarkupInlineKeyboard
+    c: Client,
+    msg: types.Message,
+    text: str,
+    thumbnail: str,
+    button: types.ReplyMarkupInlineKeyboard,
 ) -> None:
     """Update a message with a thumbnail and text."""
     if not thumbnail:
@@ -93,11 +110,12 @@ def format_now_playing(song: CachedTrack) -> str:
 
 
 async def play_music(
-        c: Client,
-        msg: types.Message,
-        url_data: PlatformTracks,
-        user_by: str,
-        tg_file_path: str = None,
+    c: Client,
+    msg: types.Message,
+    url_data: PlatformTracks,
+    user_by: str,
+    tg_file_path: str = None,
+    is_video: bool = False,
 ) -> None:
     """Handle playing music from a given URL or file."""
     if not url_data:
@@ -146,17 +164,15 @@ async def play_music(
             return
 
         try:
-            await call.play_media(chat_id, song.file_path)
+            await call.play_media(chat_id, song.file_path, video=is_video)
         except CallError as e:
             return await edit_text(msg, f"⚠️ {e}")
-        except Exception as e:
-            LOGGER.error(f"Error playing media: {e}")
-            return await edit_text(msg, f"⚠️ Error playing media: {e}")
 
         await chat_cache.add_song(chat_id, song)
         thumb = await gen_thumb(song)
-        reply = await update_message_with_thumbnail(c, msg, format_now_playing(song), thumb,
-                                                    play_button(0, song.duration))
+        reply = await update_message_with_thumbnail(
+            c, msg, format_now_playing(song), thumb, play_button(0, song.duration)
+        )
         if isinstance(reply, types.Error):
             LOGGER.warning(f"Error editing message: {reply}")
             return
@@ -278,6 +294,9 @@ async def play_audio(c: Client, msg: types.Message) -> None:
 
     args = extract_argument(msg.text)
     telegram = Telegram(reply)
+    is_video = bool(
+        telegram.is_valid() and isinstance(reply.content, types.MessageVideo)
+    )
     wrapper = MusicServiceWrapper(url or args)
     await del_msg(msg)
 
@@ -331,7 +350,7 @@ async def play_audio(c: Client, msg: types.Message) -> None:
             ]
         )
 
-        return await play_music(c, reply_message, _song, user_by, file_path)
+        return await play_music(c, reply_message, _song, user_by, file_path, is_video)
 
     if url:
         if wrapper.is_valid(url):

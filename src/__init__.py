@@ -1,3 +1,13 @@
+#  Copyright (c) 2025 AshokShau.
+#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
+#  All rights reserved where applicable.
+#
+#
+
+import asyncio
+import os
+import shutil
+
 from pytdbot import Client, types
 
 import config
@@ -36,12 +46,17 @@ class Telegram(Client):
         self.logger.info("✅ Bot started successfully.")
 
     async def stop(self) -> None:
-        await self.db.close()
-        await self.call_manager.stop_scheduler()
-        await super().stop()
+        shutdown_tasks = [
+            self.db.close(),
+            self.call_manager.stop_scheduler(),
+            super().stop(),
+        ]
+        await asyncio.gather(*shutdown_tasks, return_exceptions=False)
 
     @staticmethod
     def _check_config() -> None:
+        if os.path.exists("database"):
+            shutil.rmtree("database")
         if not isinstance(config.MONGO_URI, str):
             raise TypeError("MONGO_URI must be a string")
         session_strings = [s for s in config.SESSION_STRINGS if s]
