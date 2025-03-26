@@ -220,13 +220,13 @@ async def play_music(
             f"<b>👤 Requested by:</b> {user_by}"
         )
 
-    curr_song = await chat_cache.get_current_song(chat_id)
-    reply = await edit_text(msg, text, reply_markup=play_button(0, curr_song.duration))
+    # curr_song = await chat_cache.get_current_song(chat_id)
+    reply = await edit_text(msg, text, reply_markup=play_button(0, 0))
     if isinstance(reply, types.Error):
         LOGGER.warning(f"Error sending message: {reply}")
         return
 
-    await update_progress_bar(c, reply, 3, curr_song.duration)
+    # await update_progress_bar(c, reply, 3, curr_song.duration)
     return
 
 
