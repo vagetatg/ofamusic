@@ -30,7 +30,7 @@ downloading for a seamless experience.
 
 ## ✨ Features
 
-👉 **Multi-Platform Support** - Play music from **Spotify, YouTube, and Telegram audio files**.  
+👉 **Multi-Platform Support** - Play music from **[Spotify](https://open.spotify.com), [YT-Music](https://music.youtube.com), [YouTube](https://www.youtube.com), [JioSaavn](https://jiosaavn.com), and Telegram audio files**.
 👉 **Playlists & Queue** - Seamless music playback with a queue system.  
 👉 **Full Playback Controls** - **Skip, Pause, Resume, End, Mute, Unmute, Volume, Loop, Seek**.  
 👉 **Group Voice Chats** - Supports Telegram **group voice chats** (requires admin permissions).  
