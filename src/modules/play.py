@@ -1,3 +1,4 @@
+import re
 from types import NoneType
 
 from pytdbot import Client, types
@@ -39,10 +40,16 @@ def _get_platform_url(platform: str, track_id: str) -> str:
         return f"https://youtube.com/watch?v={track_id}"
     elif platform == "spotify":
         return f"https://open.spotify.com/track/{track_id}"
+    elif platform == "jiosaavn":
+        title, song_id = track_id.rsplit("/", 1)
+        title = title.lower()
+        title = re.sub(r'[\(\)"\',]', "", title)
+        title = title.replace(" ", "-")
+        return f"https://www.jiosaavn.com/song/{title}/{song_id}"
+
     else:
         LOGGER.error(f"Unknown platform: {platform}")
         return ""
-
 
 async def update_message_with_thumbnail(
     c: Client,

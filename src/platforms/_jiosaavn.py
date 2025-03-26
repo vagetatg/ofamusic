@@ -7,7 +7,6 @@ import yt_dlp
 
 import config
 from src.logger import LOGGER
-from ._youtube import YouTubeData
 from ._httpx import HttpxClient
 from .dataclass import PlatformTracks, TrackInfo, MusicTrack
 from .downloader import MusicService
@@ -55,13 +54,27 @@ class JiosaavnData(MusicService):
 
     async def search(self) -> Optional[PlatformTracks]:
         """Search for tracks. Falls back to YouTube if not a JioSaavn URL."""
-        if not self.query:
-            return None
-
         if self.is_valid(self.query):
             data = await self._fetch_data(self.query)
-            return self._create_platform_tracks(data) if data else None
-        return await YouTubeData(self.query).search()
+        else:
+            try:
+                _url = f"https://www.jiosaavn.com/api.php?__call=autocomplete.get&query={self.query}&_format=json&_marker=0&ctx=wap6dot0"
+                _data = await self.client.make_request(_url)
+
+                data = (
+                    {
+                        "results": [
+                            self.format_track(video) for video in _data.get("songs", {}).get("data", [])
+                        ]
+                    }
+                    if "songs" in _data and "data" in _data["songs"]
+                    else None
+                )
+            except Exception as e:
+                LOGGER.error(f"Error searching: {e}")
+                data = None
+
+        return self._create_platform_tracks(data) if data else None
 
     async def get_recommendations(self) -> Optional[PlatformTracks]:
         """Placeholder for recommendations functionality."""
@@ -164,14 +177,15 @@ class JiosaavnData(MusicService):
         formats = track_data.get("formats", [])
         best_format = max(formats, key=lambda x: x.get("abr", 0), default={})
         download_url = best_format.get("url", "")
-        _id = track_data.get("id", "")
         artists = track_data.get("artists", [])
-        artist = track_data.get("artist", artists[0] if artists else "Unknown")
+        artist = track_data.get("artist", artists[0] if artists else "")
+        _title = track_data.get("title", "")
+        _display_id = f"{_title}/"+track_data.get("url", "").split("/")[-1]
 
         return {
-            "id": track_data.get("display_id", _id),
-            "tc": track_data.get("display_id", _id),
-            "name": track_data.get("title", ""),
+            "id": track_data.get("display_id", _display_id),
+            "tc": track_data.get("display_id", _display_id),
+            "name": _title,
             "album": track_data.get("album", ""),
             "duration": track_data.get("duration", 0),
             "artist": artist,
@@ -190,3 +204,4 @@ class JiosaavnData(MusicService):
         return PlatformTracks(
             tracks=[MusicTrack(**track) for track in data["results"] if track]
         )
+

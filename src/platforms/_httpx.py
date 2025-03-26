@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 import aiofiles
 import httpx
 
+import config
 from config import API_KEY
 from src.logger import LOGGER
 
@@ -69,7 +70,7 @@ class HttpxClient:
 
     async def make_request(
         self, url: str, max_retries: int = 3, backoff_factor: float = 1.0
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[dict[str, Any]]:
         """
         Make an HTTP GET request with retries and exponential backoff, following redirects if needed.
 
@@ -82,7 +83,9 @@ class HttpxClient:
             LOGGER.warning("URL is empty")
             return None
 
-        headers = {"X-API-Key": API_KEY}
+        headers = None
+        if config.API_URL and url.startswith(config.API_URL):
+            headers = {"X-API-Key": API_KEY}
 
         for attempt in range(max_retries):
             try:
