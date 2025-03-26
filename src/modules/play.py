@@ -149,9 +149,6 @@ async def play_music(
             await call.play_media(chat_id, song.file_path)
         except CallError as e:
             return await edit_text(msg, f"⚠️ {e}")
-        except Exception as e:
-            LOGGER.error(f"Error playing media: {e}")
-            return await edit_text(msg, f"⚠️ Error playing media: {e}")
 
         await chat_cache.add_song(chat_id, song)
         thumb = await gen_thumb(song)

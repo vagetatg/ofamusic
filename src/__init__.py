@@ -1,3 +1,5 @@
+import asyncio
+
 from pytdbot import Client, types
 
 import config
@@ -36,9 +38,12 @@ class Telegram(Client):
         self.logger.info("✅ Bot started successfully.")
 
     async def stop(self) -> None:
-        await self.db.close()
-        await self.call_manager.stop_scheduler()
-        await super().stop()
+        shutdown_tasks = [
+            self.db.close(),
+            self.call_manager.stop_scheduler(),
+            super().stop(),
+        ]
+        await asyncio.gather(*shutdown_tasks, return_exceptions=False)
 
     @staticmethod
     def _check_config() -> None:
