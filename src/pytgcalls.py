@@ -78,8 +78,7 @@ class MusicBot:
         """Get the Pyrogram client for a specific chat ID."""
         try:
             client_name = await self._get_client_name(chat_id)
-            ub = self.calls[client_name].mtproto_client
-
+            ub: PyroClient = self.calls[client_name].mtproto_client
             if ub is None or not hasattr(ub, "me") or ub.me is None:
                 return types.Error(code=400, message="Client not found or not ready")
 
