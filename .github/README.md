@@ -37,14 +37,53 @@ downloading for a seamless experience.
 👉 **User-Friendly Interface** - Simple and intuitive commands for easy interaction.  
 👉 **Optimized Performance** - Fully **async**, efficient, and **lightweight**.  
 👉 **Easy Deployment** - Comes with a **Docker** container setup.  
-👉 **Open-Source & Free** - Built using **[PyTdBot](https://github.com/pytdbot/client)** and **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
+👉 **Open-Source & Free** - Built using **[PyTdBot](https://github.com/pytdbot/client)** and **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**. (if you need only pyrogram use `pyro` branch)
 
 ## 📝 Requirements
 
 - **Python 3.12** or higher
 - **MongoDB** for storing chat data
 
----
+### 🛠️ Configuration
+<details>
+<summary><strong>📌 Environment Variables (Click to expand)</strong></summary>
+
+### 🔑 Required Variables
+
+- **API_ID** – Get from [my.telegram.org](https://my.telegram.org/apps)  
+- **API_HASH** – Get from [my.telegram.org](https://my.telegram.org/apps)  
+- **TOKEN** – Get from [@BotFather](https://t.me/BotFather)  
+
+### 🔗 String Sessions
+
+- **STRING** - Pyrogram String Session
+- **STRING2** - Pyrogram String Session
+- **STRING3** - Pyrogram String Session
+- **STRING4** - Pyrogram String Session
+.
+.
+- **STRING10** - Pyrogram String Session
+
+### 🛠️ Additional Configuration
+
+- **OWNER_ID** – Your Telegram User ID  
+- **MONGO_URI** – Get from [MongoDB Cloud](https://cloud.mongodb.com)  
+- **API_URL** – Buy from [@AshokShau](https://t.me/AshokShau) (Spotify API for unlimited downloads)  
+- **API_KEY** – Required for API_URL
+
+### 🎵 Music Download Options
+
+- **PROXY_URL** – Optional; Proxy URL for yt-dlp  
+- **DEFAULT_SERVICE** – Default search platform (Options: `youtube`, `spotify`, `jiosaavn`)  
+- **DOWNLOADS_DIR** – Directory for downloads and TDLib database  
+
+### 🖼️ Thumbnails & Cookies
+
+- **IMG_URL** – Fallback thumbnail (if no song thumbnail is found)  
+- **COOKIES_URL** – URLs for downloading cookies (More info [here](https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md))  
+
+</details>
+
 
 ## ‍🛠️ Installation
 
@@ -72,8 +111,9 @@ downloading for a seamless experience.
    docker run -d --name tgmusicbot --env-file .env tgmusicbot
    ```
 
+#### 🚀 Manual Installation
 <details>
-<summary><strong>🔧 Manual Installation (Click to expand)</strong></summary>
+<summary>Manual Installation (Click to expand)</summary>
 
 1. Clone the repository:
    ```sh
@@ -113,8 +153,10 @@ downloading for a seamless experience.
 
 ---
 
+#### 🚀 Deploy on Heroku
+
 <details>
-  <summary><strong>🚀 Deploy on Heroku</strong></summary>
+  <summary>Deploy on Heroku (Click to expand)</summary>
   <p align="center">
     <a href="https://heroku.com/deploy?template=https://github.com/AshokShau/TgMusicBot">
       <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-black?style=for-the-badge&logo=heroku" width="220" height="38.45" alt="Deploy">

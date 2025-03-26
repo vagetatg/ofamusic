@@ -18,7 +18,7 @@ API_HASH = getenv("API_HASH", None)
 "You can get this variable from @BotFather"
 TOKEN = getenv("TOKEN", None)
 
-"Pyrogram/kurigram String Session"
+"Pyrogram (Forks) String Session, min. add one string session"
 STRING = getenv("STRING", None)
 STRING2 = getenv("STRING2", None)
 STRING3 = getenv("STRING3", None)
@@ -49,25 +49,31 @@ OWNER_ID = int(getenv("OWNER_ID", 5938660179))
 "Your MongoDB URI; get it from https://cloud.mongodb.com"
 MONGO_URI = getenv("MONGO_URI", None)
 
+"Spotify dl get from @AshokShau"
 API_URL = getenv("API_URL", None)
 API_KEY = getenv("API_KEY", None)
+
+"Proxy URL for yt-dlp"
 PROXY_URL = getenv("PROXY_URL", None)
 
-DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")  # Directory for downloads and TD db
-YOUTUBE_IMG_URL = "https://te.legra.ph/file/6298d377ad3eb46711644.jpg"
+"Default platform to search for songs; options: youtube, spotify, jiosaavn"
+DEFAULT_SERVICE = getenv("DEFAULT_SERVICE", "youtube")
 
+"Directory for downloads and TDLib db"
+DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")
+
+"if get_thumb fails, use this image"
+IMG_URL = "https://te.legra.ph/file/6298d377ad3eb46711644.jpg"
 
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
     """Parse COOKIES_URL environment variable"""
     if not env_value:
         return []
-
-    # Support both comma-separated and space-separated URLs
     urls = []
     for part in env_value.split(','):
         urls.extend(part.split())
 
     return [url.strip() for url in urls if url.strip()]
 
-
+"BatBin urls to download cookies; more info https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md"
 COOKIES_URL: list[str] = process_cookie_urls(getenv("COOKIES_URL"))

@@ -151,7 +151,7 @@ async def gen_thumb(song: CachedTrack) -> str:
 
     thumb = await fetch_image(song.thumbnail)
     if not thumb:
-        return config.YOUTUBE_IMG_URL
+        return config.IMG_URL
 
     # Process Image
     bg = add_controls(thumb)
@@ -168,4 +168,4 @@ async def gen_thumb(song: CachedTrack) -> str:
     draw.text((478, 321), get_duration(duration), (192, 192, 192), font=FONTS["dfont"])
 
     await asyncio.to_thread(bg.save, save_dir)
-    return save_dir if await aiopath.exists(save_dir) else config.YOUTUBE_IMG_URL
+    return save_dir if await aiopath.exists(save_dir) else config.IMG_URL
