@@ -48,6 +48,7 @@ class YouTubeData(MusicService):
     async def get_info(self) -> Optional[PlatformTracks]:
         if not self.is_valid(self.query):
             return None
+
         data = await self._fetch_data(self.query)
         return self._create_platform_tracks(data) if data else None
 
@@ -108,7 +109,8 @@ class YouTubeData(MusicService):
 
     @staticmethod
     async def get_youtube_url(url: str) -> Optional[dict[str, Any]]:
-        search = VideosSearch(url, limit=1)
+        vid_id = url.split("v=")[1] if "v=" in url else url
+        search = VideosSearch(vid_id, limit=1)
         results = await search.next()
         return (
             {
