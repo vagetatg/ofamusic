@@ -144,9 +144,7 @@ class YouTubeData(MusicService):
         return {
             "id": track_data.get("id"),
             "name": track_data.get("title"),
-            "duration": YouTubeData.duration_to_seconds(
-                track_data.get("duration", "0:00")
-            ),
+            "duration": YouTubeData.duration_to_seconds(track_data.get("duration", "0:00")),
             "artist": track_data.get("channel", {}).get("name", "Unknown"),
             "cover": track_data.get("thumbnails", [{}])[-1].get("url", ""),
             "year": 0,
@@ -155,6 +153,9 @@ class YouTubeData(MusicService):
 
     @staticmethod
     def duration_to_seconds(duration: str) -> int:
+        if not duration:
+            return 0
+
         parts = duration.split(":")
         if len(parts) == 3:  # Format: H:MM:SS
             hours, minutes, seconds = map(int, parts)
@@ -162,6 +163,7 @@ class YouTubeData(MusicService):
         elif len(parts) == 2:  # Format: MM:SS
             minutes, seconds = map(int, parts)
             return minutes * 60 + seconds
+
         return 0
 
     @staticmethod
