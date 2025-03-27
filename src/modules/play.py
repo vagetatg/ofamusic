@@ -3,7 +3,7 @@
 #  All rights reserved where applicable.
 #
 #
-
+import asyncio
 import re
 from types import NoneType
 
@@ -177,7 +177,7 @@ async def play_music(
             LOGGER.warning(f"Error editing message: {reply}")
             return
 
-        await update_progress_bar(c, reply, 3, song.duration)
+        asyncio.create_task(update_progress_bar(c, reply, 3, song.duration))
         return
 
     # Handle multiple tracks (queueing playlist/album)

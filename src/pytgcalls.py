@@ -237,7 +237,7 @@ class MusicBot:
                 LOGGER.warning(f"Error editing message: {reply}")
                 return
 
-            await update_progress_bar(self.bot, reply, 3, duration)
+            asyncio.create_task(update_progress_bar(self.bot, reply, 3, song.duration))
         except Exception as e:
             LOGGER.error(f"Error in _play_song for chat {chat_id}: {e}", exc_info=True)
 
