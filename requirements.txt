@@ -9,7 +9,8 @@ ntgcalls~=1.3.1
 pillow~=11.1.0
 psutil~=7.0.0
 py-yt-search~=0.2
-py_tgcalls~=2.1.0
+#py_tgcalls~=2.1.0
+git+https://github.com/pytgcalls/pytgcalls.git@master
 pycryptodome~=3.22.0
 pydantic==2.11.0b2
 PyTgCrypto~=1.2.9.2
