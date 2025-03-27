@@ -499,8 +499,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         return
     else:
         LOGGER.info("Playing song, data %s", data)
-        platform = data.split("_")[1]
-        song_id = data.split("_")[2]
+        _, platform, song_id = data.split("_", 2)
         await message.answer(f"Playing song for {user.first_name}", show_alert=True)
         reply_message = await message.edit_message_text(
             f"🎶 Searching ...\nRequested by: {user.first_name} 🥀"
