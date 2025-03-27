@@ -23,23 +23,19 @@ If you don't know how to convert, use this guide:
 
 If you have any questions, join our support group:
 """
-    reply = await client.sendTextMessage(
+    await client.sendTextMessage(
         chat_id, text, parse_mode="HTML", reply_markup=AddMeButton
     )
-    if isinstance(reply, types.Error):
-        LOGGER.warning(f"Error sending message: {reply}")
 
-    ok = await client.leaveChat(chat_id)
-    if isinstance(ok, types.Error):
-        LOGGER.warning(f"Error leaving chat: {ok}")
+    await client.leaveChat(chat_id)
+    return
 
 
 @Client.on_updateChatMember()
 async def chat_member(client: Client, update: types.UpdateChatMember):
     """Handles member updates in the chat (joins, leaves, promotions, demotions, bans, and unbans)."""
     chat_id = update.chat_id
-    # Non supergroup
-    if chat_id > 0:
+    if not str(chat_id).startswith("-100"):
         return await handle_non_supergroup(client, chat_id)
 
     await db.add_chat(chat_id)
@@ -77,6 +73,7 @@ async def chat_member(client: Client, update: types.UpdateChatMember):
         old_status != "chatMemberStatusAdministrator"
         and new_status == "chatMemberStatusAdministrator"
     )
+
     # Bot Promoted
     if user_id == client.options["my_id"] and is_promoted:
         LOGGER.info(f"Bot was promoted in {chat_id}, reloading admin permissions.")
@@ -94,6 +91,7 @@ async def chat_member(client: Client, update: types.UpdateChatMember):
         old_status == "chatMemberStatusAdministrator"
         and new_status != "chatMemberStatusAdministrator"
     )
+
     if is_demoted:
         LOGGER.info(f"User {user_id} was demoted in {chat_id}.")
         if user_id == client.options["my_id"] or client.me.id:
