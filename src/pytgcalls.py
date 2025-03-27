@@ -78,7 +78,8 @@ class MusicBot:
         """Get the Pyrogram client for a specific chat ID."""
         try:
             client_name = await self._get_client_name(chat_id)
-            ub: PyroClient = self.calls[client_name].mtproto_client
+            ub = self.calls[client_name].mtproto_client
+
             if ub is None or not hasattr(ub, "me") or ub.me is None:
                 return types.Error(code=400, message="Client not found or not ready")
 
@@ -143,7 +144,7 @@ class MusicBot:
                 audio_path=file_path,
                 media_path=file_path,
                 audio_parameters=AudioQuality.MEDIUM if video else AudioQuality.STUDIO,
-                video_parameters=VideoQuality.QHD_2K if video else VideoQuality.SD_360p,
+                video_parameters=VideoQuality.FHD_1080p if video else VideoQuality.SD_360p,
                 video_flags=(
                     MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE
                 ),
@@ -247,25 +248,24 @@ class MusicBot:
         _track_id = song.track_id
         _platform = song.platform
 
-        if _platform == "telegram":
-            pass
-        elif _platform == "youtube":
-            youtube = YouTubeData(_track_id)
-            if track := await youtube.get_track():
-                return await youtube.download_track(track)
-        elif _platform == "spotify":
-            spotify = SpotifyData(_track_id)
-            if track := await spotify.get_track():
-                return await spotify.download_track(track)
-        elif _platform == "jiosaavn":
+        if _platform == "jiosaavn":
             _id = f"{song.name}/{song.track_id}"
             jiosaavn = JiosaavnData(_id)
             if track := await jiosaavn.get_track():
                 return await jiosaavn.download_track(track)
-        else:
-            LOGGER.warning(f"Unknown platform: {_platform}")
 
-        return None  # Telegram files are already downloaded
+        elif _platform == "spotify":
+            spotify = SpotifyData(_track_id)
+            if track := await spotify.get_track():
+                return await spotify.download_track(track)
+        elif _platform == "youtube":
+            youtube = YouTubeData(_track_id)
+            if track := await youtube.get_track():
+                return await youtube.download_track(track)
+
+        LOGGER.warning(f"Unknown platform: {_platform}")
+        return None
+
 
     async def _handle_no_songs(self, chat_id: int) -> None:
         """Handle the case when there are no songs left in the queue."""
