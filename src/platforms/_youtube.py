@@ -26,7 +26,7 @@ class YouTubeData(MusicService):
     )
 
     def __init__(self, query: str = None) -> None:
-        self.query = query.split("&")[0] if query and "&" in query else query
+        self.query = None if not query else query.split("&")[0] if query and "&" in query else query
 
     def is_valid(self, url: str) -> bool:
         return (
@@ -52,6 +52,8 @@ class YouTubeData(MusicService):
         return self._create_platform_tracks(data) if data else None
 
     async def search(self) -> Optional[PlatformTracks]:
+        if not self.query:
+            return None
         if self.is_valid(self.query):
             data = await self._fetch_data(self.query)
         else:
@@ -70,6 +72,7 @@ class YouTubeData(MusicService):
             except Exception as e:
                 LOGGER.error(f"Error searching: {e}")
                 data = None
+
         return self._create_platform_tracks(data) if data else None
 
     async def get_track(self) -> Optional[TrackInfo]:
