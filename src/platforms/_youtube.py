@@ -109,10 +109,9 @@ class YouTubeData(MusicService):
             LOGGER.error(f"Error downloading track: {e}")
             return None
 
-    @staticmethod
-    async def _get_youtube_url(url: str) -> Optional[dict[str, Any]]:
+    async def _get_youtube_url(self, url: str) -> Optional[dict[str, Any]]:
         _url = f"https://www.youtube.com/oembed?url={url}&format=json"
-        data = await HttpxClient().make_request(_url)
+        data = await self.client.make_request(_url)
         if not data:
             return None
         data = {
