@@ -39,9 +39,13 @@ def sec_to_min(seconds):
 
 async def get_audio_duration(file_path):
     try:
-        cmd = f'ffprobe -v quiet -print_format json -show_format -show_streams "{file_path}"'
-        proc = await asyncio.create_subprocess_shell(
-            cmd,
+        proc = await asyncio.create_subprocess_exec(
+            'ffprobe',
+            '-v', 'quiet',
+            '-print_format', 'json',
+            '-show_format',
+            '-show_streams',
+            file_path,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
