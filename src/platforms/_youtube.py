@@ -123,8 +123,7 @@ class YouTubeData(MusicService):
             "year": 0,
             "platform": "youtube",
         }
-
-        return {"results": [data]} if data else None
+        return {"results": [data]}
 
         # try:
         #     # vid_id = url.split("v=")[1] if "v=" in url else url

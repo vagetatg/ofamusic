@@ -165,11 +165,11 @@ async def play_music(
         await chat_cache.add_song(chat_id, song)
         thumb = await gen_thumb(song)
         text = (
-        f"🎵 <b>Now playing:</b>\n\n"
-        f"‣ <b>Title:</b> {song.name}\n"
-        f"‣ <b>Duration:</b> {sec_to_min(dur)}\n"
-        f"‣ <b>Requested by:</b> {song.user}"
-    )
+            f"🎵 <b>Now playing:</b>\n\n"
+            f"‣ <b>Title:</b> {song.name}\n"
+            f"‣ <b>Duration:</b> {sec_to_min(dur)}\n"
+            f"‣ <b>Requested by:</b> {song.user}"
+        )
         reply = await update_message_with_thumbnail(c, msg, text, thumb, play_button(0, dur))
         if isinstance(reply, types.Error):
             LOGGER.warning(f"Error editing message: {reply}")
