@@ -114,7 +114,7 @@ class YouTubeData(MusicService):
         data = await self.client.make_request(_url)
         if not data:
             return None
-        data = {
+        return {"results": [{
             "id": url.split("v=")[1],
             "name": data.get("title"),
             "duration": 0,
@@ -122,25 +122,7 @@ class YouTubeData(MusicService):
             "cover": data.get("thumbnail_url", ""),
             "year": 0,
             "platform": "youtube",
-        }
-        return {"results": [data]}
-
-        # try:
-        #     # vid_id = url.split("v=")[1] if "v=" in url else url
-        #     search = VideosSearch(url, limit=1)
-        #     results = await search.next()
-        # except Exception as e:
-        #     LOGGER.error(f"Error getting YouTube URL: {e}")
-        #     return None
-        # return (
-        #     {
-        #         "results": [
-        #             YouTubeData._format_track(video) for video in results["result"]
-        #         ]
-        #     }
-        #     if "result" in results
-        #     else None
-        # )
+        }]}
 
     @staticmethod
     async def _get_playlist(url: str) -> Optional[dict[str, Any]]:
@@ -166,18 +148,6 @@ class YouTubeData(MusicService):
         return None
 
     @staticmethod
-    def _format_track(track_data: dict[str, Any]) -> dict[str, Any]:
-        return {
-            "id": track_data.get("id"),
-            "name": track_data.get("title"),
-            "duration": YouTubeData._duration_to_seconds(track_data.get("duration", "0:00")),
-            "artist": track_data.get("channel", {}).get("name", "Unknown"),
-            "cover": track_data.get("thumbnails", [{}])[-1].get("url", ""),
-            "year": 0,
-            "platform": "youtube",
-        }
-
-    @staticmethod
     def _duration_to_seconds(duration: str) -> int:
         if not duration:
             return 0
@@ -198,3 +168,15 @@ class YouTubeData(MusicService):
                 tracks=[MusicTrack(**track) for track in data["results"]]
             )
         return None
+
+    @staticmethod
+    def _format_track(track_data: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": track_data.get("id"),
+            "name": track_data.get("title"),
+            "duration": YouTubeData._duration_to_seconds(track_data.get("duration", "0:00")),
+            "artist": track_data.get("channel", {}).get("name", "Unknown"),
+            "cover": track_data.get("thumbnails", [{}])[-1].get("url", ""),
+            "year": 0,
+            "platform": "youtube",
+        }
