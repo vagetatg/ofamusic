@@ -3,6 +3,7 @@
 #  All rights reserved where applicable.
 #
 #
+
 import asyncio
 import re
 from types import NoneType
@@ -57,6 +58,7 @@ def _get_platform_url(platform: str, track_id: str) -> str:
         LOGGER.error(f"Unknown platform: {platform}")
         return ""
 
+
 async def update_message_with_thumbnail(
     c: Client,
     msg: types.Message,
@@ -99,16 +101,6 @@ async def update_message_with_thumbnail(
     return reply_msg
 
 
-def format_now_playing(song: CachedTrack) -> str:
-    """Format the 'Now Playing' message."""
-    return (
-        f"🎵 <b>Now playing:</b>\n\n"
-        f"‣ <b>Title:</b> {song.name}\n"
-        f"‣ <b>Duration:</b> {sec_to_min(song.duration)}\n"
-        f"‣ <b>Requested by:</b> {song.user}"
-    )
-
-
 async def play_music(
     c: Client,
     msg: types.Message,
@@ -122,14 +114,16 @@ async def play_music(
         return await edit_text(msg, "❌ Unable to retrieve song info.")
 
     tracks = url_data.tracks
+    if not tracks:
+        return await edit_text(msg, "❌ Unable to retrieve song info.")
+
     chat_id = msg.chat_id
     queue = await chat_cache.get_queue(chat_id)
     is_active = await chat_cache.is_active(chat_id)
     msg = await edit_text(msg, text="🎶 Song found. Downloading...")
-    _track = tracks[0]
-    platform = _track.platform
 
     if len(tracks) == 1:
+        _track = tracks[0]
         song = CachedTrack(
             name=_track.name,
             artist=_track.artist,
@@ -139,7 +133,7 @@ async def play_music(
             file_path=tg_file_path or "",
             thumbnail=_track.cover,
             user=user_by,
-            platform=platform,
+            platform=_track.platform,
         )
 
         if not song.file_path:
@@ -148,8 +142,9 @@ async def play_music(
         if not song.file_path:
             return await edit_text(msg, "❌ Error downloading the song.")
 
+        dur = song.duration or await get_audio_duration(song.file_path)
         if song.duration == 0:
-            song.duration = await get_audio_duration(song.file_path)
+            song.duration = dur
 
         if is_active:
             await chat_cache.add_song(chat_id, song)
@@ -159,25 +154,28 @@ async def play_music(
                 f"‣ <b>Duration:</b> {sec_to_min(song.duration)}\n"
                 f"‣ <b>Requested by:</b> {song.user}"
             )
+
             thumb = await gen_thumb(song)
             await update_message_with_thumbnail(c, msg, text, thumb, play_button(0, 0))
             return
-
         try:
             await call.play_media(chat_id, song.file_path, video=is_video)
         except CallError as e:
-            return await edit_text(msg, f"⚠️ {e}")
-
+            return await edit_text(msg, text=f"⚠️ {e}")
         await chat_cache.add_song(chat_id, song)
         thumb = await gen_thumb(song)
-        reply = await update_message_with_thumbnail(
-            c, msg, format_now_playing(song), thumb, play_button(0, song.duration)
-        )
+        text = (
+        f"🎵 <b>Now playing:</b>\n\n"
+        f"‣ <b>Title:</b> {song.name}\n"
+        f"‣ <b>Duration:</b> {sec_to_min(dur)}\n"
+        f"‣ <b>Requested by:</b> {song.user}"
+    )
+        reply = await update_message_with_thumbnail(c, msg, text, thumb, play_button(0, dur))
         if isinstance(reply, types.Error):
             LOGGER.warning(f"Error editing message: {reply}")
             return
 
-        asyncio.create_task(update_progress_bar(c, reply, 3, song.duration))
+        asyncio.create_task(update_progress_bar(c, reply, 3, dur))
         return
 
     # Handle multiple tracks (queueing playlist/album)
