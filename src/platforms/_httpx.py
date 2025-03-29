@@ -5,7 +5,7 @@
 #
 
 import asyncio
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 
 import aiofiles
 import httpx

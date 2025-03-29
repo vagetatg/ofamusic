@@ -18,7 +18,7 @@ from .downloader import MusicService
 
 class YouTubeData(MusicService):
     YOUTUBE_VIDEO_PATTERN = re.compile(
-        r"^(https?://)?(www\.)?(youtube\.com|music\.youtube\.com)/(watch\?v=|shorts/)[\w-]+",
+        r"^(https?://)?(www\.)?(youtube\.com|music\.youtube\.com|youtu\.be)/(watch\?v=|embed/|v/|)?[\w-]+(?:\?[^\s#]*)?(?:#[^\s]*)?$",
         re.IGNORECASE,
     )
     YOUTUBE_PLAYLIST_PATTERN = re.compile(
@@ -110,10 +110,31 @@ class YouTubeData(MusicService):
             return None
 
     async def _get_youtube_url(self, url: str) -> Optional[dict[str, Any]]:
+        if "youtu.be" in url:
+            parts = url.split("youtu.be/")
+            if len(parts) < 2:
+                return None
+            path_part = parts[1]
+            video_id = path_part.partition('?')[0].partition('#')[0]
+            url = f"https://www.youtube.com/watch?v={video_id}"
         _url = f"https://www.youtube.com/oembed?url={url}&format=json"
         data = await self.client.make_request(_url)
         if not data:
-            return None
+            try:
+                search = VideosSearch(url, limit=1)
+                results = await search.next()
+            except Exception as e:
+                LOGGER.error(f"Error searching: {e}")
+                return None
+            return (
+                {
+                    "results": [
+                        self._format_track(video) for video in results["result"]
+                    ]
+                }
+                if "result" in results
+                else None
+            )
         return {"results": [{
             "id": url.split("v=")[1],
             "name": data.get("title"),
