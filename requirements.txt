@@ -12,7 +12,7 @@ py-yt-search~=0.2
 #py_tgcalls~=2.1.0
 git+https://github.com/pytgcalls/pytgcalls.git@master
 pycryptodome~=3.22.0
-pydantic==2.11.0b2
+pydantic==2.11.1
 PyTgCrypto~=1.2.9.2
 python-dotenv~=1.1.0
 pytdbot~=0.9.2.dev2
