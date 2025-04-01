@@ -260,7 +260,7 @@ class MusicBot:
             jiosaavn = JiosaavnData(_url)
             if track := await jiosaavn.get_track():
                 return await jiosaavn.download_track(track)
-        elif _platform == "apple_music" or _platform == "soundcloud":
+        elif _platform in ["apple_music", "soundcloud"]:
             _music = ApiData(_url)
             if track := await _music.get_track():
                 return await _music.download_track(track)
