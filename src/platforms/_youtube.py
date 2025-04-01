@@ -53,14 +53,13 @@ class YouTubeData(MusicService):
             return None
         if self.is_valid(self.query):
             return await self.get_info()
-        else:
-            try:
-                search = VideosSearch(self.query, limit=5)
-                results = await search.next()
-                data = {"results": [self._format_track(video) for video in results["result"]]} if "result" in results else None
-            except Exception as e:
-                LOGGER.error(f"Error searching: {e}")
-                data = None
+        try:
+            search = VideosSearch(self.query, limit=5)
+            results = await search.next()
+            data = {"results": [self._format_track(video) for video in results["result"]]} if "result" in results else None
+        except Exception as e:
+            LOGGER.error(f"Error searching: {e}")
+            data = None
 
         return self._create_platform_tracks(data) if data else None
 
