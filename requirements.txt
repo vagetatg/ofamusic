@@ -19,4 +19,4 @@ pytdbot~=0.9.2.dev2
 pytz~=2025.2
 tdjson~=1.8.46
 ujson~=5.10.0
-yt-dlp~=2025.3.27
+yt-dlp~=2025.3.31
