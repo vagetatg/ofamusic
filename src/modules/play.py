@@ -53,7 +53,6 @@ def _get_platform_url(platform: str, track_id: str) -> str:
         title = re.sub(r'[\(\)"\',]', "", title)
         title = title.replace(" ", "-")
         return f"https://www.jiosaavn.com/song/{title}/{song_id}"
-
     else:
         LOGGER.error(f"Unknown platform: {platform}")
         return ""
@@ -134,6 +133,7 @@ async def play_music(
             thumbnail=_track.cover,
             user=user_by,
             platform=_track.platform,
+            url=_track.url,
         )
 
         if not song.file_path:
@@ -194,6 +194,7 @@ async def play_music(
                 user=user_by,
                 file_path="",
                 platform=track.platform,
+                url=track.url,
             ),
         )
 
