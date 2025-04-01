@@ -18,11 +18,11 @@ from .downloader import MusicService
 
 class YouTubeData(MusicService):
     YOUTUBE_VIDEO_PATTERN = re.compile(
-        r"^(https?://)?(www\.)?(youtube\.com|music\.youtube\.com|youtu\.be)/(watch\?v=|embed/|v/|)?[\w-]+(?:\?[^\s#]*)?(?:#[^\s]*)?$",
+        r"^(?:https?://)?(?:www\.)?(?:youtube\.com|music\.youtube\.com|youtu\.be)/(?:watch\?v=|embed/|v/)?([\w-]+)",
         re.IGNORECASE,
     )
     YOUTUBE_PLAYLIST_PATTERN = re.compile(
-        r"^(https?://)?(www\.)?(youtube\.com|music\.youtube\.com)/playlist\?list=[\w-]+",
+        r"^(?:https?://)?(?:www\.)?(?:youtube\.com|music\.youtube\.com)/playlist\?[^#]*\blist=([\w-]+)",
         re.IGNORECASE,
     )
 
@@ -31,21 +31,15 @@ class YouTubeData(MusicService):
         self.query = None if not query else query.split("&")[0] if query and "&" in query else query
 
     def is_valid(self, url: str) -> bool:
-        return (
-            bool(
-                self.YOUTUBE_VIDEO_PATTERN.match(url)
-                or self.YOUTUBE_PLAYLIST_PATTERN.match(url)
-            )
-            if url
-            else False
-        )
+        if not url:
+            return False
+        return bool(self.YOUTUBE_VIDEO_PATTERN.match(url) or self.YOUTUBE_PLAYLIST_PATTERN.match(url))
 
     async def _fetch_data(self, url: str) -> Optional[dict[str, Any]]:
-        if self.YOUTUBE_VIDEO_PATTERN.match(url):
-            return await self._get_youtube_url(url)
-        elif self.YOUTUBE_PLAYLIST_PATTERN.match(url):
+        if self.YOUTUBE_PLAYLIST_PATTERN.match(url):
+            LOGGER.info(f"Fetching data for YouTube playlist: {url}")
             return await self._get_playlist(url)
-        return await self.search()
+        return await self._get_youtube_url(url)
 
     async def get_info(self) -> Optional[PlatformTracks]:
         if not self.is_valid(self.query):
@@ -58,20 +52,12 @@ class YouTubeData(MusicService):
         if not self.query:
             return None
         if self.is_valid(self.query):
-            data = await self._fetch_data(self.query)
+            return await self.get_info()
         else:
             try:
                 search = VideosSearch(self.query, limit=5)
                 results = await search.next()
-                data = (
-                    {
-                        "results": [
-                            self._format_track(video) for video in results["result"]
-                        ]
-                    }
-                    if "result" in results
-                    else None
-                )
+                data = {"results": [self._format_track(video) for video in results["result"]]} if "result" in results else None
             except Exception as e:
                 LOGGER.error(f"Error searching: {e}")
                 data = None
@@ -84,7 +70,6 @@ class YouTubeData(MusicService):
             data = await self._get_youtube_url(url)
             if not data or "results" not in data:
                 return None
-
             track_data = data["results"][0]
             return TrackInfo(
                 cdnurl="None",
@@ -96,6 +81,7 @@ class YouTubeData(MusicService):
                 cover=track_data["cover"],
                 lyrics="None",
                 duration=track_data["duration"],
+                url=f"https://youtube.com/watch?v={track_data['id']}",
                 year=0,
             )
         except Exception as e:
@@ -113,71 +99,42 @@ class YouTubeData(MusicService):
         normalized_url = await self._normalize_youtube_url(url)
         if not normalized_url:
             return None
-
         data = await self._fetch_oembed_data(normalized_url)
         if data:
+            video_id = normalized_url.split("v=")[1]
             return {
                 "results": [{
-                    "id": normalized_url.split("v=")[1],
+                    "id": video_id,
                     "name": data.get("title"),
                     "duration": 0,
                     "artist": data.get("author_name", ""),
                     "cover": data.get("thumbnail_url", ""),
                     "year": 0,
+                    "url": f"https://www.youtube.com/watch?v={video_id}",
                     "platform": "youtube",
                 }]
             }
+        return await self._fallback_search_youtube(normalized_url)
 
-        return await self._fallback_search(normalized_url)
+    async def _fallback_search_youtube(self, url: str) -> Optional[dict[str, Any]]:
+        try:
+            search = VideosSearch(url, limit=1)
+            results = await search.next()
+        except Exception as e:
+            LOGGER.error(f"Error searching: {e}")
+            return None
+        return {"results": [self._format_track(video) for video in results["result"]]} if "result" in results else None
 
     @staticmethod
     async def _get_playlist(url: str) -> Optional[dict[str, Any]]:
         try:
             playlist = await Playlist.getVideos(url)
-        except KeyError:
-            return None
+            return {"results": [YouTubeData._format_track(track) for track in playlist.get("videos", [])]} if playlist else None
         except Exception as e:
             LOGGER.error(f"Error getting playlist: {e}")
             return None
-        return (
-            {
-                "results": [
-                    YouTubeData._format_track(track)
-                    for track in playlist.get("videos", [])
-                ]
-            }
-            if playlist
-            else None
-        )
 
     async def get_recommendations(self) -> Optional[PlatformTracks]:
-        return None
-
-    @staticmethod
-    async def _normalize_youtube_url(url: str) -> Optional[str]:
-        if "youtu.be" in url:
-            parts = url.split("youtu.be/")
-            if len(parts) < 2:
-                return None
-            path_part = parts[1]
-            video_id = path_part.partition('?')[0].partition('#')[0]
-            return f"https://www.youtube.com/watch?v={video_id}"
-        return url
-
-    async def _fetch_oembed_data(self, url: str) -> Optional[dict[str, Any]]:
-        oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
-        return await self.client.make_request(oembed_url)
-
-    async def _fallback_search(self, url: str) -> Optional[dict[str, Any]]:
-        try:
-            search = VideosSearch(url, limit=1)
-            results = await search.next()
-            if "result" in results:
-                return {"results": [
-                    self._format_track(video) for video in results["result"]
-                ]}
-        except Exception as e:
-            LOGGER.error(f"Error searching: {e}")
         return None
 
     @staticmethod
@@ -194,13 +151,24 @@ class YouTubeData(MusicService):
         else:
             return 0
 
+    async def _fetch_oembed_data(self, url: str) -> Optional[dict[str, Any]]:
+        oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
+        return await self.client.make_request(oembed_url)
+
+    @staticmethod
+    async def _normalize_youtube_url(url: str) -> Optional[str]:
+        if "youtu.be" in url:
+            parts = url.split("youtu.be/")
+            if len(parts) < 2:
+                return None
+            path_part = parts[1]
+            video_id = path_part.partition('?')[0].partition('#')[0]
+            return f"https://www.youtube.com/watch?v={video_id}"
+        return url
+
     @staticmethod
     def _create_platform_tracks(data: dict) -> Optional[PlatformTracks]:
-        if data and "results" in data:
-            return PlatformTracks(
-                tracks=[MusicTrack(**track) for track in data["results"]]
-            )
-        return None
+        return PlatformTracks(tracks=[MusicTrack(**track) for track in data["results"]] if data and "results" in data else [])
 
     @staticmethod
     def _format_track(track_data: dict[str, Any]) -> dict[str, Any]:
@@ -211,5 +179,6 @@ class YouTubeData(MusicService):
             "artist": track_data.get("channel", {}).get("name", "Unknown"),
             "cover": track_data.get("thumbnails", [{}])[-1].get("url", ""),
             "year": 0,
+            "url": f"https://www.youtube.com/watch?v={track_data.get('id')}",
             "platform": "youtube",
         }

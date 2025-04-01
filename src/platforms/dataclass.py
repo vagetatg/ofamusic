@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 
 class CachedTrack(BaseModel):
+    url: str
     name: str
     artist: str
     loop: int
@@ -20,6 +21,7 @@ class CachedTrack(BaseModel):
 
 
 class TrackInfo(BaseModel):
+    url: str
     cdnurl: str
     key: str
     name: str
@@ -33,6 +35,7 @@ class TrackInfo(BaseModel):
 
 
 class MusicTrack(BaseModel):
+    url: str
     name: str
     artist: str
     id: str
