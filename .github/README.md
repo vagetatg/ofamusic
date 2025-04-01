@@ -28,7 +28,7 @@ We provide a permanent solution! Get a **Spotify API key** and enjoy seamless so
 
 ## **Features**  
 
-- **Multi-Platform Support** - Play music from [Spotify](https://open.spotify.com), [YT-Music](https://music.youtube.com), [YouTube](https://www.youtube.com), [JioSaavn](https://jiosaavn.com), [Apple Music](https://music.apple.com], [SoundCloud](https://soundcloud.com] and Telegram audio files.  
+- **Multi-Platform Support** - Play music from [Spotify](https://open.spotify.com), [YT-Music](https://music.youtube.com), [YouTube](https://www.youtube.com), [JioSaavn](https://jiosaavn.com), [Apple Music](https://music.apple.com), [SoundCloud](https://soundcloud.com) and Telegram files.  
 - **Playlists & Queue** - Seamless music playback with queue management.  
 - **Full Playback Controls** - Skip, Pause, Resume, End, Mute, Unmute, Volume, Loop, Seek.  
 - **Group Voice Chats** - Supports Telegram **group voice chats** (requires admin permissions).  
