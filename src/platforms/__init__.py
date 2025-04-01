@@ -4,8 +4,9 @@
 #
 #
 
+__all__ = ["JiosaavnData", "SpotifyData", "YouTubeData", "ApiData"]
+
+from ._api import ApiData
 from ._jiosaavn import JiosaavnData
 from ._spotify import SpotifyData
 from ._youtube import YouTubeData
-
-__all__ = ["JiosaavnData", "SpotifyData", "YouTubeData"]

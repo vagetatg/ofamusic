@@ -65,19 +65,19 @@ async def fetch_image(url: str) -> Image.Image | None:
 
     async with httpx.AsyncClient() as client:
         try:
+            if url.startswith("https://is1-ssl.mzstatic.com"):
+                url = url.replace("500x500bb.jpg", "600x600bb.jpg")
             response = await client.get(url, timeout=5)
             response.raise_for_status()
             img = Image.open(BytesIO(response.content)).convert("RGBA")
             if url.startswith("https://i.ytimg.com"):
                 img = resize_youtube_thumbnail(img)
-            elif url.startswith("http://c.saavncdn.com"):
+            elif url.startswith("http://c.saavncdn.com") or url.startswith("https://i1.sndcdn"):
                 img = resize_jiosaavn_thumbnail(img)
-
             return img
         except Exception as e:
             LOGGER.error(f"Image loading error: {e}")
             return None
-
 
 def clean_text(text: str, limit: int = 17) -> str:
     """Sanitizes and truncates text to fit within the limit."""

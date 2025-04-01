@@ -43,6 +43,7 @@ class MusicServiceWrapper(MusicService):
         self.service = self._get_service()
 
     def _get_service(self) -> MusicService:
+        from ._api import ApiData
         from ._jiosaavn import JiosaavnData
         from ._spotify import SpotifyData
         from ._youtube import YouTubeData
@@ -53,6 +54,8 @@ class MusicServiceWrapper(MusicService):
             return YouTubeData(query)
         elif JiosaavnData().is_valid(query):
             return JiosaavnData(query)
+        elif ApiData().is_valid(query):
+            return ApiData(query)
         elif config.DEFAULT_SERVICE == "jiosaavn":
             return JiosaavnData(query)
         elif config.DEFAULT_SERVICE == "spotify":
