@@ -100,7 +100,7 @@ class HttpxClient:
             return DownloadResult(success=False, error=error_msg)
 
     @staticmethod
-    def _handle_http_error(self, e: Exception, url: str) -> str:
+    def _handle_http_error(e: Exception, url: str) -> str:
         if isinstance(e, httpx.TooManyRedirects):
             return f"Too many redirects for {url}: {e}"
         elif isinstance(e, httpx.HTTPStatusError):
