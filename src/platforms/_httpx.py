@@ -1,11 +1,13 @@
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
+# Copyright (c) 2025 AshokShau.
+# TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
+# All rights reserved where applicable.
 #
 #
 
 import asyncio
-from typing import Optional, Any
+from pathlib import Path
+from typing import Optional, Any, Union
+from dataclasses import dataclass
 
 import aiofiles
 import httpx
@@ -15,105 +17,172 @@ from config import API_KEY
 from src.logger import LOGGER
 
 
-class HttpxClient:
-    def __init__(
-        self, timeout: int = 10, download_timeout: int = 60, max_redirects: int = 2
-    ):
-        """
-        Initialize the HTTP client with configurable timeouts and redirect settings.
+@dataclass
+class DownloadResult:
+    success: bool
+    file_path: Optional[Path] = None
+    error: Optional[str] = None
 
-        :param timeout: Timeout for general HTTP requests in seconds.
-        :param download_timeout: Timeout for file downloads in seconds.
-        :param max_redirects: Maximum number of redirects to follow.
+
+class HttpxClient:
+    DEFAULT_TIMEOUT = 10
+    DEFAULT_DOWNLOAD_TIMEOUT = 60
+    CHUNK_SIZE = 8192  # 8KB chunks for streaming downloads
+    MAX_RETRIES = 3
+    BACKOFF_FACTOR = 1.0
+
+    def __init__(
+            self,
+            timeout: int = DEFAULT_TIMEOUT,
+            download_timeout: int = DEFAULT_DOWNLOAD_TIMEOUT,
+            max_redirects: int = 0
+    ) -> None:
         """
-        self.download_timeout = download_timeout
-        self.session = httpx.AsyncClient(
+        Initialize the HTTP client with configurable settings.
+
+        Args:
+            timeout: Timeout for general HTTP requests in seconds
+            download_timeout: Timeout for file downloads in seconds
+            max_redirects: Maximum number of redirects to follow (0 to disable)
+        """
+        self._timeout = timeout
+        self._download_timeout = download_timeout
+        self._max_redirects = max_redirects
+        self._session = httpx.AsyncClient(
             timeout=timeout,
-            follow_redirects=True,
+            follow_redirects=max_redirects > 0,
             max_redirects=max_redirects,
         )
 
-    async def close(self):
-        """Close the HTTP session."""
-        await self.session.aclose()
+    async def close(self) -> None:
+        """Close the HTTP session gracefully."""
+        try:
+            await self._session.aclose()
+        except Exception as e:
+            LOGGER.error(f"Error closing HTTP session: {str(e)}")
 
-    async def download_file(self, url: str, filename: str) -> str | None:
+    async def download_file(
+            self,
+            url: str,
+            file_path: Union[str, Path],
+            overwrite: bool = False
+    ) -> DownloadResult:
         """
-        Download a file asynchronously and save it to disk, following redirects if needed.
+        Download a file asynchronously with proper error handling.
 
-        :param url: The URL of the file to download.
-        :param filename: The path where the file will be saved.
-        :return: The filename if successful, otherwise None.
+        Args:
+            url: URL of the file to download
+            file_path: Path to save the downloaded file
+            overwrite: Whether to overwrite existing file
+
+        Returns:
+            DownloadResult: Contains success status and file path or error message
         """
         if not url:
-            LOGGER.warning("URL is empty")
-            return None
+            return DownloadResult(success=False, error="Empty URL provided")
+
+        path = Path(file_path) if isinstance(file_path, str) else file_path
+        if path.exists() and not overwrite:
+            return DownloadResult(success=True, file_path=path)
 
         try:
-            async with self.session.stream(
-                "GET", url, timeout=self.download_timeout
-            ) as response:
+            async with self._session.stream("GET", url, timeout=self._download_timeout) as response:
                 response.raise_for_status()
-                async with aiofiles.open(filename, "wb") as f:
-                    async for chunk in response.aiter_bytes(8192):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                async with aiofiles.open(path, "wb") as f:
+                    async for chunk in response.aiter_bytes(self.CHUNK_SIZE):
                         await f.write(chunk)
-
-                LOGGER.info(f"Downloaded file: {filename}")
-                return filename
-
-        except httpx.TooManyRedirects as e:
-            LOGGER.error(f"Too many redirects while downloading {url}: {e}")
-        except httpx.HTTPStatusError as e:
-            LOGGER.error(
-                f"HTTP error while downloading {url}: {e.response.status_code}"
-            )
-        except httpx.RequestError as e:
-            LOGGER.error(f"Request failed while downloading {url}: {e}")
+            LOGGER.debug(f"Successfully downloaded file to {path}")
+            return DownloadResult(success=True, file_path=path)
         except Exception as e:
-            LOGGER.error(f"Unexpected error while downloading {url}: {e}")
+            error_msg = self._handle_http_error(e, url)
+            LOGGER.error(error_msg)
+            return DownloadResult(success=False, error=error_msg)
 
-        return None
+    @staticmethod
+    def _handle_http_error(self, e: Exception, url: str) -> str:
+        if isinstance(e, httpx.TooManyRedirects):
+            return f"Too many redirects for {url}: {e}"
+        elif isinstance(e, httpx.HTTPStatusError):
+            return f"HTTP error {e.response.status_code} for {url}"
+        elif isinstance(e, httpx.RequestError):
+            return f"Request failed for {url}: {e}"
+        else:
+            return f"Unexpected error for {url}: {e}"
 
     async def make_request(
-        self, url: str, max_retries: int = 3, backoff_factor: float = 1.0
+            self,
+            url: str,
+            max_retries: int = MAX_RETRIES,
+            backoff_factor: float = BACKOFF_FACTOR,
+            **kwargs: Any
     ) -> Optional[dict[str, Any]]:
         """
-        Make an HTTP GET request with retries and exponential backoff, following redirects if needed.
+        Make an HTTP GET request with retries and exponential backoff.
 
-        :param url: The URL to request.
-        :param max_retries: Maximum number of retries.
-        :param backoff_factor: Factor for exponential backoff.
-        :return: The JSON response as a dictionary if successful, otherwise None.
+        Args:
+            url: URL to request
+            max_retries: Maximum number of retry attempts
+            backoff_factor: Base delay for exponential backoff
+            kwargs: Additional arguments to pass to httpx
+
+        Returns:
+            Parsed JSON response as dict if successful, None otherwise
         """
         if not url:
-            LOGGER.warning("URL is empty")
+            LOGGER.warning("Empty URL provided")
             return None
 
-        headers = None
+        headers = kwargs.pop('headers', {})
         if config.API_URL and url.startswith(config.API_URL):
-            headers = {"X-API-Key": API_KEY}
+            headers["X-API-Key"] = API_KEY
 
         for attempt in range(max_retries):
             try:
-                response = await self.session.get(url, headers=headers)
+                response = await self._session.get(
+                    url,
+                    headers=headers,
+                    **kwargs
+                )
                 response.raise_for_status()
                 return response.json()
-            except httpx.TooManyRedirects as e:
-                LOGGER.error(f"Too many redirects for {url}: {e}")
+
+            except httpx.TooManyRedirects:
+                error_msg = f"Redirect loop for {url}"
                 if attempt == max_retries - 1:
+                    LOGGER.error(error_msg)
                     return None
+                LOGGER.warning(error_msg)
+
             except httpx.HTTPStatusError as e:
-                LOGGER.error(f"HTTP error for {url}: {e.response.status_code}")
+                error_msg = f"HTTP error {e.response.status_code} for {url}"
                 if attempt == max_retries - 1:
+                    LOGGER.error(error_msg)
                     return None
+                LOGGER.warning(error_msg)
+
             except httpx.RequestError as e:
-                LOGGER.error(f"Request failed for {url}: {e}")
+                error_msg = f"Request failed for {url}: {str(e)}"
                 if attempt == max_retries - 1:
+                    LOGGER.error(error_msg)
                     return None
-            except Exception as e:
-                LOGGER.error(f"Unexpected error for {url}: {e}")
+                LOGGER.warning(error_msg)
+
+            except ValueError as e:
+                LOGGER.error(f"Invalid JSON response from {url}: {str(e)}")
                 return None
 
-            await asyncio.sleep(backoff_factor * (2**attempt))
+            except Exception as e:
+                LOGGER.error(f"Unexpected error for {url}: {str(e)}")
+                return None
+
+            # Exponential backoff
+            await asyncio.sleep(backoff_factor * (2 ** attempt))
 
         return None
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()

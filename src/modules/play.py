@@ -344,6 +344,7 @@ async def play_audio(c: Client, msg: types.Message) -> None:
                     year=0,
                     cover="",
                     duration=await get_audio_duration(file_path),
+                    url="",
                     platform="telegram",
                 )
             ]
