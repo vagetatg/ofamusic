@@ -86,39 +86,29 @@ class HttpxClient:
             return DownloadResult(success=True, file_path=path)
 
         try:
-            async with self._session.stream(
-                    "GET",
-                    url,
-                    timeout=self._download_timeout
-            ) as response:
+            async with self._session.stream("GET", url, timeout=self._download_timeout) as response:
                 response.raise_for_status()
-
-                # Ensure parent directory exists
                 path.parent.mkdir(parents=True, exist_ok=True)
-
                 async with aiofiles.open(path, "wb") as f:
                     async for chunk in response.aiter_bytes(self.CHUNK_SIZE):
                         await f.write(chunk)
-
-                LOGGER.debug(f"Successfully downloaded file to {path}")
-                return DownloadResult(success=True, file_path=path)
-
-        except httpx.TooManyRedirects:
-            error_msg = f"Too many redirects while downloading {url}"
-            LOGGER.error(error_msg)
-            return DownloadResult(success=False, error=error_msg)
-        except httpx.HTTPStatusError as e:
-            error_msg = f"HTTP error {e.response.status_code} for {url}"
-            LOGGER.error(error_msg)
-            return DownloadResult(success=False, error=error_msg)
-        except httpx.RequestError as e:
-            error_msg = f"Request failed for {url}: {str(e)}"
-            LOGGER.error(error_msg)
-            return DownloadResult(success=False, error=error_msg)
+            LOGGER.debug(f"Successfully downloaded file to {path}")
+            return DownloadResult(success=True, file_path=path)
         except Exception as e:
-            error_msg = f"Unexpected error downloading {url}: {str(e)}"
+            error_msg = self._handle_http_error(e, url)
             LOGGER.error(error_msg)
             return DownloadResult(success=False, error=error_msg)
+
+    @staticmethod
+    def _handle_http_error(self, e: Exception, url: str) -> str:
+        if isinstance(e, httpx.TooManyRedirects):
+            return f"Too many redirects for {url}: {e}"
+        elif isinstance(e, httpx.HTTPStatusError):
+            return f"HTTP error {e.response.status_code} for {url}"
+        elif isinstance(e, httpx.RequestError):
+            return f"Request failed for {url}: {e}"
+        else:
+            return f"Unexpected error for {url}: {e}"
 
     async def make_request(
             self,
