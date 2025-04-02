@@ -80,6 +80,7 @@ class YouTubeData(MusicService):
                 cover=track_data["cover"],
                 lyrics="None",
                 duration=track_data["duration"],
+                platform="youtube",
                 url=f"https://youtube.com/watch?v={track_data['id']}",
                 year=0,
             )

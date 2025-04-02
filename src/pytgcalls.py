@@ -8,6 +8,7 @@ import asyncio
 import os
 import random
 import re
+from pathlib import Path
 from typing import Optional, Union
 
 from pyrogram import Client as PyroClient, errors
@@ -30,7 +31,7 @@ from src.modules.utils import sec_to_min, get_audio_duration
 from src.modules.utils.buttons import play_button, update_progress_bar
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.thumbnails import gen_thumb
-from src.platforms import ApiData, YouTubeData, SpotifyData, JiosaavnData
+from src.platforms import ApiData, YouTubeData, JiosaavnData
 from src.platforms.downloader import MusicServiceWrapper
 from src.platforms.dataclass import CachedTrack
 
@@ -133,7 +134,7 @@ class MusicBot:
     async def play_media(
         self,
         chat_id: int,
-        file_path: str,
+        file_path: Union[str, Path],
         video: bool = False,
         ffmpeg_parameters: Optional[str] = None,
     ) -> None:
@@ -243,28 +244,22 @@ class MusicBot:
             LOGGER.error(f"Error in _play_song for chat {chat_id}: {e}", exc_info=True)
 
     @staticmethod
-    async def song_download(song: CachedTrack) -> Optional[str]:
+    async def song_download(song: CachedTrack) -> Optional[Path]:
         """Handle song downloading based on platform."""
-        _track_id = song.track_id
-        _url = song.url
-        _platform = song.platform
-        if _platform == "youtube":
-            youtube = YouTubeData(_track_id)
-            if track := await youtube.get_track():
-                return await youtube.download_track(track)
-        elif _platform == "spotify":
-            spotify = SpotifyData(_track_id)
-            if track := await spotify.get_track():
-                return await spotify.download_track(track)
-        elif _platform == "jiosaavn":
-            jiosaavn = JiosaavnData(_url)
-            if track := await jiosaavn.get_track():
-                return await jiosaavn.download_track(track)
-        elif _platform in ["apple_music", "soundcloud"]:
-            _music = ApiData(_url)
-            if track := await _music.get_track():
-                return await _music.download_track(track)
-        LOGGER.warning(f"Unknown platform: {_platform}")
+
+        platform_handlers = {
+            "youtube": YouTubeData(song.track_id),
+            "jiosaavn": JiosaavnData(song.url),
+            "spotify": ApiData(song.track_id),
+            "apple_music": ApiData(song.url),
+            "soundcloud": ApiData(song.url),
+        }
+
+        if handler := platform_handlers.get(song.platform):
+            if track := await handler.get_track():
+                return await handler.download_track(track)
+
+        LOGGER.warning(f"Unknown platform: {song.platform} for track: {song.track_id}")
         return None
 
     async def _handle_no_songs(self, chat_id: int) -> None:

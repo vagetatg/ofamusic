@@ -45,25 +45,22 @@ class MusicServiceWrapper(MusicService):
     def _get_service(self) -> MusicService:
         from ._api import ApiData
         from ._jiosaavn import JiosaavnData
-        from ._spotify import SpotifyData
         from ._youtube import YouTubeData
         query = self.query
-        if SpotifyData().is_valid(query):
-            return SpotifyData(query)
-        elif YouTubeData().is_valid(query):
+        if YouTubeData().is_valid(query):
             return YouTubeData(query)
         elif JiosaavnData().is_valid(query):
             return JiosaavnData(query)
         elif ApiData().is_valid(query):
             return ApiData(query)
-        elif config.DEFAULT_SERVICE == "jiosaavn":
-            return JiosaavnData(query)
         elif config.DEFAULT_SERVICE == "spotify":
-            return SpotifyData(query)
+            return ApiData(query)
         elif config.DEFAULT_SERVICE == "youtube":
             return YouTubeData(query)
+        elif config.DEFAULT_SERVICE == "jiosaavn":
+            return JiosaavnData(query)
         else:
-            return SpotifyData(query) if config.API_URL and config.API_KEY else YouTubeData(query)
+            return ApiData(query) if config.API_URL and config.API_KEY else YouTubeData(query)
 
     def is_valid(self, url: str) -> bool:
         return self.service.is_valid(url)
