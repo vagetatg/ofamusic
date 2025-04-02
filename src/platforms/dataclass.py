@@ -4,6 +4,9 @@
 #
 #
 
+from pathlib import Path
+from typing import Union
+
 from pydantic import BaseModel
 
 
@@ -13,7 +16,7 @@ class CachedTrack(BaseModel):
     artist: str
     loop: int
     user: str
-    file_path: str
+    file_path: Union[str, Path]
     thumbnail: str
     track_id: str
     duration: int = 0
@@ -32,6 +35,7 @@ class TrackInfo(BaseModel):
     lyrics: str
     duration: int
     year: int
+    platform: str
 
 
 class MusicTrack(BaseModel):

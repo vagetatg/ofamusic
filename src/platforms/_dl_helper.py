@@ -22,26 +22,6 @@ from ._httpx import HttpxClient
 from .dataclass import TrackInfo
 
 
-async def get_cookie_file():
-    cookie_dir = "cookies"
-    try:
-        if not os.path.exists(cookie_dir):
-            LOGGER.warning(f"Cookie directory '{cookie_dir}' does not exist.")
-            return None
-
-        files = await asyncio.to_thread(os.listdir, cookie_dir)
-        cookies_files = [f for f in files if f.endswith(".txt")]
-
-        if not cookies_files:
-            LOGGER.warning(f"No cookie files found in '{cookie_dir}'.")
-            return None
-
-        random_file = random.choice(cookies_files)
-        return os.path.join(cookie_dir, random_file)
-    except Exception as e:
-        LOGGER.warning(f"Error accessing cookie directory: {e}")
-        return None
-
 
 class YouTubeDownload:
     def __init__(self, track: TrackInfo):
@@ -52,6 +32,27 @@ class YouTubeDownload:
         self.video_id = track.tc
         self.video_url = f"https://www.youtube.com/watch?v={self.video_id}"
         self.output_file = Path(DOWNLOADS_DIR) / f"{track.tc}.mp3"
+
+    @staticmethod
+    async def get_cookie_file():
+        cookie_dir = "cookies"
+        try:
+            if not os.path.exists(cookie_dir):
+                LOGGER.warning(f"Cookie directory '{cookie_dir}' does not exist.")
+                return None
+
+            files = await asyncio.to_thread(os.listdir, cookie_dir)
+            cookies_files = [f for f in files if f.endswith(".txt")]
+
+            if not cookies_files:
+                LOGGER.warning(f"No cookie files found in '{cookie_dir}'.")
+                return None
+
+            random_file = random.choice(cookies_files)
+            return os.path.join(cookie_dir, random_file)
+        except Exception as e:
+            LOGGER.warning(f"Error accessing cookie directory: {e}")
+            return None
 
     async def process(self) -> Optional[str]:
         """Download the audio from YouTube and return the path to the downloaded file."""
@@ -81,7 +82,7 @@ class YouTubeDownload:
             },
         }
 
-        if cookie_file := await get_cookie_file():
+        if cookie_file := await self.get_cookie_file():
             ydl_opts["cookiefile"] = cookie_file
 
         # Add proxy if configured
