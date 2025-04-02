@@ -30,6 +30,7 @@ from config import OWNER_ID
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
+from src.modules.utils.cacher import chat_cache
 from src.modules.utils.play_helpers import del_msg
 
 
@@ -299,3 +300,40 @@ async def _json(_: Client, msg: types.Message) -> None:
         reply_msg = await msg.getRepliedMessage()
         await msg.reply_text(str(reply_msg))
     await msg.reply_text(str(msg))
+
+@Client.on_message(Filter.command("activevc"))
+async def active_vc(_: Client, message: types.Message):
+    if message.from_id != OWNER_ID:
+        await del_msg(message)
+        return
+
+    active_chats = await chat_cache.get_active_chats()
+    if not active_chats:
+        await message.reply_text("No active voice chats.")
+        return
+
+    text = f"🎵 <b>Active Voice Chats</b> ({len(active_chats)}):\n\n"
+
+    for chat_id in active_chats:
+        queue_length = await chat_cache.count(chat_id)
+        current_song = await chat_cache.get_current_song(chat_id)
+
+        if current_song:
+            song_info = (
+                f"🎶 <b>Now Playing:</b> <a href='{current_song.url}'>{current_song.name}</a> - {current_song.artist} ({current_song.duration}s)"
+            )
+        else:
+            song_info = "🔇 No song playing."
+
+        text += (
+            f"➤ <b>Chat ID:</b> <code>{chat_id}</code>\n"
+            f"📌 <b>Queue Size:</b> {queue_length}\n"
+            f"{song_info}\n\n"
+        )
+
+    if len(text) > 4096:
+        text = f"🎵 <b>Active Voice Chats</b> ({len(active_chats)})"
+
+    reply = await message.reply_text(text, disable_web_page_preview=True)
+    if isinstance(reply, types.Error):
+        return await message.reply_text(reply.message)
