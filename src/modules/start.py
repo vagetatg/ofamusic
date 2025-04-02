@@ -74,6 +74,10 @@ async def help_cmd(c: Client, message: types.Message):
 <b>/setPlayType:</b> Change the play type of the bot.
 <b>/privacy:</b> Read our privacy policy.
 
+
+<b>Owner Commands:</b>
+<b>/broadcast:</b> Broadcast a message to all chats and users.
+<b>/activevc:</b> Get a list of active voice chats.
 ──────────────────────────────────────────
 <b>Note:</b> This bot works best in groups and requires admin permissions to function.
 """
