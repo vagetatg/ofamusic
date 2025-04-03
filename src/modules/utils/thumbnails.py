@@ -79,10 +79,10 @@ async def fetch_image(url: str) -> Image.Image | None:
             LOGGER.error(f"Image loading error: {e}")
             return None
 
-def clean_text(text: str, limit: int = 17) -> str:
+def clean_text(text: str, limit: int = 20) -> str:
     """Sanitizes and truncates text to fit within the limit."""
-    text = text.strip()[:limit]
-    return f"{text}..." if len(text) == limit else text
+    text = text.strip()
+    return text[: limit - 3] + "..." if len(text) > limit else text
 
 
 def add_controls(img: Image.Image) -> Image.Image:
