@@ -53,7 +53,8 @@ async def handle_playback_action(
 
 @Client.on_message(Filter.command("setPlayType"))
 async def set_play_type(_: Client, msg: types.Message) -> None:
-    if msg.chat_id > 0:
+    chat_id = msg.chat_id
+    if chat_id > 0:
         return
 
     play_type = extract_argument(msg.text, enforce_digit=True)
@@ -69,7 +70,7 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
         return
 
     try:
-        await db.set_play_type(msg.chat.id, play_type)
+        await db.set_play_type(chat_id, play_type)
         await msg.reply_text(f"✅ Play type set to {play_type}")
     except Exception as e:
         LOGGER.error(f"Error setting play type: {e}")
