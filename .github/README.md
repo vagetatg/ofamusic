@@ -1,6 +1,6 @@
 # [TgMusicBot](https://github.com/AshokShau/TgMusicBot) - Telegram Music Bot
 
-A powerful Telegram bot for streaming music in voice chats.
+Telegram Group Calls Streaming bot with some useful features, written in Python with Py-Tgcalls. Supporting platforms like YouTube, Spotify, AppleMusic, Soundcloud, JioSaavn and more.
 
 <p align="center">
    <img src="/.github/images/thumb.png" alt="thumbnail" width="320" height="320">
@@ -24,6 +24,7 @@ We provide a permanent solution! Get a **Spotify API key** and enjoy seamless so
 
 📩 **[Contact me on Telegram](https://t.me/AshokShau) to get access!**  
 
+> 📘 Need help with cookies? Check out this [guide](https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md) on downloading and using them.
 ---
 
 ## **Features**  
@@ -34,14 +35,14 @@ We provide a permanent solution! Get a **Spotify API key** and enjoy seamless so
 - **Group Voice Chats** - Supports Telegram **group voice chats** (requires admin permissions).  
 - **Optimized Performance** - Fully **async**, efficient, and lightweight.  
 - **Easy Deployment** - Pre-configured **Docker** setup.  
-- **Open-Source & Free** - Built with **[PyTdBot](https://github.com/pytdbot/client)** & **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.  
-  *(if you need TgMusic with only one library, use the `pyro` branch.)*  
+- **Open-Source & Free** - Built from scratch using **[PyTdBot](https://github.com/pytdbot/client)** & **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.  
+  > 💡 Prefer using Pyrogram instead of PyTdBot? Check out the [Pyro-Branch](https://github.com/AshokShau/TgMusicBot/tree/pyro).
 
 ---
 
 ## **Installation**  
-
-### **🚀 Using Docker (Recommended)**  
+<details>
+<summary><strong>📌 Using Docker (Recommended) (<small>Click to expand</small>)</strong></summary>
 
 1. Clone the repository:  
    ```sh
@@ -60,8 +61,10 @@ We provide a permanent solution! Get a **Spotify API key** and enjoy seamless so
    docker run -d --name tgmusicbot --env-file .env tgmusicbot
    ```
 
+</details>
+
 <details>
-<summary><strong>📌 Manual Installation (Click to expand)</strong></summary>
+<summary><strong>📌 Manual Installation (<small>Click to expand</small>)</strong></summary>
 
 1. Clone the repository:  
    ```sh
@@ -73,7 +76,7 @@ We provide a permanent solution! Get a **Spotify API key** and enjoy seamless so
    ```
 3. Activate the virtual environment:  
    - Windows: `venv/Scripts/activate`  
-   - Linux/Mac: `source venv/bin/activate`  
+   - Linux/Mac: `source venv/bin/activate`
 4. Install dependencies:  
    ```sh
    pip install -r requirements.txt
@@ -94,7 +97,7 @@ We provide a permanent solution! Get a **Spotify API key** and enjoy seamless so
 </details>
 
 <details>
-  <summary><strong>Deploy on Heroku (Click to expand)</strong></summary>
+  <summary><strong>Deploy on Heroku (<small>Click to expand</small>)</strong></summary>
   <p align="center">
     <a href="https://heroku.com/deploy?template=https://github.com/AshokShau/TgMusicBot">
       <img src="https://img.shields.io/badge/Deploy%20On%20Heroku-black?style=for-the-badge&logo=heroku" width="220" height="38.45" alt="Deploy">
@@ -106,7 +109,7 @@ We provide a permanent solution! Get a **Spotify API key** and enjoy seamless so
 
 ## **Configuration**  
 <details>
-<summary><strong>📌 Environment Variables (Click to expand)</strong></summary>
+<summary><strong>📌 Environment Variables (<small>Click to expand</small>)</strong></summary>
 
 ### 🔑 Required Variables
 
@@ -124,6 +127,9 @@ We provide a permanent solution! Get a **Spotify API key** and enjoy seamless so
 - **MONGO_URI** – Get from [MongoDB Cloud](https://cloud.mongodb.com)  
 - **API_URL** – Buy from [@AshokShau](https://t.me/AshokShau) (Spotify API for unlimited downloads)  
 - **API_KEY** – Required for API_URL
+- **DOWNLOADS_DIR** – Directory for downloads and TDLib database
+- **SUPPORT_GROUP** – Support Group Link
+- **SUPPORT_CHANNEL** – Support Channel Link
 
 ### 🎵 Music Download Options
 

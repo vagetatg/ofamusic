@@ -9,7 +9,7 @@ from pytdbot import Client, types
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils.admins import load_admin_cache
-from src.modules.utils.buttons import AddMeButton
+from src.modules.utils.buttons import add_me_button
 from src.modules.utils.cacher import chat_cache
 
 
@@ -23,10 +23,8 @@ If you don't know how to convert, use this guide:
 
 If you have any questions, join our support group:
 """
-    await client.sendTextMessage(
-        chat_id, text, parse_mode="HTML", reply_markup=AddMeButton
-    )
-
+    bot_username = client.me.usernames.editable_username
+    await client.sendTextMessage(chat_id, text, parse_mode="HTML", reply_markup=add_me_button(bot_username))
     await client.leaveChat(chat_id)
     return
 
@@ -103,13 +101,14 @@ async def chat_member(client: Client, update: types.UpdateChatMember):
 
 
 @Client.on_updateNewMessage(position=1)
-async def new_message(_: Client, update: types.UpdateNewMessage):
+async def new_message(c: Client, update: types.UpdateNewMessage):
     if not hasattr(update, "message"):
         return
     message = update.message
     if isinstance(message.content, types.MessageVideoChatEnded):
         LOGGER.info(f"Video chat ended in {message.chat_id}")
         await chat_cache.clear_chat(message.chat_id)
+        _ = await c.sendTextMessage(message.chat_id, f"Video chat ended!\n")
         return
     elif isinstance(message.content, types.MessageVideoChatStarted):
         LOGGER.info(f"Video chat started in {message.chat_id}")
