@@ -14,17 +14,17 @@
   "image": "heroku/python",
   "env": {
     "API_ID": {
-      "description": "Your Telegram API ID",
+      "description": "Your Telegram API ID, get it from https://my.telegram.org",
       "value": "",
       "required": true
     },
     "API_HASH": {
-      "description": "Your Telegram API Hash",
+      "description": "Your Telegram API Hash, get it from https://my.telegram.org",
       "value": "",
       "required": true
     },
     "TOKEN": {
-      "description": "Your Telegram Bot Token",
+      "description": "Your Telegram Bot Token, get it from https://t.me/BotFather",
       "value": "",
       "required": true
     },
@@ -79,11 +79,12 @@
       "required": false
     },
     "OWNER_ID": {
-      "description": "Your Telegram User ID",
-      "value": "5938660179"
+      "description": "Your Telegram User ID, get it from https://t.me/GuardxRobot",
+      "value": "5938660179",
+      "required": true
     },
     "MONGO_URI": {
-      "description": "Your MongoDB URI",
+      "description": "Your MongoDB URI, get it from https://cloud.mongodb.com",
       "value": "",
       "required": true
     },
@@ -103,13 +104,28 @@
       "required": false
     },
     "PROXY_URL": {
-      "description": "Proxy URL for the bot",
+      "description": "Proxy URL for the bot if you want to use it for yt-dlp",
       "value": "",
       "required": false
     },
     "COOKIES_URL": {
       "description": "Cookies URL for the bot; Note use BatBin urls",
       "value": "",
+      "required": false
+    },
+    "DEFAULT_SERVICE": {
+      "description": "Default search platform (Options: youtube, spotify, jiosaavn) Default: youtube",
+      "value": "youtube",
+      "required": false
+    },
+    "SUPPORT_GROUP": {
+      "description": "Telegram Group Link",
+      "value": "https://t.me/GuardxSupport",
+      "required": false
+    },
+    "SUPPORT_CHANNEL": {
+      "description": "Telegram Channel Link",
+      "value": "https://t.me/FallenProjects",
       "required": false
     }
   },
