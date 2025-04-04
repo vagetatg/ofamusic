@@ -8,6 +8,7 @@ import asyncio
 
 from pytdbot import Client, types
 
+import config
 from src.logger import LOGGER
 from src.modules.utils.cacher import chat_cache
 
@@ -152,35 +153,44 @@ SupportButton = types.ReplyMarkupInlineKeyboard(
         [
             types.InlineKeyboardButton(
                 text="❄ Channel",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/FallenProjects"),
+                type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
             ),
             types.InlineKeyboardButton(
                 text="✨ Group",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/GuardxSupport"),
+                type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
             ),
         ]
     ]
 )
 
-AddMeButton = types.ReplyMarkupInlineKeyboard(
-    [
+
+def add_me_button(username: str) -> types.ReplyMarkupInlineKeyboard:
+    """Create an inline keyboard with 'Add me' button using the specified username.
+    Args:
+        username: The bot's username (without @)
+
+    Returns:
+        types.ReplyMarkupInlineKeyboard: Configured inline keyboard markup
+    """
+    return types.ReplyMarkupInlineKeyboard(
         [
-            types.InlineKeyboardButton(
-                text="Add me to your group",
-                type=types.InlineKeyboardButtonTypeUrl(
-                    "https://t.me/FallenBeatzBot?startgroup=true"
+            [
+                types.InlineKeyboardButton(
+                    text="Add me to your group",
+                    type=types.InlineKeyboardButtonTypeUrl(
+                        f"https://t.me/{username}?startgroup=true"
+                    ),
                 ),
-            ),
-        ],
-        [
-            types.InlineKeyboardButton(
-                text="❄ Channel",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/FallenProjects"),
-            ),
-            types.InlineKeyboardButton(
-                text="✨ Group",
-                type=types.InlineKeyboardButtonTypeUrl("https://t.me/GuardxSupport"),
-            ),
-        ],
-    ]
-)
+            ],
+            [
+                types.InlineKeyboardButton(
+                    text="❄ Channel",
+                    type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
+                ),
+                types.InlineKeyboardButton(
+                    text="✨ Group",
+                    type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
+                ),
+            ],
+        ]
+    )
