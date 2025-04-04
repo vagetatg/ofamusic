@@ -3,21 +3,19 @@
 Telegram Group Calls Streaming bot with some useful features, written in Python with Py-Tgcalls. Supporting platforms like YouTube, Spotify, AppleMusic, Soundcloud, JioSaavn and more.
 
 <p align="center">
-   <img src="/.github/images/thumb.png" alt="thumbnail" width="320" height="320">
+   <img src="https://raw.githubusercontent.com/AshokShau/TgMusicBot/master/.github/images/thumb.png" alt="thumbnail" width="320" height="320">
 </p>
 
 ### [@FallenBeatzBot](https://t.me/FallenBeatzBot) - Try it now!
 
 ---
 
-## **Facing IP Ban Issues from YouTube?**  
+### 🚫 Tired of IP Bans from YouTube?
 
-We provide a permanent solution! Get a **Spotify API key** and enjoy seamless song, album, and playlist downloads.  
-
-### **Why Choose Our API?**  
+Say goodbye to restrictions with our Premium Music API – the ultimate solution for seamless, high-quality downloads.
 
 - **Easy Integration** – Just set `API_URL` in your bot configuration.  
-- **Spotify Downloader** – Download high-quality music directly from Spotify.  
+- **High-Quality Downloader** – Download high-quality music directly from Spotify, Apple Music, and SoundCloud.
 - **Unlimited Access** – No download limits or interruptions.  
 
 [➡️ Click here for more details](https://gist.github.com/AshokShau/7528cddc5b264035dee40523a44ff153)  
