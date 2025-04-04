@@ -65,6 +65,10 @@ DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")
 "if get_thumb fails, use this image"
 IMG_URL = "https://te.legra.ph/file/6298d377ad3eb46711644.jpg"
 
+"Support group and channel"
+SUPPORT_GROUP = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
+SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
+
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
     """Parse COOKIES_URL environment variable"""
     if not env_value:
@@ -76,4 +80,4 @@ def process_cookie_urls(env_value: Optional[str]) -> list[str]:
     return [url.strip() for url in urls if url.strip()]
 
 "BatBin urls to download cookies; more info https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md"
-COOKIES_URL: list[str] = process_cookie_urls(getenv("COOKIES_URL"))
+COOKIES_URL: list[str] = process_cookie_urls(getenv("COOKIES_URL", ""))

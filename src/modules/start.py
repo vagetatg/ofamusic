@@ -13,7 +13,7 @@ from pytdbot import Client, types
 from src.database import db
 from src.modules.utils import Filter, sec_to_min
 from src.modules.utils.admins import load_admin_cache
-from src.modules.utils.buttons import AddMeButton
+from src.modules.utils.buttons import add_me_button
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.play_helpers import (
     check_user_status,
@@ -43,8 +43,8 @@ Your ultimate music companion for Telegram voice chats!
 
 <b>📢 Note:</b> This bot works best in groups and requires admin permissions to function.
     """
-
-    reply = await message.reply_text(text, parse_mode="html", reply_markup=AddMeButton)
+    bot_username = c.me.usernames.editable_username
+    reply = await message.reply_text(text, parse_mode="html", reply_markup=add_me_button(bot_username))
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending start message: {reply.message}")
 
@@ -132,8 +132,18 @@ If you have any questions or concerns about our privacy policy, feel free to con
 ──────────────────
 <b>Note:</b> This privacy policy is in place to help you understand how your data is handled and to ensure that your experience with {bot_name} is safe and respectful.
     """
+    button = types.ReplyMarkupInlineKeyboard(
+        [
+            [
+                types.InlineKeyboardButton(
+                    text="Source Code",
+                    type=types.InlineKeyboardButtonTypeUrl("https://github.com/AshokShau/TgMusicBot"),
+                ),
+            ]
+        ]
+    )
 
-    reply = await message.reply_text(text)
+    reply = await message.reply_text(text, reply_markup=button)
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending privacy policy message: {reply.message}")
     return
@@ -191,7 +201,7 @@ async def reload_cmd(c: Client, message: types.Message):
         f"<b>» Reloaded by:</b> {await message.mention()}"
     )
 
-    reply = await reply.edit_text(text, parse_mode="html")
+    reply = await reply.edit_text(text)
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
 
