@@ -1,6 +1,6 @@
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
 #
 #
 
@@ -68,6 +68,9 @@ IMG_URL = "https://te.legra.ph/file/6298d377ad3eb46711644.jpg"
 "Support group and channel"
 SUPPORT_GROUP = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
+
+"If true, allows to skip all updates received while the TDLib instance was not running."
+IGNORE_BACKGROUND_UPDATES = bool(getenv("IGNORE_BACKGROUND_UPDATES", True))
 
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
     """Parse COOKIES_URL environment variable"""

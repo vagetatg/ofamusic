@@ -1,8 +1,6 @@
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
-#
-#
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
 
 from datetime import datetime
 from types import NoneType
@@ -23,7 +21,7 @@ from src.modules.utils.play_helpers import (
 from src.pytgcalls import call
 
 
-@Client.on_message(Filter.command("start"))
+@Client.on_message(filters=Filter.command("start"))
 async def start_cmd(c: Client, message: types.Message):
     me: types.User = await c.getMe()
     chat_id = message.chat_id
@@ -51,7 +49,7 @@ Your ultimate music companion for Telegram voice chats!
     return None
 
 
-@Client.on_message(Filter.command("help"))
+@Client.on_message(filters=Filter.command("help"))
 async def help_cmd(c: Client, message: types.Message):
     text = f"""<b>Help for {c.me.first_name}:</b>
 <b>/start:</b> Start the bot.
@@ -74,10 +72,6 @@ async def help_cmd(c: Client, message: types.Message):
 <b>/setPlayType:</b> Change the play type of the bot.
 <b>/privacy:</b> Read our privacy policy.
 
-
-<b>Owner Commands:</b>
-<b>/broadcast:</b> Broadcast a message to all chats and users.
-<b>/activevc:</b> Get a list of active voice chats.
 ──────────────────────────────────────────
 <b>Note:</b> This bot works best in groups and requires admin permissions to function.
 """
@@ -87,7 +81,7 @@ async def help_cmd(c: Client, message: types.Message):
         c.logger.warning(f"Error sending help message: {reply.message}")
 
 
-@Client.on_message(Filter.command("privacy"))
+@Client.on_message(filters=Filter.command("privacy"))
 async def privacy_handler(c: Client, message: types.Message):
     bot_name = c.me.first_name
     text = f"""
@@ -132,18 +126,8 @@ If you have any questions or concerns about our privacy policy, feel free to con
 ──────────────────
 <b>Note:</b> This privacy policy is in place to help you understand how your data is handled and to ensure that your experience with {bot_name} is safe and respectful.
     """
-    button = types.ReplyMarkupInlineKeyboard(
-        [
-            [
-                types.InlineKeyboardButton(
-                    text="Source Code",
-                    type=types.InlineKeyboardButtonTypeUrl("https://github.com/AshokShau/TgMusicBot"),
-                ),
-            ]
-        ]
-    )
 
-    reply = await message.reply_text(text, reply_markup=button)
+    reply = await message.reply_text(text)
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending privacy policy message: {reply.message}")
     return
@@ -152,7 +136,7 @@ If you have any questions or concerns about our privacy policy, feel free to con
 rate_limit_cache = TTLCache(maxsize=100, ttl=180)
 
 
-@Client.on_message(Filter.command("reload"))
+@Client.on_message(filters=Filter.command("reload"))
 async def reload_cmd(c: Client, message: types.Message):
     user_id = message.from_id
     chat_id = message.chat_id
@@ -201,14 +185,14 @@ async def reload_cmd(c: Client, message: types.Message):
         f"<b>» Reloaded by:</b> {await message.mention()}"
     )
 
-    reply = await reply.edit_text(text)
+    reply = await reply.edit_text(text, parse_mode="html")
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
 
     return
 
 
-@Client.on_message(Filter.command("ping"))
+@Client.on_message(filters=Filter.command("ping"))
 async def ping_cmd(c: Client, message: types.Message):
     reply = await message.reply_text("🏓 Pong!")
     if isinstance(reply, types.Error):
@@ -217,7 +201,7 @@ async def ping_cmd(c: Client, message: types.Message):
     return
 
 
-@Client.on_message(Filter.command("song"))
+@Client.on_message(filters=Filter.command("song"))
 async def song_cmd(c: Client, message: types.Message):
     reply = await message.reply_text("🎶 USE: @SpTubeBot")
     if isinstance(reply, types.Error):
