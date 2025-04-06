@@ -57,6 +57,17 @@ async def get_audio_duration(file_path):
 
 class Filter:
     @staticmethod
+    def _extract_text(event) -> str | None:
+        if isinstance(event, types.Message) and isinstance(event.content, types.MessageText):
+            return event.content.text.text
+        if isinstance(event, types.UpdateNewMessage) and isinstance(event.message, types.MessageText):
+            return event.message.text.text
+        if isinstance(event, types.UpdateNewCallbackQuery) and event.payload:
+            return event.payload.data.decode()
+
+        return None
+
+    @staticmethod
     def command(commands: Union[str, list[str]], prefixes: str = "/!") -> filters.Filter:
         """
         Filter for commands. Supports multiple commands and prefixes like / or !.
@@ -72,13 +83,7 @@ class Filter:
         )
 
         async def filter_func(client, event) -> bool:
-            text = None
-
-            if isinstance(event, types.Message) and isinstance(event.content, types.MessageText):
-                text = event.content.text.text
-            elif isinstance(event, types.UpdateNewMessage) and isinstance(event.message, types.MessageText):
-                text = event.message.text.text
-
+            text = Filter._extract_text(event)
             if not text:
                 return False
 
@@ -107,15 +112,7 @@ class Filter:
         compiled = re.compile(pattern)
 
         async def filter_func(_, event) -> bool:
-            text = None
-
-            if isinstance(event, types.Message) and isinstance(event.content, types.MessageText):
-                text = event.content.text.text
-            elif isinstance(event, types.UpdateNewMessage) and isinstance(event.message, types.MessageText):
-                text = event.message.text.text
-            elif isinstance(event, types.UpdateNewCallbackQuery):
-                text = event.payload.data.decode() if event.payload else None
-
+            text = Filter._extract_text(event)
             return bool(compiled.search(text)) if text else False
 
         return filters.create(filter_func)
@@ -125,11 +122,7 @@ class Filter:
         """
         Filter for specific user IDs.
         """
-        if isinstance(user_ids, int):
-            user_ids = {user_ids}
-        else:
-            user_ids = set(user_ids)
-
+        user_ids = {user_ids} if isinstance(user_ids, int) else set(user_ids)
         async def filter_func(_, event) -> bool:
             sender = event.sender_id
 
@@ -147,10 +140,7 @@ class Filter:
         """
         Filter for specific chat IDs.
         """
-        if isinstance(chat_ids, int):
-            chat_ids = {chat_ids}
-        else:
-            chat_ids = set(chat_ids)
+        chat_ids = {chat_ids} if isinstance(chat_ids, int) else set(chat_ids)
 
         async def filter_func(_, event) -> bool:
             return getattr(event, "chat_id", None) in chat_ids
