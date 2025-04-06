@@ -1,16 +1,17 @@
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
-#
-#
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
+from types import NoneType
 
 from pytdbot import Client, types
 
+from src import call
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import add_me_button
 from src.modules.utils.cacher import chat_cache
+from src.modules.utils.play_helpers import user_status_cache
 
 
 async def handle_non_supergroup(client: Client, chat_id: int):
@@ -55,11 +56,23 @@ async def chat_member(client: Client, update: types.UpdateChatMember):
         and new_status == "chatMemberStatusLeft"
     ):
         LOGGER.info(f"User {user_id} left or was kicked from {chat_id}.")
+        ub = await call.get_client(chat_id)
+        if isinstance(ub, (types.Error, NoneType)):
+            return
+        user_key = f"{chat_id}:{ub.me.id}"
+        if user_id == ub.me.id:
+            user_status_cache[user_key] = "chatMemberStatusLeft"
         return
 
     # User Banned
     if new_status == "chatMemberStatusBanned":
         LOGGER.info(f"User {user_id} was banned in {chat_id}.")
+        ub = await call.get_client(chat_id)
+        if isinstance(ub, (types.Error, NoneType)):
+            return
+        user_key = f"{chat_id}:{ub.me.id}"
+        if user_id == ub.me.id:
+            user_status_cache[user_key] = "chatMemberStatusBanned"
         return
 
     # User Unbanned

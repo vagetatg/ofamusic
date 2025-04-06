@@ -1,8 +1,6 @@
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
-#
-#
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import asyncio
 import os
@@ -11,6 +9,7 @@ import re
 from pathlib import Path
 from typing import Optional, Union
 
+from ntgcalls import TelegramServerError
 from pyrogram import Client as PyroClient, errors
 from pytdbot import Client, types
 from pytgcalls import PyTgCalls, exceptions
@@ -160,6 +159,9 @@ class MusicBot:
             raise CallError(
                 "No active group call \nPlease start a call and try again"
             ) from e
+        except TelegramServerError:
+            LOGGER.warning(f"Error playing media for chat {chat_id}: TelegramServerError")
+            raise CallError("TelegramServerError\ntry again after some time")
         except exceptions.UnMuteNeeded as e:
             LOGGER.warning(f"Error playing media for chat {chat_id}: {e}")
             raise CallError(

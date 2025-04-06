@@ -1,12 +1,12 @@
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
-#
-#
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
+
 
 import asyncio
 import os
 import shutil
+
 
 from pytdbot import Client, types
 
@@ -31,7 +31,7 @@ class Telegram(Client):
             plugins=types.plugins.Plugins(folder="src/modules"),
             files_directory="",
             database_encryption_key="",
-            options={"ignore_background_updates": True},
+            options={"ignore_background_updates": config.IGNORE_BACKGROUND_UPDATES},
         )
         self.call_manager = InactiveCallManager(self)
         self.db = db
@@ -55,7 +55,7 @@ class Telegram(Client):
 
     @staticmethod
     def _check_config() -> None:
-        if os.path.exists("database"):
+        if config.IGNORE_BACKGROUND_UPDATES and os.path.exists("database"):
             shutil.rmtree("database")
         if not isinstance(config.MONGO_URI, str):
             raise TypeError("MONGO_URI must be a string")

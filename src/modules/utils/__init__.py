@@ -1,3 +1,7 @@
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
+
 __all__ = [
     "Filter",
     "sec_to_min",
@@ -7,13 +11,6 @@ __all__ = [
     "ResumeButton",
     "SupportButton",
 ]
-
-
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
-#
-#
 
 import asyncio
 import json
@@ -60,78 +57,102 @@ async def get_audio_duration(file_path):
 
 class Filter:
     @staticmethod
-    def command(commands: Union[str, list[str]]):
-        """Filter for commands, supports multiple commands"""
+    def command(commands: Union[str, list[str]], prefixes: str = "/!") -> filters.Filter:
+        """
+        Filter for commands. Supports multiple commands and prefixes like / or !.
+        Also handles commands with @mentions (e.g., /start@BotName).
+        """
         if isinstance(commands, str):
             commands = [commands]
+        commands_set = {cmd.lower() for cmd in commands}
 
-        async def filter_func(_, event) -> bool:
-            if isinstance(event, types.Message) and isinstance(
-                    event.content, types.MessageText
-            ):
-                return any(
-                    event.content.text.text.startswith(f"/{cmd.lower()}")
-                    for cmd in commands
-                )
+        pattern = re.compile(
+            fr"^[{re.escape(prefixes)}](\w+)(?:@(\w+))?",
+            re.IGNORECASE
+        )
 
-            if isinstance(event, types.UpdateNewMessage) and isinstance(
-                    event.message, types.MessageText
-            ):
-                return any(
-                    event.message.text.text.startswith(f"/{cmd.lower()}")
-                    for cmd in commands
-                )
+        async def filter_func(client, event) -> bool:
+            text = None
 
-            return False
+            if isinstance(event, types.Message) and isinstance(event.content, types.MessageText):
+                text = event.content.text.text
+            elif isinstance(event, types.UpdateNewMessage) and isinstance(event.message, types.MessageText):
+                text = event.message.text.text
 
-        return filters.create(filter_func)
+            if not text:
+                return False
 
-    @staticmethod
-    def regex(pattern: str):
-        """Filter for messages matching a regex pattern."""
+            match = pattern.match(text.strip())
+            if not match:
+                return False
 
-        async def filter_func(_, event) -> bool:
-            if isinstance(event, types.Message) and isinstance(
-                    event.content, types.MessageText
-            ):
-                return bool(re.search(pattern, event.content.text))
+            cmd, mentioned_bot = match.groups()
+            if cmd.lower() not in commands_set:
+                return False
 
-            if isinstance(event, types.UpdateNewMessage) and isinstance(
-                    event.message, types.MessageText
-            ):
-                return bool(re.search(pattern, event.message.text.text))
+            if mentioned_bot:
+                bot_username = client.me.usernames.editable_username
+                return bot_username and mentioned_bot.lower() == bot_username.lower()
 
-            if isinstance(event, types.UpdateNewCallbackQuery):
-                data = event.payload.data.decode() if event.payload else ""
-                return bool(re.search(pattern, data))
-
-            return False
+            return True
 
         return filters.create(filter_func)
 
     @staticmethod
-    def user(user_ids: Union[int, list[int]]):
-        """Filter for specific user IDs."""
+    def regex(pattern: str) -> filters.Filter:
+        """
+        Filter for messages or callback queries matching a regex pattern.
+        """
+
+        compiled = re.compile(pattern)
+
+        async def filter_func(_, event) -> bool:
+            text = None
+
+            if isinstance(event, types.Message) and isinstance(event.content, types.MessageText):
+                text = event.content.text.text
+            elif isinstance(event, types.UpdateNewMessage) and isinstance(event.message, types.MessageText):
+                text = event.message.text.text
+            elif isinstance(event, types.UpdateNewCallbackQuery):
+                text = event.payload.data.decode() if event.payload else None
+
+            return bool(compiled.search(text)) if text else False
+
+        return filters.create(filter_func)
+
+    @staticmethod
+    def user(user_ids: Union[int, list[int]]) -> filters.Filter:
+        """
+        Filter for specific user IDs.
+        """
         if isinstance(user_ids, int):
-            user_ids = [user_ids]
+            user_ids = {user_ids}
+        else:
+            user_ids = set(user_ids)
 
         async def filter_func(_, event) -> bool:
-            if isinstance(event.sender_id, types.MessageSenderChat):
-                return event.sender_id.chat_id in user_ids
-            elif isinstance(event.sender_id, types.MessageSenderUser):
-                return event.sender_id.user_id in user_ids
+            sender = event.sender_id
+
+            if isinstance(sender, types.MessageSenderChat):
+                return sender.chat_id in user_ids
+            elif isinstance(sender, types.MessageSenderUser):
+                return sender.user_id in user_ids
 
             return False
 
         return filters.create(filter_func)
 
     @staticmethod
-    def chat(chat_ids: Union[int, list[int]]):
-        """Filter for specific chat IDs."""
+    def chat(chat_ids: Union[int, list[int]]) -> filters.Filter:
+        """
+        Filter for specific chat IDs.
+        """
         if isinstance(chat_ids, int):
-            chat_ids = [chat_ids]
+            chat_ids = {chat_ids}
+        else:
+            chat_ids = set(chat_ids)
 
         async def filter_func(_, event) -> bool:
-            return event.chat_id in chat_ids if hasattr(event, "chat_id") else False
+            return getattr(event, "chat_id", None) in chat_ids
 
         return filters.create(filter_func)
