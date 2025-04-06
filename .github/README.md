@@ -128,6 +128,7 @@ Say goodbye to restrictions with our Premium Music API – the ultimate solution
 - **DOWNLOADS_DIR** – Directory for downloads and TDLib database
 - **SUPPORT_GROUP** – Support Group Link
 - **SUPPORT_CHANNEL** – Support Channel Link
+- **IGNORE_BACKGROUND_UPDATES** – Ignore background updates
 
 ### 🎵 Music Download Options
 

@@ -1,8 +1,6 @@
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
-#
-#
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import asyncio
 import inspect
@@ -22,8 +20,7 @@ import psutil
 from meval import meval
 from ntgcalls import __version__ as ntgver
 from pyrogram import __version__ as pyrover
-from pytdbot import VERSION as py_td_ver
-from pytdbot import types, Client
+from pytdbot import types, Client, VERSION as pyTdVer
 from pytgcalls import __version__ as pytgver
 
 from config import OWNER_ID
@@ -35,7 +32,7 @@ from src.modules.utils.play_helpers import del_msg
 
 
 def format_exception(
-        exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
+    exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
 ) -> str:
     """Formats an exception traceback as a string, similar to the Python interpreter."""
 
@@ -56,7 +53,7 @@ def format_exception(
     return f"Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}"
 
 
-@Client.on_message(Filter.command("eval"))
+@Client.on_message(filters=Filter.command("eval"))
 async def exec_eval(c: Client, m: types.Message):
     if int(m.from_id) != OWNER_ID:
         return None
@@ -148,11 +145,11 @@ async def exec_eval(c: Client, m: types.Message):
     await m.reply_text(str(result), parse_mode="html")
 
 
-REQUEST = 10
+REQUEST = 6
 semaphore = asyncio.Semaphore(REQUEST)
 
 
-@Client.on_message(Filter.command("broadcast"))
+@Client.on_message(filters=Filter.command("broadcast"))
 async def broadcast(_: Client, message: types.Message):
     LOGGER.info(f"Broadcast command used by {message.from_id}")
     if int(message.from_id) != OWNER_ID:
@@ -216,7 +213,7 @@ async def broadcast(_: Client, message: types.Message):
     )
 
 
-@Client.on_message(Filter.command("stats"))
+@Client.on_message(filters=Filter.command("stats"))
 async def sys_stats(client: Client, message: types.Message):
     if int(message.from_id) != OWNER_ID:
         await del_msg(message)
@@ -246,9 +243,9 @@ async def sys_stats(client: Client, message: types.Message):
         cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
 
     hdd = psutil.disk_usage("/")
-    total = hdd.total / (1024.0 ** 3)
-    used = hdd.used / (1024.0 ** 3)
-    free = hdd.free / (1024.0 ** 3)
+    total = hdd.total / (1024.0**3)
+    used = hdd.used / (1024.0**3)
+    free = hdd.free / (1024.0**3)
     platform_release = platform.release()
     platform_version = platform.version()
     chats = len(await db.get_all_chats())
@@ -265,7 +262,7 @@ async def sys_stats(client: Client, message: types.Message):
 <b>Pyrogram:</b> {pyrover}
 <b>Py-TgCalls:</b> {pytgver}
 <b>NTGCalls:</b> {ntgver}
-<b>PyTdBot:</b> {py_td_ver}
+<b>PyTdBot:</b> {pyTdVer}
 
 
 <b>IP:</b> {ip_address}
@@ -289,7 +286,7 @@ async def sys_stats(client: Client, message: types.Message):
     )
 
 
-@Client.on_message(Filter.command("json"))
+@Client.on_message(filters=Filter.command("json"))
 async def _json(_: Client, msg: types.Message) -> None:
     if int(msg.from_id) != OWNER_ID:
         await del_msg(msg)
@@ -301,7 +298,7 @@ async def _json(_: Client, msg: types.Message) -> None:
         await msg.reply_text(str(reply_msg))
     await msg.reply_text(str(msg))
 
-@Client.on_message(Filter.command("activevc"))
+@Client.on_message(filters=Filter.command("activevc"))
 async def active_vc(_: Client, message: types.Message):
     if message.from_id != OWNER_ID:
         await del_msg(message)

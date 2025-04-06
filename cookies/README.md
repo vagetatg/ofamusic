@@ -4,6 +4,8 @@
 
 To authenticate requests using cookies, follow these steps:  
 
+> ⚠️ **Note:** Use a **second account** for generating cookies. Once you create and upload the cookies, **do not open the account again** until the cookies expire — reopening may invalidate the session early.
+
 #### **1. Export Cookies in Netscape Format**  
 Use a browser extension to export cookies in the **Netscape HTTP Cookie File** format:  
 

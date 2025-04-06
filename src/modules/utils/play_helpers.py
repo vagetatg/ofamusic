@@ -1,12 +1,11 @@
-#  Copyright (c) 2025 AshokShau.
-#  TgMusicBot is an open-source Telegram music bot licensed under AGPL-3.0.
-#  All rights reserved where applicable.
-#
-#
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
+
 
 import contextlib
 from types import NoneType
-from typing import Optional, Any, Union
+from typing import Optional, Any, Union, Literal
 
 import pyrogram
 from cachetools import TTLCache
@@ -123,19 +122,15 @@ async def unban_ub(c: Client, chat_id: int, user_id: int):
 
 async def check_user_status(
         c: Client, chat_id: int, user_id: int
-) -> Union[types.ChatMemberStatus, types.Error]:
+) -> Literal["chatMemberStatusLeft", "chatMemberStatusCreator", "chatMemberStatusAdministrator", "chatMemberStatusMember", "chatMemberStatusRestricted", "chatMemberStatusBanned"] | Any:
     user_status = user_status_cache.get((chat_id, user_id))
     if not user_status:
-        user = await c.getChatMember(
-            chat_id=chat_id, member_id=types.MessageSenderUser(user_id)
-        )
-        if isinstance(user, types.Error):
+        user = await c.getChatMember(chat_id=chat_id, member_id=types.MessageSenderUser(user_id))
+        if isinstance(user, types.Error) or user.status is None:
             if user.code == 400:
-                return "chatMemberStatusLeft"
+                return types.ChatMemberStatusLeft().getType()
             else:
                 raise user
-
-        user_status = user.status["@type"] if user.status else "chatMemberStatusLeft"
+        user_status = user.status.getType()
         user_status_cache[(chat_id, user_id)] = user_status
-
     return user_status
