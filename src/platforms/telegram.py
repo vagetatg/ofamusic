@@ -14,6 +14,7 @@ class Telegram:
 
     MAX_FILE_SIZE = 400 * 1024 * 1024  # 400MB
     UNSUPPORTED_TYPES = (
+        types.MessageText,
         types.MessagePhoto,
         types.MessageSticker,
         types.MessageAnimation,
