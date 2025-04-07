@@ -142,7 +142,6 @@ class YouTubeDownload:
         ext = audios.get("ext")
         dl_url = audios.get("url")
         self.output_file = Path(DOWNLOADS_DIR) / f"{self.track.tc}.{ext}"
-        dl = await run_ffmpeg(dl_url, self.output_file)
         # process = await asyncio.create_subprocess_exec(
         #     "yt-dlp", dl_url,
         #     "--external-downloader", "aria2c",
@@ -158,7 +157,10 @@ class YouTubeDownload:
         #     LOGGER.error(f"❌ Download failed:\n{stderr.decode().strip()}")
         #     return None
 
-        return self.output_file if dl else None
+        # dl = await run_ffmpeg(dl_url, self.output_file)
+
+        dl = await self.client.download_file(dl_url, self.output_file)
+        return self.output_file if dl.success else None
 
 async def rebuild_ogg(filename: str) -> None:
     """Fixes broken OGG headers."""
