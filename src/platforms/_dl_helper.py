@@ -15,6 +15,7 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from yt_dlp import YoutubeDL, utils
 
+import config
 from config import DOWNLOADS_DIR, PROXY_URL
 from src.logger import LOGGER
 from ._httpx import HttpxClient
@@ -27,12 +28,11 @@ class YouTubeDownload:
         Initialize the YouTubeDownload class with a video ID.
         """
         self.track = track
-        self.video_id = track.tc
-        self.video_url = f"https://www.youtube.com/watch?v={self.video_id}"
-        self.output_file = Path(DOWNLOADS_DIR) / f"{track.tc}.mp3"
+        self.video_url = f"https://www.youtube.com/watch?v={self.track.tc}"
+        self.client = HttpxClient(max_redirects=1)
 
     @staticmethod
-    async def get_cookie_file():
+    async def _get_cookie_file():
         cookie_dir = "cookies"
         try:
             if not os.path.exists(cookie_dir):
@@ -54,13 +54,22 @@ class YouTubeDownload:
 
     async def process(self) -> Optional[str]:
         """Download the audio from YouTube and return the path to the downloaded file."""
-        if self.output_file.exists():
-            LOGGER.info(f"✅ Found existing file: {self.output_file}")
-            return str(self.output_file)
-        return await self._download_with_yt_dlp()
+        try:
+            existing_files = list(Path(DOWNLOADS_DIR).glob(f"{self.track.tc}.*"))
+            if existing_files:
+                return str(existing_files[0])
+
+            if config.API_URL and config.API_KEY:
+                if file_path := await self._download_with_api():
+                    return file_path
+
+            return await self._download_with_yt_dlp()
+        except Exception as e:
+            LOGGER.error(f"Unexpected error in download process: {e}", exc_info=True)
+            return None
 
     async def _download_with_yt_dlp(self) -> Optional[str]:
-        """Download audio using yt-dlp with proxy support."""
+        """Download audio using yt-dlp with proxy and cookie support."""
         ydl_opts = {
             "format": "bestaudio/best",
             "postprocessors": [
@@ -70,20 +79,16 @@ class YouTubeDownload:
                     "preferredquality": "192",
                 }
             ],
-            "outtmpl": str(self.output_file.with_suffix("")),
+            "outtmpl": str(Path(DOWNLOADS_DIR) / f"{self.track.tc}.%(ext)s"),
             "geo_bypass": True,
             "nocheckcertificate": True,
             "quiet": True,
             "no_warnings": True,
-            "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-            },
         }
 
-        if cookie_file := await self.get_cookie_file():
+        if cookie_file := await self._get_cookie_file():
             ydl_opts["cookiefile"] = cookie_file
 
-        # Add proxy if configured
         if PROXY_URL:
             ydl_opts["proxy"] = PROXY_URL
 
@@ -91,15 +96,49 @@ class YouTubeDownload:
             loop = asyncio.get_running_loop()
             with YoutubeDL(ydl_opts) as ydl:
                 await loop.run_in_executor(None, ydl.download, [self.video_url])
-            LOGGER.info(f"✅ Downloaded: {self.output_file}")
-            return str(self.output_file)
+            downloaded_files = list(Path(DOWNLOADS_DIR).glob(f"{self.track.tc}.*"))
+            if downloaded_files:
+                return str(downloaded_files[0])
+            LOGGER.warning("❌ yt-dlp finished, but no file found.")
+            return None
         except utils.DownloadError as e:
             LOGGER.error(f"❌ Download error for {self.video_url}: {e}")
             return None
         except Exception as e:
-            LOGGER.error(
-                f"❌ Unexpected error downloading {self.video_url}: {e}", exc_info=True
-            )
+            LOGGER.error(f"❌ Unexpected error downloading {self.video_url}: {e}")
+            return None
+
+    async def _download_with_api(self) -> Optional[Path]:
+        """Attempt to download from external API if available."""
+        _api_url = f"{config.API_URL}/yt?id={self.track.tc}"
+        data = await self.client.make_request(_api_url)
+        if not data or "results" not in data:
+            LOGGER.warning("❌ API response invalid or missing results.")
+            return None
+
+        results = data["results"]
+        audios = results.get("audios")
+        if not audios:
+            LOGGER.warning("❌ No audio entries found in API response.")
+            return None
+
+        webm_audios = [a for a in audios if a.get("ext") == "webm"]
+        best_audio = webm_audios[-1] if webm_audios else audios[-1]
+
+        dl_url = best_audio.get("url")
+        ext = best_audio.get("ext", "webm")
+
+        if not dl_url:
+            LOGGER.warning("❌ No download URL in API response.")
+            return None
+
+        self.output_file = Path(DOWNLOADS_DIR) / f"{self.track.tc}.{ext}"
+        dl = await self.client.download_file(dl_url, self.output_file)
+        if dl.success:
+            LOGGER.info(f"✅ Downloaded via API: {self.output_file}")
+            return dl.file_path
+        else:
+            LOGGER.warning(f"❌ API download failed for: {self.track.tc}")
             return None
 
 
@@ -183,6 +222,7 @@ class SpotifyDownload:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
+
             stdout, stderr = await process.communicate()
             if process.returncode != 0:
                 LOGGER.error(f"FFmpeg error: {stderr.decode().strip()}")
