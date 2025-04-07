@@ -15,12 +15,32 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from yt_dlp import YoutubeDL, utils
 
-import config
-from config import DOWNLOADS_DIR, PROXY_URL
+from config import DOWNLOADS_DIR, PROXY_URL, API_URL, API_KEY
 from src.logger import LOGGER
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
 
+
+async def run_ffmpeg(dl_url: str, output_path: Path) -> bool:
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", dl_url,
+        "-c", "copy",
+        "-bsf:a", "aac_adtstoasc",
+        str(output_path)
+    ]
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    stdout, stderr = await process.communicate()
+
+    if process.returncode != 0:
+        LOGGER.error(f"❌ ffmpeg failed:\n{stderr.decode()}")
+        return False
+
+    return output_path.exists()
 
 class YouTubeDownload:
     def __init__(self, track: TrackInfo):
@@ -29,7 +49,8 @@ class YouTubeDownload:
         """
         self.track = track
         self.video_url = f"https://www.youtube.com/watch?v={self.track.tc}"
-        self.client = HttpxClient(max_redirects=1)
+        self.output_file = Path(DOWNLOADS_DIR) / f"{self.track.tc}.mp3"
+        self.client = HttpxClient()
 
     @staticmethod
     async def _get_cookie_file():
@@ -59,13 +80,13 @@ class YouTubeDownload:
             if existing_files:
                 return str(existing_files[0])
 
-            if config.API_URL and config.API_KEY:
+            if API_URL and API_KEY:
                 if file_path := await self._download_with_api():
                     return file_path
 
             return await self._download_with_yt_dlp()
         except Exception as e:
-            LOGGER.error(f"Unexpected error in download process: {e}", exc_info=True)
+            LOGGER.error(f"Unexpected error in download process: {e}")
             return None
 
     async def _download_with_yt_dlp(self) -> Optional[str]:
@@ -110,7 +131,7 @@ class YouTubeDownload:
 
     async def _download_with_api(self) -> Optional[Path]:
         """Attempt to download from external API if available."""
-        _api_url = f"{config.API_URL}/yt?id={self.track.tc}"
+        _api_url = f"{API_URL}/yt?id={self.track.tc}"
         data = await self.client.make_request(_api_url)
         if not data or "results" not in data:
             LOGGER.warning("❌ API response invalid or missing results.")
@@ -122,25 +143,17 @@ class YouTubeDownload:
             LOGGER.warning("❌ No audio entries found in API response.")
             return None
 
-        webm_audios = [a for a in audios if a.get("ext") == "webm"]
+        webm_audios = [a for a in audios if a.get("ext") == "mp4"]
         best_audio = webm_audios[-1] if webm_audios else audios[-1]
 
         dl_url = best_audio.get("url")
-        ext = best_audio.get("ext", "webm")
-
+        ext = best_audio.get("ext", "mp3")
         if not dl_url:
             LOGGER.warning("❌ No download URL in API response.")
             return None
-
         self.output_file = Path(DOWNLOADS_DIR) / f"{self.track.tc}.{ext}"
-        dl = await self.client.download_file(dl_url, self.output_file)
-        if dl.success:
-            LOGGER.info(f"✅ Downloaded via API: {self.output_file}")
-            return dl.file_path
-        else:
-            LOGGER.warning(f"❌ API download failed for: {self.track.tc}")
-            return None
-
+        success = await run_ffmpeg(dl_url, self.output_file)
+        return self.output_file if success else None
 
 async def rebuild_ogg(filename: str) -> None:
     """Fixes broken OGG headers."""
