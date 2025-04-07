@@ -91,7 +91,7 @@ Say goodbye to restrictions with our **Premium Music API** – your ultimate sol
    ```
 
 5. Activate the virtual environment:  
-   - Windows: `venv/Scripts/activate`  
+   - Windows: `venv/Scripts/activate`
    - Linux/Mac: `source venv/bin/activate`
 
 6. Install dependencies:  
@@ -103,10 +103,18 @@ Say goodbye to restrictions with our **Premium Music API** – your ultimate sol
    ```sh
    cp sample.env .env && vi .env
    ```
-8. Start the bot:  
+   > Press `Ctrl+C` when you're done with editing env and `:wq` to save the environment variables.
+
+8. Install tmux to keep running your bot when you close the terminal by:
+   ```sh
+   sudo apt install tmux && tmux
+   ```
+
+9. Finally run the bot by:  
    ```sh
    bash start
    ```
+   > For getting out from tmux session : Press `Ctrl+b` and then `d`.
 
 </details>
 

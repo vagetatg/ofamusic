@@ -138,22 +138,26 @@ class YouTubeDownload:
             return None
 
         results = data["results"]
-        audios = results.get("audios")
-        if not audios:
-            LOGGER.warning("❌ No audio entries found in API response.")
-            return None
-
-        webm_audios = [a for a in audios if a.get("ext") == "mp4"]
-        best_audio = webm_audios[-1] if webm_audios else audios[-1]
-
-        dl_url = best_audio.get("url")
-        ext = best_audio.get("ext", "mp3")
-        if not dl_url:
-            LOGGER.warning("❌ No download URL in API response.")
-            return None
+        audios = results.get("best_audio")
+        ext = audios.get("ext")
+        dl_url = audios.get("url")
         self.output_file = Path(DOWNLOADS_DIR) / f"{self.track.tc}.{ext}"
-        success = await run_ffmpeg(dl_url, self.output_file)
-        return self.output_file if success else None
+
+        process = await asyncio.create_subprocess_exec(
+            "yt-dlp", dl_url,
+            "--external-downloader", "aria2c",
+            "--external-downloader-args", "-j 16 -x 16 -s 16 -k 1M",
+            "-o", str(self.output_file),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        stdout, stderr = await process.communicate()
+
+        if process.returncode != 0:
+            LOGGER.error(f"❌ Download failed:\n{stderr.decode().strip()}")
+            return None
+        return self.output_file
 
 async def rebuild_ogg(filename: str) -> None:
     """Fixes broken OGG headers."""
