@@ -57,7 +57,7 @@ API_KEY = getenv("API_KEY", None)
 PROXY_URL = getenv("PROXY_URL", None)
 
 "Default platform to search for songs; options: youtube, spotify, jiosaavn"
-DEFAULT_SERVICE = getenv("DEFAULT_SERVICE", "youtube")
+DEFAULT_SERVICE = getenv("DEFAULT_SERVICE", "youtube").lower()
 
 "Directory for downloads and TDLib db"
 DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")

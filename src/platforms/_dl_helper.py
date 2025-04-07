@@ -7,7 +7,6 @@ import asyncio
 import os
 import random
 import subprocess
-from pathlib import Path
 from typing import Optional
 
 import aiofiles
@@ -15,32 +14,12 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from yt_dlp import YoutubeDL, utils
 
-from config import DOWNLOADS_DIR, PROXY_URL, API_URL, API_KEY
+import config
+from config import DOWNLOADS_DIR, PROXY_URL
 from src.logger import LOGGER
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
 
-
-async def run_ffmpeg(dl_url: str, output_path: Path) -> bool:
-    cmd = [
-        "ffmpeg", "-y",
-        "-i", dl_url,
-        "-c", "copy",
-        "-bsf:a", "aac_adtstoasc",
-        str(output_path)
-    ]
-    process = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE
-    )
-    stdout, stderr = await process.communicate()
-
-    if process.returncode != 0:
-        LOGGER.error(f"❌ ffmpeg failed:\n{stderr.decode()}")
-        return False
-
-    return output_path.exists()
 
 class YouTubeDownload:
     def __init__(self, track: TrackInfo):
@@ -48,12 +27,11 @@ class YouTubeDownload:
         Initialize the YouTubeDownload class with a video ID.
         """
         self.track = track
-        self.video_url = f"https://www.youtube.com/watch?v={self.track.tc}"
-        self.output_file = Path(DOWNLOADS_DIR) / f"{self.track.tc}.mp3"
-        self.client = HttpxClient()
+        self.video_id = track.tc
+        self.video_url = f"https://www.youtube.com/watch?v={self.video_id}"
 
     @staticmethod
-    async def _get_cookie_file():
+    async def get_cookie_file():
         cookie_dir = "cookies"
         try:
             if not os.path.exists(cookie_dir):
@@ -75,53 +53,37 @@ class YouTubeDownload:
 
     async def process(self) -> Optional[str]:
         """Download the audio from YouTube and return the path to the downloaded file."""
-        try:
-            existing_files = list(Path(DOWNLOADS_DIR).glob(f"{self.track.tc}.*"))
-            if existing_files:
-                return str(existing_files[0])
-
-            if API_URL and API_KEY:
-                if file_path := await self._download_with_api():
-                    return file_path
-
-            return await self._download_with_yt_dlp()
-        except Exception as e:
-            LOGGER.error(f"Unexpected error in download process: {e}")
-            return None
+        return await self._download_with_yt_dlp()
 
     async def _download_with_yt_dlp(self) -> Optional[str]:
-        """Download audio using yt-dlp with proxy and cookie support."""
+        """Download audio using yt-dlp."""
         ydl_opts = {
-            "format": "bestaudio/best",
-            "postprocessors": [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192",
-                }
-            ],
-            "outtmpl": str(Path(DOWNLOADS_DIR) / f"{self.track.tc}.%(ext)s"),
-            "geo_bypass": True,
-            "nocheckcertificate": True,
-            "quiet": True,
-            "no_warnings": True,
+                "format": "bestaudio/best",
+                "outtmpl": f"{config.DOWNLOADS_DIR}/%(id)s.%(ext)s",
+                "geo_bypass": True,
+                "nocheckcertificate": True,
+                "quiet": True,
+                "no_warnings": True,
         }
-
-        if cookie_file := await self._get_cookie_file():
-            ydl_opts["cookiefile"] = cookie_file
 
         if PROXY_URL:
             ydl_opts["proxy"] = PROXY_URL
+        else:
+            if cookie_file := await self.get_cookie_file():
+                ydl_opts["cookiefile"] = cookie_file
 
         try:
-            loop = asyncio.get_running_loop()
-            with YoutubeDL(ydl_opts) as ydl:
-                await loop.run_in_executor(None, ydl.download, [self.video_url])
-            downloaded_files = list(Path(DOWNLOADS_DIR).glob(f"{self.track.tc}.*"))
-            if downloaded_files:
-                return str(downloaded_files[0])
-            LOGGER.warning("❌ yt-dlp finished, but no file found.")
-            return None
+            def run_yt_dlp():
+                with YoutubeDL(ydl_opts) as ydl:
+                    song_info = ydl.extract_info(self.video_url, download=True)
+                    file_name = ydl.prepare_filename(song_info)
+                    return file_name, song_info
+            filename, info = await asyncio.to_thread(run_yt_dlp)
+            if not os.path.exists(filename):
+                LOGGER.warning(f"⚠️ File not found after download: {filename}")
+                return None
+            LOGGER.info(f"Downloaded: {filename}")
+            return filename
         except utils.DownloadError as e:
             LOGGER.error(f"❌ Download error for {self.video_url}: {e}")
             return None
@@ -129,38 +91,6 @@ class YouTubeDownload:
             LOGGER.error(f"❌ Unexpected error downloading {self.video_url}: {e}")
             return None
 
-    async def _download_with_api(self) -> Optional[Path]:
-        """Attempt to download from external API if available."""
-        _api_url = f"{API_URL}/yt?id={self.track.tc}"
-        data = await self.client.make_request(_api_url)
-        if not data or "results" not in data:
-            LOGGER.warning("❌ API response invalid or missing results.")
-            return None
-
-        results = data["results"]
-        audios = results.get("best_audio")
-        ext = audios.get("ext")
-        dl_url = audios.get("url")
-        self.output_file = Path(DOWNLOADS_DIR) / f"{self.track.tc}.{ext}"
-        # process = await asyncio.create_subprocess_exec(
-        #     "yt-dlp", dl_url,
-        #     "--external-downloader", "aria2c",
-        #     "--external-downloader-args", "-j 16 -x 16 -s 16 -k 1M",
-        #     "-o", str(self.output_file),
-        #     stdout=asyncio.subprocess.PIPE,
-        #     stderr=asyncio.subprocess.PIPE,
-        # )
-        #
-        # stdout, stderr = await process.communicate()
-        #
-        # if process.returncode != 0:
-        #     LOGGER.error(f"❌ Download failed:\n{stderr.decode().strip()}")
-        #     return None
-
-        # dl = await run_ffmpeg(dl_url, self.output_file)
-
-        dl = await self.client.download_file(dl_url, self.output_file)
-        return self.output_file if dl.success else None
 
 async def rebuild_ogg(filename: str) -> None:
     """Fixes broken OGG headers."""
@@ -218,7 +148,7 @@ class SpotifyDownload:
                 key, AES.MODE_CTR, counter=Counter.new(128, initial_value=iv_int)
             )
 
-            chunk_size = 8192  # 8KB chunks
+            chunk_size = 8192
             async with aiofiles.open(self.encrypted_file, "rb") as fin, aiofiles.open(
                     self.decrypted_file, "wb"
             ) as fout:
@@ -242,7 +172,6 @@ class SpotifyDownload:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-
             stdout, stderr = await process.communicate()
             if process.returncode != 0:
                 LOGGER.error(f"FFmpeg error: {stderr.decode().strip()}")
