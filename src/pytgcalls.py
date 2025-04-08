@@ -126,7 +126,7 @@ class MusicBot:
                     elif isinstance(update, ChatUpdate) and (
                         update.status.KICKED or update.status.LEFT_GROUP
                     ):
-                        await chat_cache.clear_chat(update.chat_id)
+                        chat_cache.clear_chat(update.chat_id)
                 except Exception as e:
                     LOGGER.error(f"Error in general handler: {e}")
 
@@ -155,7 +155,7 @@ class MusicBot:
             await self.calls[client_name].play(chat_id, _stream)
         except (errors.ChatAdminRequired, exceptions.NoActiveGroupCall) as e:
             LOGGER.warning(f"Error playing media for chat {chat_id}: {e}")
-            await chat_cache.clear_chat(chat_id)
+            chat_cache.clear_chat(chat_id)
             raise CallError(
                 "No active group call \nPlease start a call and try again"
             ) from e
@@ -175,15 +175,15 @@ class MusicBot:
         """Handle song queue logic."""
         LOGGER.info(f"Playing next song for chat {chat_id}")
         try:
-            loop = await chat_cache.get_loop_count(chat_id)
+            loop = chat_cache.get_loop_count(chat_id)
             if loop > 0:
-                await chat_cache.set_loop_count(chat_id, loop - 1)
-                if current_song := await chat_cache.get_current_song(chat_id):
+                chat_cache.set_loop_count(chat_id, loop - 1)
+                if current_song := chat_cache.get_current_song(chat_id):
                     await self._play_song(chat_id, current_song)
                     return
 
-            if next_song := await chat_cache.get_next_song(chat_id):
-                await chat_cache.remove_current_song(chat_id)
+            if next_song := chat_cache.get_next_song(chat_id):
+                chat_cache.remove_current_song(chat_id)
                 await self._play_song(chat_id, next_song)
             else:
                 await self._handle_no_songs(chat_id)
@@ -308,7 +308,7 @@ class MusicBot:
         """End the current call."""
         LOGGER.info(f"Ending call for chat {chat_id}")
         try:
-            await chat_cache.clear_chat(chat_id)
+            chat_cache.clear_chat(chat_id)
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].leave_call(chat_id)
         except errors.GroupCallInvalid:
@@ -339,7 +339,7 @@ class MusicBot:
         if not 0.5 <= speed <= 4.0:
             raise ValueError("Speed must be between 0.5 and 4.0")
 
-        curr_song = await chat_cache.get_current_song(chat_id)
+        curr_song = chat_cache.get_current_song(chat_id)
         if not curr_song or not curr_song.file_path:
             raise ValueError("No song is currently playing in this chat!")
 
@@ -408,7 +408,7 @@ class MusicBot:
             client_name = await self._get_client_name(chat_id)
             return await self.calls[client_name].time(chat_id)
         except exceptions.NotInCallError:
-            await chat_cache.clear_chat(chat_id)
+            chat_cache.clear_chat(chat_id)
             return 0
         except Exception as e:
             LOGGER.error(f"Error getting played time for chat {chat_id}: {e}")

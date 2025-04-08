@@ -30,7 +30,6 @@ class Telegram:
             return False
 
         if isinstance(self.content, self.UNSUPPORTED_TYPES):
-            LOGGER.info("Unsupported media type: %s", type(self.content).__name__)
             return False
 
         file_size, _ = self._extract_file_info()
