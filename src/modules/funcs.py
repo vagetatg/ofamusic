@@ -55,6 +55,10 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
     if chat_id > 0:
         return
 
+    if not await is_admin(chat_id, msg.from_id):
+        await msg.reply_text("You must be an admin to use this command.")
+        return
+
     play_type = extract_argument(msg.text, enforce_digit=True)
     if not play_type:
         await msg.reply_text(
@@ -159,9 +163,12 @@ async def modify_loop(_: Client, msg: types.Message) -> None:
 
 @Client.on_message(filters=Filter.command("seek"))
 async def seek_song(_: Client, msg: types.Message) -> None:
-    LOGGER.info("O SEEK")
     chat_id = msg.chat_id
     if chat_id > 0:
+        return
+
+    if not await is_admin(chat_id, msg.from_id):
+        await msg.reply_text("You must be an admin to use this command.")
         return
 
     args = extract_argument(msg.text, enforce_digit=True)
@@ -213,6 +220,10 @@ def extract_number(text: str) -> float | None:
 async def change_speed(_: Client, msg: types.Message) -> None:
     chat_id = msg.chat_id
     if chat_id > 0:
+        return
+
+    if not await is_admin(chat_id, msg.from_id):
+        await msg.reply_text("You must be an admin to use this command.")
         return
 
     args = extract_number(msg.text)
@@ -317,6 +328,10 @@ async def stop_song(_: Client, msg: types.Message) -> None:
     if isinstance(chat_id, types.Message):
         return
 
+    if not await is_admin(chat_id, msg.from_id):
+        await msg.reply_text("You must be an admin to use this command.")
+        return
+
     try:
         await call.end(chat_id)
         await msg.reply_text(
@@ -359,6 +374,10 @@ async def unmute_song(_: Client, msg: types.Message) -> None:
 async def volume(_: Client, msg: types.Message) -> None:
     chat_id = await is_admin_or_reply(msg)
     if isinstance(chat_id, types.Message):
+        return
+
+    if not await is_admin(chat_id, msg.from_id):
+        await msg.reply_text("You must be an admin to use this command.")
         return
 
     args = extract_argument(msg.text, enforce_digit=True)
