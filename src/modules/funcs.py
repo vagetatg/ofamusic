@@ -406,134 +406,156 @@ async def skip_song(_: Client, msg: types.Message) -> None:
 
 @Client.on_updateNewCallbackQuery(filters=Filter.regex(r"play_\w+"))
 async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> None:
-    data = message.payload.data.decode()
-    chat_id = message.chat_id
-    user = await c.getUser(message.sender_user_id)
-    get_msg: types.Message = await message.getMessage()
-    if isinstance(get_msg, types.Error):
-        LOGGER.warning(f"Error getting message: {get_msg.message}")
-        return
+    """Handle all play control callback queries (skip, stop, pause, resume, timer)."""
+    try:
+        data = message.payload.data.decode()
+        chat_id = message.chat_id
+        user_id = message.sender_user_id
+        get_msg = await message.getMessage()
+        if isinstance(get_msg, types.Error):
+            LOGGER.warning(f"Error getting message: {get_msg.message}")
+            return
+        user = await c.getUser(user_id)
+        user_name = user.first_name
 
-    async def send_response(
-        msg: str, alert: bool = False, delete: bool = False, markup=None
-    ) -> None:
-        if alert:
-            await message.answer(msg, show_alert=True)
-        else:
-            if get_msg.caption:
-                await message.edit_message_caption(caption=msg, reply_markup=markup)
-            await message.edit_message_text(text=msg, reply_markup=markup)
+        async def send_response(
+                msg: str,
+                alert: bool = False,
+                delete: bool = False,
+                markup=None
+        ) -> None:
+            """Helper function to send responses consistently."""
+            if alert:
+                await message.answer(msg, show_alert=True)
+            else:
+                if get_msg.caption:
+                    await message.edit_message_caption(caption=msg, reply_markup=markup)
+                else:
+                    await message.edit_message_text(text=msg, reply_markup=markup)
+            if delete:
+                _delete = await c.deleteMessages(chat_id, [message.message_id], revoke=True)
+                if isinstance(_delete, types.Error):
+                    LOGGER.warning(f"Error deleting message: {_delete.message}")
 
-        if delete:
-            _delete = await c.deleteMessages(chat_id, [message.message_id], revoke=True)
-            if isinstance(_delete, types.Error):
-                LOGGER.warning(f"Error deleting message: {_delete.message}")
+        # Check admin permissions for control actions
+        def requires_admin(cb_data: str) -> bool:
+            """Check if the action requires admin privileges."""
+            return cb_data in {"play_skip", "play_stop", "play_pause", "play_resume"}
 
-    if data == "play_skip":
-        if not await chat_cache.is_active(chat_id):
-            return await send_response(
-                "❌ Nothing is currently playing in this chat.", alert=True
-            )
-
-        try:
-            await call.play_next(chat_id)
-            await send_response("⏭️ Song skipped", delete=True)
-        except Exception as e:
-            LOGGER.warning(f"Could not skip song: {e}")
-            return await send_response(
-                "⚠️ Error: Next song not found to play.", alert=True
-            )
-
-    elif data == "play_stop":
-        if not await chat_cache.is_active(chat_id):
-            return await send_response(
-                f"<b>➻ Stream stopped:</b>\n└ Requested by: {user.first_name}"
-            )
-
-        try:
-            await chat_cache.clear_chat(chat_id)
-            await call.end(chat_id)
-            await send_response(
-                f"<b>➻ Stream stopped:</b>\n└ Requested by: {user.first_name}"
-            )
-        except Exception as e:
-            LOGGER.warning(f"Error stopping stream: {e}")
-            return await send_response(
-                "⚠️ Error stopping the stream. Please try again.", alert=True
-            )
-
-    elif data == "play_pause":
-        if not await chat_cache.is_active(chat_id):
-            return await send_response(
-                "❌ Nothing is currently playing in this chat.", alert=True
-            )
-
-        try:
-            await call.pause(chat_id)
-            await send_response(
-                f"<b>➻ Stream paused:</b>\n└ Requested by: {user.first_name}",
-                markup=PauseButton,
-            )
-        except Exception as e:
-            LOGGER.warning(f"Error pausing stream: {e}")
-            return await send_response(
-                "⚠️ Error pausing the stream. Please try again.", alert=True
-            )
-
-    elif data == "play_resume":
-        if not await chat_cache.is_active(chat_id):
-            return await send_response(
-                "❌ Nothing is currently playing in this chat.", alert=True
-            )
-
-        try:
-            await call.resume(chat_id)
-            await send_response(
-                f"<b>➻ Stream resumed:</b>\n└ Requested by: {user.first_name}",
-                markup=ResumeButton,
-            )
-        except Exception as e:
-            LOGGER.warning(f"Error resuming stream: {e}")
-            return await send_response(
-                "⚠️ Error resuming the stream. Please try again.", alert=True
-            )
-
-    elif data == "play_timer":
-        curr_song = await chat_cache.get_current_song(chat_id)
-        if not curr_song:
-            await message.answer(
-                "🚫 No song is currently playing in this chat!", show_alert=True
-            )
+        if requires_admin(data) and not await is_admin(chat_id, user_id):
+            await message.answer("⚠️ You must be an admin to use this command.")
             return
 
-        played_time = await call.played_time(chat_id)
-        remaining_time = curr_song.duration - played_time
+        # Check if chat is active for control actions
+        def requires_active_chat(cb_data: str) -> bool:
+            """Check if the action requires an active chat session."""
+            return cb_data in {"play_skip", "play_stop", "play_pause", "play_resume", "play_timer"}
 
-        text = (
-            f"🎵 Now Playing: {curr_song.name} - {curr_song.artist}\n"
-            # f"👤 By: {curr_song.user}\n"
-            f"\n⏳ Played: {sec_to_min(played_time)} min"
-            f"\n⌛ Remaining: {sec_to_min(remaining_time)} min"
-        )
-        await message.answer(text, show_alert=True)
-        return
-    else:
-        LOGGER.info("Data: %s", data)
-        _, platform, song_id = data.split("_", 2)
-        await message.answer(f"Playing song for {user.first_name}", show_alert=True)
-        reply_message = await message.edit_message_text(
-            f"🎶 Searching ...\nRequested by: {user.first_name} 🥀"
-        )
+        if requires_active_chat(data) and not await chat_cache.is_active(chat_id):
+            return await send_response("❌ Nothing is currently playing in this chat.", alert=True)
 
-        url = _get_platform_url(platform, song_id)
-        if not url:
-            await edit_text(
-                reply_message, text=f"⚠️ Error: Invalid Platform WTF ? {platform}"
+        if data == "play_skip":
+            try:
+                await call.play_next(chat_id)
+                await send_response("⏭️ Song skipped", delete=True)
+            except Exception as e:
+                LOGGER.error(f"Could not skip song: {e}")
+                await send_response("⚠️ Error: Next song not found to play.", alert=True)
+
+        elif data == "play_stop":
+            try:
+                await chat_cache.clear_chat(chat_id)
+                await call.end(chat_id)
+                await send_response(
+                    f"<b>➻ Stream stopped:</b>\n└ Requested by: {user_name}"
+                )
+            except Exception as e:
+                LOGGER.error(f"Error stopping stream: {e}")
+                await send_response(
+                    "⚠️ Error stopping the stream. Please try again.",
+                    alert=True
+                )
+
+        elif data == "play_pause":
+            try:
+                await call.pause(chat_id)
+                await send_response(
+                    f"<b>➻ Stream paused:</b>\n└ Requested by: {user_name}",
+                    markup=PauseButton,
+                )
+            except Exception as e:
+                LOGGER.error(f"Error pausing stream: {e}")
+                await send_response(
+                    "⚠️ Error pausing the stream. Please try again.",
+                    alert=True
+                )
+
+        elif data == "play_resume":
+            try:
+                await call.resume(chat_id)
+                await send_response(
+                    f"<b>➻ Stream resumed:</b>\n└ Requested by: {user_name}",
+                    markup=ResumeButton,
+                )
+            except Exception as e:
+                LOGGER.error(f"Error resuming stream: {e}")
+                await send_response(
+                    "⚠️ Error resuming the stream. Please try again.",
+                    alert=True
+                )
+
+        elif data == "play_timer":
+            curr_song = await chat_cache.get_current_song(chat_id)
+            if not curr_song:
+                await message.answer(
+                    "🚫 No song is currently playing in this chat!",
+                    show_alert=True
+                )
+                return
+
+            played_time = await call.played_time(chat_id)
+            remaining_time = curr_song.duration - played_time
+
+            text = (
+                f"🎵 Now Playing: {curr_song.name} - {curr_song.artist}\n"
+                f"\n⏳ Played: {sec_to_min(played_time)} min"
+                f"\n⌛ Remaining: {sec_to_min(remaining_time)} min"
             )
-            return
+            await message.answer(text, show_alert=True)
 
-        if _song := await MusicServiceWrapper(url).get_info():
-            return await play_music(c, reply_message, _song, user.first_name)
+        else:  # Handle play song requests
+            try:
+                _, platform, song_id = data.split("_", 2)
+                await message.answer(
+                    f"Playing song for {user_name}",
+                    show_alert=True
+                )
 
-        await edit_text(reply_message, text="⚠️ Error: Song not found on Spotify. (Data not found)")
-        return
+                reply_message = await message.edit_message_text(
+                    f"🎶 Searching ...\nRequested by: {user_name} 🥀"
+                )
+
+                url = _get_platform_url(platform, song_id)
+                if not url:
+                    await edit_text(
+                        reply_message,
+                        text=f"⚠️ Error: Invalid Platform {platform}"
+                    )
+                    return
+
+                if song := await MusicServiceWrapper(url).get_info():
+                    return await play_music(c, reply_message, song, user_name)
+
+                await edit_text(reply_message, text="⚠️ Error: Song not found.")
+            except ValueError:
+                LOGGER.error(f"Invalid callback data format: {data}")
+                await send_response("⚠️ Error: Invalid request format.", alert=True)
+            except Exception as e:
+                LOGGER.error(f"Error handling play request: {e}")
+                await send_response("⚠️ Error processing your request.", alert=True)
+    except Exception as e:
+        LOGGER.critical(f"Unhandled exception in callback_query: {e}")
+        await message.answer(
+            "⚠️ An error occurred while processing your request.",
+            show_alert=True
+        )
