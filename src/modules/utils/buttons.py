@@ -75,7 +75,7 @@ async def update_progress_bar(
     update_intervals = total_seconds // 15 if total_seconds > 150 else 6
 
     while current_seconds <= total_seconds:
-        if not await chat_cache.is_active(chat_id):
+        if not chat_cache.is_active(chat_id):
             LOGGER.debug(f"Playback stopped in {chat_id}, stopping progress updates.")
             break
 

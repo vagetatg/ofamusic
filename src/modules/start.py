@@ -169,8 +169,8 @@ async def reload_cmd(c: Client, message: types.Message):
     user_key = f"{chat_id}:{ub.me.id}"
     user_status_cache.pop(user_key, None)
 
-    if not await chat_cache.is_active(chat_id):
-        await chat_cache.clear_chat(chat_id)
+    if not chat_cache.is_active(chat_id):
+        chat_cache.clear_chat(chat_id)
 
     load_admins, _ = await load_admin_cache(c, chat_id, True)
 

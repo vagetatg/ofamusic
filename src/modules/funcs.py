@@ -22,7 +22,7 @@ async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message]:
     """Check if user is admin and if a song is playing."""
     chat_id = msg.chat_id
 
-    if not await chat_cache.is_active(chat_id):
+    if not chat_cache.is_active(chat_id):
         return await msg.reply_text(text="❌ No song is currently playing.")
 
     if not await is_admin(chat_id, msg.from_id):
@@ -85,12 +85,12 @@ async def queue_info(_: Client, msg: types.Message) -> None:
         return
 
     chat_id = msg.chat_id
-    _queue = await chat_cache.get_queue(chat_id)
+    _queue = chat_cache.get_queue(chat_id)
     if not _queue:
         await msg.reply_text(text="🛑 The queue is empty. No tracks left to play!")
         return
 
-    if not await chat_cache.is_active(chat_id):
+    if not chat_cache.is_active(chat_id):
         await msg.reply_text(text="❌ No song is currently playing in this chat!")
         return
 
@@ -141,7 +141,7 @@ async def modify_loop(_: Client, msg: types.Message) -> None:
         await msg.reply_text("You need to be an admin to use this command")
         return None
 
-    if not await chat_cache.is_active(chat_id):
+    if not chat_cache.is_active(chat_id):
         await msg.reply_text("❌ No song is currently playing in this chat!")
         return None
 
@@ -153,7 +153,7 @@ async def modify_loop(_: Client, msg: types.Message) -> None:
 
     loop = int(args)
     try:
-        await chat_cache.set_loop_count(chat_id, loop)
+        chat_cache.set_loop_count(chat_id, loop)
         action = "disabled" if loop == 0 else f"changed to {loop} times"
         await msg.reply_text(f"🔄 Loop {action}\n│ \n└ Action by: {msg.mention()}")
     except Exception as e:
@@ -185,7 +185,7 @@ async def seek_song(_: Client, msg: types.Message) -> None:
         )
         return
 
-    curr_song = await chat_cache.get_current_song(chat_id)
+    curr_song = chat_cache.get_current_song(chat_id)
     if not curr_song:
         await msg.reply_text("❌ No song is currently playing in this chat!")
         return
@@ -237,7 +237,7 @@ async def change_speed(_: Client, msg: types.Message) -> None:
         await msg.reply_text("You need to be an admin to use this command")
         return
 
-    if not await chat_cache.is_active(chat_id):
+    if not chat_cache.is_active(chat_id):
         await msg.reply_text("❌ No song is currently playing in this chat!")
         return
 
@@ -263,7 +263,7 @@ async def remove_song(_: Client, msg: types.Message) -> None:
         await msg.reply_text("You need to be an admin to use this command")
         return None
 
-    if not await chat_cache.is_active(chat_id):
+    if not chat_cache.is_active(chat_id):
         await msg.reply_text("❌ No song is playing in this chat!")
         return None
 
@@ -274,7 +274,7 @@ async def remove_song(_: Client, msg: types.Message) -> None:
         return None
 
     track_num = int(args)
-    _queue = await chat_cache.get_queue(chat_id)
+    _queue = chat_cache.get_queue(chat_id)
 
     if not _queue:
         await msg.reply_text("🛑 The queue is empty. No tracks to remove.")
@@ -287,7 +287,7 @@ async def remove_song(_: Client, msg: types.Message) -> None:
         return None
 
     try:
-        await chat_cache.remove_track(chat_id, track_num)
+        chat_cache.remove_track(chat_id, track_num)
         await msg.reply_text(
             f"✔️ Track removed from queue\n│ \n└ Removed by: {await msg.mention()}"
         )
@@ -306,16 +306,16 @@ async def clear_queue(_: Client, msg: types.Message) -> None:
         await msg.reply_text("You need to be an admin to use this command")
         return
 
-    if not await chat_cache.is_active(chat_id):
+    if not chat_cache.is_active(chat_id):
         await msg.reply_text("❌ No song is currently playing in this chat!")
         return
 
-    if not await chat_cache.get_queue(chat_id):
+    if not chat_cache.get_queue(chat_id):
         await msg.reply_text("🛑 The queue is already empty!")
         return
 
     try:
-        await chat_cache.clear_chat(chat_id)
+        chat_cache.clear_chat(chat_id)
         await msg.reply_text(f"🗑️ Queue cleared\n│ \n└ Action by: {await msg.mention()}")
     except Exception as e:
         LOGGER.error(f"Error clearing queue: {e}")
@@ -470,7 +470,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             """Check if the action requires an active chat session."""
             return cb_data in {"play_skip", "play_stop", "play_pause", "play_resume", "play_timer"}
 
-        if requires_active_chat(data) and not await chat_cache.is_active(chat_id):
+        if requires_active_chat(data) and not chat_cache.is_active(chat_id):
             return await send_response("❌ Nothing is currently playing in this chat.", alert=True)
 
         if data == "play_skip":
@@ -483,7 +483,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
 
         elif data == "play_stop":
             try:
-                await chat_cache.clear_chat(chat_id)
+                chat_cache.clear_chat(chat_id)
                 await call.end(chat_id)
                 await send_response(
                     f"<b>➻ Stream stopped:</b>\n└ Requested by: {user_name}"
@@ -524,7 +524,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 )
 
         elif data == "play_timer":
-            curr_song = await chat_cache.get_current_song(chat_id)
+            curr_song = chat_cache.get_current_song(chat_id)
             if not curr_song:
                 await message.answer(
                     "🚫 No song is currently playing in this chat!",

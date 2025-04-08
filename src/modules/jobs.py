@@ -44,7 +44,7 @@ class InactiveCallManager:
             await call.end(chat_id)
 
     async def end_inactive_calls(self):
-        active_chats = await chat_cache.get_active_chats()
+        active_chats = chat_cache.get_active_chats()
         self.bot.logger.debug(
             f"Found {len(active_chats)} active chats. Ending inactive calls..."
         )

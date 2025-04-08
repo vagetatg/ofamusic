@@ -1,8 +1,7 @@
 #  Copyright (c) 2025 AshokShau
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
-#
-#
+
 
 import asyncio
 import re
@@ -117,8 +116,6 @@ async def play_music(
         return await edit_text(msg, "❌ Unable to retrieve song info.")
 
     chat_id = msg.chat_id
-    queue = await chat_cache.get_queue(chat_id)
-    is_active = await chat_cache.is_active(chat_id)
     msg = await edit_text(msg, text="🎶 Song found. Downloading...")
 
     if len(tracks) == 1:
@@ -146,43 +143,47 @@ async def play_music(
         if song.duration == 0:
             song.duration = dur
 
-        if is_active:
-            await chat_cache.add_song(chat_id, song)
+        if chat_cache.is_active(chat_id):
+            queue = chat_cache.get_queue(chat_id)
+            chat_cache.add_song(chat_id, song)
             text = (
                 f"<b>➻ Added to Queue at #{len(queue)}:</b>\n\n"
                 f"‣ <b>Title:</b> {song.name}\n"
                 f"‣ <b>Duration:</b> {sec_to_min(song.duration)}\n"
                 f"‣ <b>Requested by:</b> {song.user}"
             )
-
             thumb = await gen_thumb(song)
             await update_message_with_thumbnail(c, msg, text, thumb, play_button(0, 0))
             return None
-        try:
-            await call.play_media(chat_id, song.file_path, video=is_video)
-        except CallError as e:
-            return await edit_text(msg, text=f"⚠️ {e}")
-        await chat_cache.add_song(chat_id, song)
-        thumb = await gen_thumb(song)
-        text = (
-            f"🎵 <b>Now playing:</b>\n\n"
-            f"‣ <b>Title:</b> {song.name}\n"
-            f"‣ <b>Duration:</b> {sec_to_min(dur)}\n"
-            f"‣ <b>Requested by:</b> {song.user}"
-        )
-        reply = await update_message_with_thumbnail(c, msg, text, thumb, play_button(0, dur))
-        if isinstance(reply, types.Error):
-            LOGGER.warning(f"Error editing message: {reply}")
-            return None
+        else:
+            try:
+                await call.play_media(chat_id, song.file_path, video=is_video)
+            except CallError as e:
+                return await edit_text(msg, text=f"⚠️ {e}")
+            chat_cache.set_active(chat_id, True)
+            chat_cache.add_song(chat_id, song)
+            thumb = await gen_thumb(song)
+            text = (
+                f"🎵 <b>Now playing:</b>\n\n"
+                f"‣ <b>Title:</b> {song.name}\n"
+                f"‣ <b>Duration:</b> {sec_to_min(dur)}\n"
+                f"‣ <b>Requested by:</b> {song.user}"
+            )
+            reply = await update_message_with_thumbnail(c, msg, text, thumb, play_button(0, dur))
+            if isinstance(reply, types.Error):
+                LOGGER.warning(f"Error editing message: {reply}")
+                return None
 
         asyncio.create_task(update_progress_bar(c, reply, 3, dur))
         return None
 
+    is_active = chat_cache.is_active(chat_id)
+    queue = chat_cache.get_queue(chat_id)
     # Handle multiple tracks (queueing playlist/album)
     text = "<b>➻ Added to Queue:</b>\n<blockquote expandable>\n"
     for index, track in enumerate(tracks):
         position = len(queue) + index
-        await chat_cache.add_song(
+        chat_cache.add_song(
             chat_id,
             CachedTrack(
                 name=track.name,
@@ -203,7 +204,7 @@ async def play_music(
 
     total_duration = sum(track.duration for track in tracks)
     text += (
-        f"<b>📋 Total Queue:</b> {len(await chat_cache.get_queue(chat_id))}\n"
+        f"<b>📋 Total Queue:</b> {len(chat_cache.get_queue(chat_id))}\n"
         f"<b>⏱️ Total Duration:</b> {sec_to_min(total_duration)}\n"
         f"<b>👤 Requested by:</b> {user_by}"
     )
@@ -214,12 +215,12 @@ async def play_music(
     # MESSAGE_TOO_LONG
     if len(text) > 4096:
         text = (
-            f"<b>📋 Total Queue:</b> {len(await chat_cache.get_queue(chat_id))}\n"
+            f"<b>📋 Total Queue:</b> {len(chat_cache.get_queue(chat_id))}\n"
             f"<b>⏱️ Total Duration:</b> {sec_to_min(total_duration)}\n"
             f"<b>👤 Requested by:</b> {user_by}"
         )
 
-    # curr_song = await chat_cache.get_current_song(chat_id)
+    # curr_song = chat_cache.get_current_song(chat_id)
     reply = await edit_text(msg, text, reply_markup=play_button(0, 0))
     if isinstance(reply, types.Error):
         LOGGER.warning(f"Error sending message: {reply}")
@@ -268,7 +269,7 @@ async def play_audio(c: Client, msg: types.Message) -> None:
 
     assistant_id = ub.me.id
 
-    queue = await chat_cache.get_queue(chat_id)
+    queue = chat_cache.get_queue(chat_id)
     if len(queue) > 10:
         await edit_text(
             reply_message,
@@ -300,9 +301,8 @@ async def play_audio(c: Client, msg: types.Message) -> None:
 
     args = extract_argument(msg.text)
     telegram = Telegram(reply)
-    is_video = bool(
-        telegram.is_valid() and isinstance(reply.content, types.MessageVideo)
-    )
+    docs_vid = bool(telegram.is_valid() and isinstance(reply.content, types.Document) and reply.content.mime_type.startswith("video/"))
+    is_video = bool(telegram.is_valid() and isinstance(reply.content, types.MessageVideo) or docs_vid)
     wrapper = MusicServiceWrapper(url or args)
     await del_msg(msg)
 
@@ -387,7 +387,7 @@ async def play_audio(c: Client, msg: types.Message) -> None:
     # Handle text-based search
     play_type = await db.get_play_type(chat_id)
     search = await wrapper.search()
-    if not search:
+    if not search or len(search.tracks) == 0:
         await edit_text(
             reply_message,
             text="❌ No results found. Please report this issue if you think it's a bug.",
@@ -396,7 +396,6 @@ async def play_audio(c: Client, msg: types.Message) -> None:
         return
 
     platform = search.tracks[0].platform
-
     if play_type == 0:
         _song_id = search.tracks[0].id
         url = _get_platform_url(platform, _song_id)
@@ -428,7 +427,6 @@ async def play_audio(c: Client, msg: types.Message) -> None:
         text=f"{user_by}, select a song to play:",
         reply_markup=types.ReplyMarkupInlineKeyboard(buttons),
         disable_web_page_preview=True,
-        parse_mode="html",
     )
 
     if isinstance(reply, types.Error):

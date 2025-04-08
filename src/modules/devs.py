@@ -304,7 +304,7 @@ async def active_vc(_: Client, message: types.Message):
         await del_msg(message)
         return
 
-    active_chats = await chat_cache.get_active_chats()
+    active_chats = chat_cache.get_active_chats()
     if not active_chats:
         await message.reply_text("No active voice chats.")
         return
@@ -312,8 +312,8 @@ async def active_vc(_: Client, message: types.Message):
     text = f"🎵 <b>Active Voice Chats</b> ({len(active_chats)}):\n\n"
 
     for chat_id in active_chats:
-        queue_length = await chat_cache.count(chat_id)
-        current_song = await chat_cache.get_current_song(chat_id)
+        queue_length = chat_cache.count(chat_id)
+        current_song = chat_cache.get_current_song(chat_id)
 
         if current_song:
             song_info = (
