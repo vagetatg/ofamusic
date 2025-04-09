@@ -32,7 +32,7 @@ async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message]:
 
 
 async def handle_playback_action(
-    _: Client, msg: types.Message, action, success_msg: str, fail_msg: str
+        _: Client, msg: types.Message, action, success_msg: str, fail_msg: str
 ) -> None:
     """Handle playback actions like stop, pause, resume, mute, unmute."""
     chat_id = await is_admin_or_reply(msg)
@@ -42,7 +42,7 @@ async def handle_playback_action(
     try:
         await action(chat_id)
         await msg.reply_text(
-            f"{success_msg}\n│ \n└ Requested by: {await msg.mention()} 🥀"
+                f"{success_msg}\n│ \n└ Requested by: {await msg.mention()} 🥀"
         )
     except Exception as e:
         LOGGER.error(f"Error in {action.__name__}: {e}")
@@ -62,7 +62,7 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
     play_type = extract_argument(msg.text, enforce_digit=True)
     if not play_type:
         await msg.reply_text(
-            text="Usage: /setPlayType 0/1\n\n0 = Directly play the first search result.\n1 = Show a list of songs to choose from."
+                text="Usage: /setPlayType 0/1\n\n0 = Directly play the first search result.\n1 = Show a list of songs to choose from."
         )
         return
 
@@ -97,21 +97,21 @@ async def queue_info(_: Client, msg: types.Message) -> None:
     chat: types.Chat = await msg.getChat()
     current_song = _queue[0]
     text = (
-        f"<b>🎶 Current Queue in {chat.title}:</b>\n\n"
-        f"<b>Currently Playing:</b>\n"
-        f"‣ <b>{current_song.name[:30]}</b>\n"
-        f"   ├ <b>By:</b> {current_song.user}\n"
-        f"   ├ <b>Duration:</b> {sec_to_min(current_song.duration)} minutes\n"
-        f"   ├ <b>Loop:</b> {current_song.loop}\n"
-        f"   └ <b>Played Time:</b> {sec_to_min(await call.played_time(chat.id))} min"
+            f"<b>🎶 Current Queue in {chat.title}:</b>\n\n"
+            f"<b>Currently Playing:</b>\n"
+            f"‣ <b>{current_song.name[:30]}</b>\n"
+            f"   ├ <b>By:</b> {current_song.user}\n"
+            f"   ├ <b>Duration:</b> {sec_to_min(current_song.duration)} minutes\n"
+            f"   ├ <b>Loop:</b> {current_song.loop}\n"
+            f"   └ <b>Played Time:</b> {sec_to_min(await call.played_time(chat.id))} min"
     )
 
     if queue_remaining := _queue[1:]:
         text += "\n<b>⏭ Next in Queue:</b>\n"
         for i, song in enumerate(queue_remaining, start=1):
             text += (
-                f"{i}. <b>{song.name[:30]}</b>\n"
-                f"   ├ <b>Duration:</b> {sec_to_min(song.duration)} min\n"
+                    f"{i}. <b>{song.name[:30]}</b>\n"
+                    f"   ├ <b>Duration:</b> {sec_to_min(song.duration)} min\n"
             )
 
     text += f"\n<b>» Total of {len(_queue)} track(s) in the queue.</b>"
@@ -121,7 +121,7 @@ async def queue_info(_: Client, msg: types.Message) -> None:
         short_text += f"‣ <b>{current_song.name[:30]}</b>\n"
         short_text += f"   ├ <b>By:</b> {current_song.user}\n"
         short_text += (
-            f"   ├ <b>Duration:</b> {sec_to_min(current_song.duration)} minutes\n"
+                f"   ├ <b>Duration:</b> {sec_to_min(current_song.duration)} minutes\n"
         )
         short_text += f"   ├ <b>Loop:</b> {current_song.loop}\n"
         short_text += f"   └ <b>Played Time:</b> {sec_to_min(await call.played_time(chat.id))} min"
@@ -147,7 +147,7 @@ async def modify_loop(_: Client, msg: types.Message) -> None:
 
     if not args:
         await msg.reply_text(
-            "🛑 Usage: /loop times\n\nExample: /loop 5 will loop the current song 5 times or 0 to disable"
+                "🛑 Usage: /loop times\n\nExample: /loop 5 will loop the current song 5 times or 0 to disable"
         )
         return None
 
@@ -174,14 +174,14 @@ async def seek_song(_: Client, msg: types.Message) -> None:
     args = extract_argument(msg.text, enforce_digit=True)
     if not args:
         await msg.reply_text(
-            "🛑 Usage: /seek seconds (must be a number greater than 20)"
+                "🛑 Usage: /seek seconds (must be a number greater than 20)"
         )
         return
 
     seek_time = int(args)
     if seek_time < 20:
         await msg.reply_text(
-            "🛑 Invalid input! Seconds must be greater than 20."
+                "🛑 Invalid input! Seconds must be greater than 20."
         )
         return
 
@@ -195,16 +195,16 @@ async def seek_song(_: Client, msg: types.Message) -> None:
 
     if seek_to >= curr_song.duration:
         await msg.reply_text(
-            f"🛑 Cannot seek past the song duration ({sec_to_min(curr_song.duration)} min)."
+                f"🛑 Cannot seek past the song duration ({sec_to_min(curr_song.duration)} min)."
         )
         return
 
     try:
         await call.seek_stream(
-            chat_id, curr_song.file_path, seek_to, curr_song.duration
+                chat_id, curr_song.file_path, seek_to, curr_song.duration
         )
         await msg.reply_text(
-            f"⏩ Seeked to {seek_to} seconds\n│ \n└ Action by: {await msg.mention()}"
+                f"⏩ Seeked to {seek_to} seconds\n│ \n└ Action by: {await msg.mention()}"
         )
     except Exception as e:
         LOGGER.error(f"Error seeking song: {e}")
@@ -229,7 +229,7 @@ async def change_speed(_: Client, msg: types.Message) -> None:
     args = extract_number(msg.text)
     if args is None:
         await msg.reply_text(
-            "🛑 Usage: /speed speed (must be a number between 0.5 and 4.0)"
+                "🛑 Usage: /speed speed (must be a number between 0.5 and 4.0)"
         )
         return
 
@@ -245,7 +245,7 @@ async def change_speed(_: Client, msg: types.Message) -> None:
     try:
         await call.speed_change(chat_id, speed)
         await msg.reply_text(
-            f"🚀 Speed changed to {speed}\n│ \n└ Action by: {await msg.mention()}"
+                f"🚀 Speed changed to {speed}\n│ \n└ Action by: {await msg.mention()}"
         )
     except Exception as e:
         LOGGER.error(f"Error changing speed: {e}")
@@ -269,7 +269,7 @@ async def remove_song(_: Client, msg: types.Message) -> None:
 
     if not args:
         await msg.reply_text(
-            "🛑 Usage: /remove track number (must be a valid number)"
+                "🛑 Usage: /remove track number (must be a valid number)"
         )
         return None
 
@@ -282,14 +282,14 @@ async def remove_song(_: Client, msg: types.Message) -> None:
 
     if track_num <= 0 or track_num > len(_queue):
         await msg.reply_text(
-            f"🛑 Invalid track number! The current queue has {len(_queue)} tracks."
+                f"🛑 Invalid track number! The current queue has {len(_queue)} tracks."
         )
         return None
 
     try:
         chat_cache.remove_track(chat_id, track_num)
         await msg.reply_text(
-            f"✔️ Track removed from queue\n│ \n└ Removed by: {await msg.mention()}"
+                f"✔️ Track removed from queue\n│ \n└ Removed by: {await msg.mention()}"
         )
     except Exception as e:
         LOGGER.error(f"Error removing track: {e}")
@@ -335,7 +335,7 @@ async def stop_song(_: Client, msg: types.Message) -> None:
     try:
         await call.end(chat_id)
         await msg.reply_text(
-            f"🎵 <b>Stream Ended</b> ❄️\n│ \n└ Requested by: {await msg.mention()} 🥀"
+                f"🎵 <b>Stream Ended</b> ❄️\n│ \n└ Requested by: {await msg.mention()} 🥀"
         )
     except Exception as e:
         LOGGER.error(f"Error stopping song: {e}")
@@ -345,28 +345,28 @@ async def stop_song(_: Client, msg: types.Message) -> None:
 @Client.on_message(filters=Filter.command("pause"))
 async def pause_song(_: Client, msg: types.Message) -> None:
     await handle_playback_action(
-        _, msg, call.pause, "⏸️ <b>Stream Paused</b> 🥺", "Failed to pause the song"
+            _, msg, call.pause, "⏸️ <b>Stream Paused</b> 🥺", "Failed to pause the song"
     )
 
 
 @Client.on_message(filters=Filter.command("resume"))
 async def resume(_: Client, msg: types.Message) -> None:
     await handle_playback_action(
-        _, msg, call.resume, "🎶 <b>Stream Resumed</b> 💫", "Failed to resume the song"
+            _, msg, call.resume, "🎶 <b>Stream Resumed</b> 💫", "Failed to resume the song"
     )
 
 
 @Client.on_message(filters=Filter.command("mute"))
 async def mute_song(_: Client, msg: types.Message) -> None:
     await handle_playback_action(
-        _, msg, call.mute, "🔇 <b>Stream Muted</b>", "Failed to mute the song"
+            _, msg, call.mute, "🔇 <b>Stream Muted</b>", "Failed to mute the song"
     )
 
 
 @Client.on_message(filters=Filter.command("unmute"))
 async def unmute_song(_: Client, msg: types.Message) -> None:
     await handle_playback_action(
-        _, msg, call.unmute, "🔊 <b>Stream Unmuted</b>", "Failed to unmute the song"
+            _, msg, call.unmute, "🔊 <b>Stream Unmuted</b>", "Failed to unmute the song"
     )
 
 
@@ -392,14 +392,14 @@ async def volume(_: Client, msg: types.Message) -> None:
 
     if not 1 <= vol_int <= 200:
         await msg.reply_text(
-            "⚠️ Volume must be between 1 and 200.\nUsage: /volume 1-200"
+                "⚠️ Volume must be between 1 and 200.\nUsage: /volume 1-200"
         )
         return
 
     try:
         await call.change_volume(chat_id, vol_int)
         await msg.reply_text(
-            f"🔊 <b>Stream volume set to {vol_int}</b>\n│ \n└ Requested by: {await msg.mention()} 🥀"
+                f"🔊 <b>Stream volume set to {vol_int}</b>\n│ \n└ Requested by: {await msg.mention()} 🥀"
         )
     except Exception as e:
         LOGGER.error(f"Error changing volume: {e}")
@@ -416,7 +416,7 @@ async def skip_song(_: Client, msg: types.Message) -> None:
         await del_msg(msg)
         await call.play_next(chat_id)
         await msg.reply_text(
-            f"⏭️ Song skipped\n│ \n└ Requested by: {await msg.mention()} 🥀"
+                f"⏭️ Song skipped\n│ \n└ Requested by: {await msg.mention()} 🥀"
         )
     except Exception as e:
         LOGGER.error(f"Error skipping song: {e}")
@@ -486,49 +486,49 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 chat_cache.clear_chat(chat_id)
                 await call.end(chat_id)
                 await send_response(
-                    f"<b>➻ Stream stopped:</b>\n└ Requested by: {user_name}"
+                        f"<b>➻ Stream stopped:</b>\n└ Requested by: {user_name}"
                 )
             except Exception as e:
                 LOGGER.error(f"Error stopping stream: {e}")
                 await send_response(
-                    "⚠️ Error stopping the stream. Please try again.",
-                    alert=True
+                        "⚠️ Error stopping the stream. Please try again.",
+                        alert=True
                 )
 
         elif data == "play_pause":
             try:
                 await call.pause(chat_id)
                 await send_response(
-                    f"<b>➻ Stream paused:</b>\n└ Requested by: {user_name}",
-                    markup=PauseButton,
+                        f"<b>➻ Stream paused:</b>\n└ Requested by: {user_name}",
+                        markup=PauseButton,
                 )
             except Exception as e:
                 LOGGER.error(f"Error pausing stream: {e}")
                 await send_response(
-                    "⚠️ Error pausing the stream. Please try again.",
-                    alert=True
+                        "⚠️ Error pausing the stream. Please try again.",
+                        alert=True
                 )
 
         elif data == "play_resume":
             try:
                 await call.resume(chat_id)
                 await send_response(
-                    f"<b>➻ Stream resumed:</b>\n└ Requested by: {user_name}",
-                    markup=ResumeButton,
+                        f"<b>➻ Stream resumed:</b>\n└ Requested by: {user_name}",
+                        markup=ResumeButton,
                 )
             except Exception as e:
                 LOGGER.error(f"Error resuming stream: {e}")
                 await send_response(
-                    "⚠️ Error resuming the stream. Please try again.",
-                    alert=True
+                        "⚠️ Error resuming the stream. Please try again.",
+                        alert=True
                 )
 
         elif data == "play_timer":
             curr_song = chat_cache.get_current_song(chat_id)
             if not curr_song:
                 await message.answer(
-                    "🚫 No song is currently playing in this chat!",
-                    show_alert=True
+                        "🚫 No song is currently playing in this chat!",
+                        show_alert=True
                 )
                 return
 
@@ -536,9 +536,9 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             remaining_time = curr_song.duration - played_time
 
             text = (
-                f"🎵 Now Playing: {curr_song.name} - {curr_song.artist}\n"
-                f"\n⏳ Played: {sec_to_min(played_time)} min"
-                f"\n⌛ Remaining: {sec_to_min(remaining_time)} min"
+                    f"🎵 Now Playing: {curr_song.name} - {curr_song.artist}\n"
+                    f"\n⏳ Played: {sec_to_min(played_time)} min"
+                    f"\n⌛ Remaining: {sec_to_min(remaining_time)} min"
             )
             await message.answer(text, show_alert=True)
 
@@ -546,19 +546,19 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             try:
                 _, platform, song_id = data.split("_", 2)
                 await message.answer(
-                    f"Playing song for {user_name}",
-                    show_alert=True
+                        f"Playing song for {user_name}",
+                        show_alert=True
                 )
 
                 reply_message = await message.edit_message_text(
-                    f"🎶 Searching ...\nRequested by: {user_name} 🥀"
+                        f"🎶 Searching ...\nRequested by: {user_name} 🥀"
                 )
 
                 url = _get_platform_url(platform, song_id)
                 if not url:
                     await edit_text(
-                        reply_message,
-                        text=f"⚠️ Error: Invalid Platform {platform}"
+                            reply_message,
+                            text=f"⚠️ Error: Invalid Platform {platform}"
                     )
                     return
 
@@ -575,6 +575,6 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
     except Exception as e:
         LOGGER.critical(f"Unhandled exception in callback_query: {e}")
         await message.answer(
-            "⚠️ An error occurred while processing your request.",
-            show_alert=True
+                "⚠️ An error occurred while processing your request.",
+                show_alert=True
         )

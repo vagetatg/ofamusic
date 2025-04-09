@@ -55,8 +55,7 @@ class ChatCacher:
         return queue[0].loop if queue else 0
 
     def set_loop_count(self, chat_id: int, loop: int) -> bool:
-        queue = self.chat_cache.get(chat_id, {}).get("queue", deque())
-        if queue:
+        if queue := self.chat_cache.get(chat_id, {}).get("queue", deque()):
             queue[0].loop = loop
             return True
         return False
@@ -75,9 +74,9 @@ class ChatCacher:
 
     def get_active_chats(self) -> list[int]:
         return [
-            chat_id
-            for chat_id, data in self.chat_cache.items()
-            if data["is_active"]
+                chat_id
+                for chat_id, data in self.chat_cache.items()
+                if data["is_active"]
         ]
 
 

@@ -16,9 +16,9 @@ from yt_dlp import YoutubeDL, utils
 
 import config
 from config import DOWNLOADS_DIR, PROXY_URL
-from src.logger import LOGGER
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
+from ..logger import LOGGER
 
 
 class YouTubeDownload:
@@ -78,6 +78,7 @@ class YouTubeDownload:
                     song_info = ydl.extract_info(self.video_url, download=True)
                     file_name = ydl.prepare_filename(song_info)
                     return file_name, song_info
+
             filename, info = await asyncio.to_thread(run_yt_dlp)
             if not os.path.exists(filename):
                 LOGGER.warning(f"⚠️ File not found after download: {filename}")
@@ -145,10 +146,10 @@ class SpotifyDownload:
             iv = bytes.fromhex("72e067fbddcbcf77ebe8bc643f630d93")
             iv_int = int.from_bytes(iv, "big")
             cipher = AES.new(
-                key, AES.MODE_CTR, counter=Counter.new(128, initial_value=iv_int)
+                    key, AES.MODE_CTR, counter=Counter.new(128, initial_value=iv_int)
             )
 
-            chunk_size = 8192
+            chunk_size = 8192  # 8KB chunks
             async with aiofiles.open(self.encrypted_file, "rb") as fin, aiofiles.open(
                     self.decrypted_file, "wb"
             ) as fout:
@@ -163,14 +164,14 @@ class SpotifyDownload:
         """Fix the decrypted audio file using FFmpeg."""
         try:
             process = await asyncio.create_subprocess_exec(
-                "ffmpeg",
-                "-i",
-                self.decrypted_file,
-                "-c",
-                "copy",
-                self.output_file,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                    "ffmpeg",
+                    "-i",
+                    self.decrypted_file,
+                    "-c",
+                    "copy",
+                    self.output_file,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
             )
             stdout, stderr = await process.communicate()
             if process.returncode != 0:

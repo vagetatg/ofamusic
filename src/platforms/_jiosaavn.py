@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import asyncio
 import re
 from pathlib import Path
@@ -22,22 +21,22 @@ class JiosaavnData(MusicService):
 
     # URL patterns
     JIOSAAVN_SONG_PATTERN = re.compile(
-        r"^(https?://)?(www\.)?jiosaavn\.com/song/[\w-]+/[a-zA-Z0-9_-]+",
-        re.IGNORECASE
+            r"^(https?://)?(www\.)?jiosaavn\.com/song/[\w-]+/[a-zA-Z0-9_-]+",
+            re.IGNORECASE
     )
     JIOSAAVN_PLAYLIST_PATTERN = re.compile(
-        r"^(https?://)?(www\.)?jiosaavn\.com/featured/[\w-]+/[a-zA-Z0-9_-]+$",
-        re.IGNORECASE
+            r"^(https?://)?(www\.)?jiosaavn\.com/featured/[\w-]+/[a-zA-Z0-9_-]+$",
+            re.IGNORECASE
     )
 
     # API endpoints
     API_SEARCH_ENDPOINT = (
-        "https://www.jiosaavn.com/api.php?"
-        "__call=autocomplete.get&"
-        "query={query}&"
-        "_format=json&"
-        "_marker=0&"
-        "ctx=wap6dot0"
+            "https://www.jiosaavn.com/api.php?"
+            "__call=autocomplete.get&"
+            "query={query}&"
+            "_format=json&"
+            "_marker=0&"
+            "ctx=wap6dot0"
     )
 
     # Constants
@@ -55,11 +54,11 @@ class JiosaavnData(MusicService):
         self.query = query
         self.client = HttpxClient(max_redirects=1)
         self._ydl_opts = {
-            "quiet": True,
-            "no_warnings": True,
-            "extract_flat": "in_playlist",
-            "socket_timeout": 10,
-            # "noplaylist": False,
+                "quiet": True,
+                "no_warnings": True,
+                "extract_flat": "in_playlist",
+                "socket_timeout": 10,
+                # "noplaylist": False,
         }
 
     def is_valid(self, url: str) -> bool:
@@ -74,8 +73,8 @@ class JiosaavnData(MusicService):
         if not url:
             return False
         return bool(
-            self.JIOSAAVN_SONG_PATTERN.match(url) or
-            self.JIOSAAVN_PLAYLIST_PATTERN.match(url)
+                self.JIOSAAVN_SONG_PATTERN.match(url) or
+                self.JIOSAAVN_PLAYLIST_PATTERN.match(url)
         )
 
     async def _fetch_data(self, url: str) -> Optional[dict[str, Any]]:
@@ -189,11 +188,11 @@ class JiosaavnData(MusicService):
                     return None
 
                 return {
-                    "results": [
-                        self._format_track(track)
-                        for track in info["entries"]
-                        if track
-                    ]
+                        "results": [
+                                self._format_track(track)
+                                for track in info["entries"]
+                                if track
+                        ]
                 }
         except yt_dlp.DownloadError as e:
             LOGGER.error(f"YT-DLP error getting playlist {url}: {str(e)}")
@@ -255,9 +254,9 @@ class JiosaavnData(MusicService):
         # Get best available audio format
         formats = track_data.get("formats", [])
         best_format = max(
-            formats,
-            key=lambda x: x.get("abr", 0),
-            default={}
+                formats,
+                key=lambda x: x.get("abr", 0),
+                default={}
         )
 
         # Extract artist information
@@ -269,17 +268,17 @@ class JiosaavnData(MusicService):
         display_id = f"{title}/{track_data.get('url', '').split('/')[-1]}"
 
         return {
-            "id": track_data.get("display_id", display_id),
-            "tc": track_data.get("display_id", display_id),
-            "name": title,
-            "album": track_data.get("album", cls.DEFAULT_ALBUM),
-            "duration": track_data.get("duration", cls.DEFAULT_DURATION),
-            "artist": artist,
-            "cover": track_data.get("thumbnail", ""),
-            "year": track_data.get("release_year", cls.DEFAULT_YEAR),
-            "platform": "jiosaavn",
-            "url": track_data.get("webpage_url", ""),
-            "cdnurl": best_format.get("url", ""),
+                "id": track_data.get("display_id", display_id),
+                "tc": track_data.get("display_id", display_id),
+                "name": title,
+                "album": track_data.get("album", cls.DEFAULT_ALBUM),
+                "duration": track_data.get("duration", cls.DEFAULT_DURATION),
+                "artist": artist,
+                "cover": track_data.get("thumbnail", ""),
+                "year": track_data.get("release_year", cls.DEFAULT_YEAR),
+                "platform": "jiosaavn",
+                "url": track_data.get("webpage_url", ""),
+                "cdnurl": best_format.get("url", ""),
         }
 
     @classmethod
@@ -293,18 +292,18 @@ class JiosaavnData(MusicService):
             TrackInfo: Track information object
         """
         return TrackInfo(
-            cdnurl=track_data.get("cdnurl", ""),
-            key="nil",
-            name=track_data.get("name", ""),
-            artist=track_data.get("artist", cls.DEFAULT_ARTIST),
-            tc=track_data.get("id", ""),
-            album=track_data.get("album", cls.DEFAULT_ALBUM),
-            cover=track_data.get("cover", ""),
-            lyrics="None",
-            duration=track_data.get("duration", cls.DEFAULT_DURATION),
-            year=track_data.get("year", cls.DEFAULT_YEAR),
-            url=track_data.get("url", ""),
-            platform="jiosaavn",
+                cdnurl=track_data.get("cdnurl", ""),
+                key="nil",
+                name=track_data.get("name", ""),
+                artist=track_data.get("artist", cls.DEFAULT_ARTIST),
+                tc=track_data.get("id", ""),
+                album=track_data.get("album", cls.DEFAULT_ALBUM),
+                cover=track_data.get("cover", ""),
+                lyrics="None",
+                duration=track_data.get("duration", cls.DEFAULT_DURATION),
+                year=track_data.get("year", cls.DEFAULT_YEAR),
+                url=track_data.get("url", ""),
+                platform="jiosaavn",
         )
 
     @staticmethod

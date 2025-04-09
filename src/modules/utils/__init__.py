@@ -3,13 +3,13 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 __all__ = [
-    "Filter",
-    "sec_to_min",
-    "get_audio_duration",
-    "play_button",
-    "PauseButton",
-    "ResumeButton",
-    "SupportButton",
+        "Filter",
+        "sec_to_min",
+        "get_audio_duration",
+        "PlayButton",
+        "PauseButton",
+        "ResumeButton",
+        "SupportButton",
 ]
 
 import asyncio
@@ -20,7 +20,7 @@ from typing import Union
 from pytdbot import filters, types
 
 from src.logger import LOGGER
-from .buttons import play_button, PauseButton, ResumeButton, SupportButton
+from .buttons import PlayButton, PauseButton, ResumeButton, SupportButton
 
 
 def sec_to_min(seconds):
@@ -37,14 +37,14 @@ def sec_to_min(seconds):
 async def get_audio_duration(file_path):
     try:
         proc = await asyncio.create_subprocess_exec(
-            'ffprobe',
-            '-v', 'quiet',
-            '-print_format', 'json',
-            '-show_format',
-            '-show_streams',
-            file_path,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+                'ffprobe',
+                '-v', 'quiet',
+                '-print_format', 'json',
+                '-show_format',
+                '-show_streams',
+                file_path,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
         )
         stdout, _ = await proc.communicate()
         data = json.loads(stdout)
@@ -78,8 +78,8 @@ class Filter:
         commands_set = {cmd.lower() for cmd in commands}
 
         pattern = re.compile(
-            fr"^[{re.escape(prefixes)}](\w+)(?:@(\w+))?",
-            re.IGNORECASE
+                fr"^[{re.escape(prefixes)}](\w+)(?:@(\w+))?",
+                re.IGNORECASE
         )
 
         async def filter_func(client, event) -> bool:
@@ -123,6 +123,7 @@ class Filter:
         Filter for specific user IDs.
         """
         user_ids = {user_ids} if isinstance(user_ids, int) else set(user_ids)
+
         async def filter_func(_, event) -> bool:
             sender = event.sender_id
 

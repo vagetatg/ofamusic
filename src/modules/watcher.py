@@ -20,11 +20,11 @@ from src.modules.utils.play_helpers import user_status_cache
 async def handle_non_supergroup(client: Client, chat_id: int) -> None:
     """Notify user that the chat is not a supergroup and leave."""
     text = (
-        f"This chat ({chat_id}) is not a supergroup yet.\n"
-        "<b>⚠️ Please convert this chat to a supergroup and add me as admin.</b>\n\n"
-        "If you don't know how to convert, use this guide:\n"
-        "🔗 https://te.legra.ph/How-to-Convert-a-Group-to-a-Supergroup-01-02\n\n"
-        "If you have any questions, join our support group:"
+            f"This chat ({chat_id}) is not a supergroup yet.\n"
+            "<b>⚠️ Please convert this chat to a supergroup and add me as admin.</b>\n\n"
+            "If you don't know how to convert, use this guide:\n"
+            "🔗 https://te.legra.ph/How-to-Convert-a-Group-to-a-Supergroup-01-02\n\n"
+            "If you have any questions, join our support group:"
     )
     bot_username = client.me.usernames.editable_username
     await client.sendTextMessage(chat_id, text, reply_markup=add_me_button(bot_username))
@@ -47,11 +47,11 @@ async def handle_bot_join(client: Client, chat_id: int) -> None:
 
     if chat_info.member_count < 50:
         text = (
-            f"⚠️ This group has too few members ({chat_info.member_count}).\n\n"
-            "To prevent spam and ensure proper functionality, "
-            "this bot only works in groups with at least 50 members.\n"
-            "Please grow your community and add me again later.\n"
-            "If you have any questions, join our support group:"
+                f"⚠️ This group has too few members ({chat_info.member_count}).\n\n"
+                "To prevent spam and ensure proper functionality, "
+                "this bot only works in groups with at least 50 members.\n"
+                "Please grow your community and add me again later.\n"
+                "If you have any questions, join our support group:"
         )
         await client.sendTextMessage(chat_id, text, reply_markup=SupportButton)
         await asyncio.sleep(1)
@@ -78,22 +78,18 @@ async def chat_member(client: Client, update: types.UpdateChatMember) -> None:
         if user_id == 0:
             return
 
-        # Handle bot being added
-        if user_id == client.options["my_id"]:
-            if old_status == "chatMemberStatusLeft" and new_status in {
-                "chatMemberStatusMember", "chatMemberStatusAdministrator"
+        if old_status == "chatMemberStatusLeft" and new_status in {
+                    "chatMemberStatusMember", "chatMemberStatusAdministrator"
             }:
+            if user_id == client.options["my_id"]:
                 return await handle_bot_join(client, chat_id)
 
-        # User joined
-        if old_status == "chatMemberStatusLeft" and new_status in {
-            "chatMemberStatusMember", "chatMemberStatusAdministrator"
-        }:
             LOGGER.info(f"User {user_id} joined the chat {chat_id}.")
             return
 
         # User left or kicked
-        if old_status in {"chatMemberStatusMember", "chatMemberStatusAdministrator"} and new_status == "chatMemberStatusLeft":
+        if old_status in {"chatMemberStatusMember",
+                          "chatMemberStatusAdministrator"} and new_status == "chatMemberStatusLeft":
             LOGGER.info(f"User {user_id} left or was kicked from {chat_id}.")
             ub = await call.get_client(chat_id)
             if isinstance(ub, (types.Error, NoneType)):

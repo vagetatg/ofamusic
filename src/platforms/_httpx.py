@@ -4,9 +4,9 @@
 
 
 import asyncio
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Any, Union
-from dataclasses import dataclass
 
 import aiofiles
 import httpx
@@ -48,9 +48,9 @@ class HttpxClient:
         self._download_timeout = download_timeout
         self._max_redirects = max_redirects
         self._session = httpx.AsyncClient(
-            timeout=timeout,
-            follow_redirects=max_redirects > 0,
-            max_redirects=max_redirects,
+                timeout=timeout,
+                follow_redirects=max_redirects > 0,
+                max_redirects=max_redirects,
         )
 
     async def close(self) -> None:
@@ -139,9 +139,9 @@ class HttpxClient:
         for attempt in range(max_retries):
             try:
                 response = await self._session.get(
-                    url,
-                    headers=headers,
-                    **kwargs
+                        url,
+                        headers=headers,
+                        **kwargs
                 )
                 response.raise_for_status()
                 return response.json()

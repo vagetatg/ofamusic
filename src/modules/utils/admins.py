@@ -32,7 +32,7 @@ async def load_admin_cache(
         return True, admin_cache[chat_id]  # Return cached data if available
 
     admin_list = await c.searchChatMembers(
-        chat_id, filter=types.ChatMembersFilterAdministrators()
+            chat_id, filter=types.ChatMembersFilterAdministrators()
     )
     if isinstance(admin_list, types.Error):
         LOGGER.warning(f"Error loading admin cache for chat_id {chat_id}: {admin_list}")
@@ -53,14 +53,13 @@ async def get_admin_cache_user(
         return False, None  # Cache miss
 
     return next(
-        (
-            (True, user_info)
-            for user_info in admin_list.user_info
-            if user_info["member_id"]["user_id"] == user_id
-        ),
-        (False, None),
+            (
+                    (True, user_info)
+                    for user_info in admin_list.user_info
+                    if user_info["member_id"]["user_id"] == user_id
+            ),
+            (False, None),
     )
-
 
 async def is_owner(chat_id: int, user_id: int) -> bool:
     """
@@ -81,6 +80,7 @@ async def is_admin(chat_id: int, user_id: int) -> bool:
         return True  # Anon Admin
 
     return is_cached and user_status in [
-        "chatMemberStatusCreator",
-        "chatMemberStatusAdministrator",
+            "chatMemberStatusCreator",
+            "chatMemberStatusAdministrator",
     ]
+

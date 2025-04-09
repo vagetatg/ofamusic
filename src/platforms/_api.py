@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import re
 from pathlib import Path
 from typing import Optional, Union
@@ -17,12 +16,12 @@ from .downloader import MusicService
 
 class ApiData(MusicService):
     APPLE_MUSIC_PATTERN = re.compile(
-        r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
-        re.IGNORECASE
+            r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
+            re.IGNORECASE
     )
     SPOTIFY_PATTERN = re.compile(
-        r"^(https?://)?(open\.spotify\.com/(track|playlist|album|artist)/[a-zA-Z0-9]+)(\?.*)?$",
-        re.IGNORECASE
+            r"^(https?://)?(open\.spotify\.com/(track|playlist|album|artist)/[a-zA-Z0-9]+)(\?.*)?$",
+            re.IGNORECASE
     )
 
     API_URL = config.API_URL
@@ -41,9 +40,9 @@ class ApiData(MusicService):
             return False
 
         return any([
-            self.APPLE_MUSIC_PATTERN.match(url),
-            self.SPOTIFY_PATTERN.match(url),
-            "soundcloud" in url.lower()
+                self.APPLE_MUSIC_PATTERN.match(url),
+                self.SPOTIFY_PATTERN.match(url),
+                "soundcloud" in url.lower()
         ])
 
     async def _fetch_data(self, endpoint: str) -> Optional[dict]:

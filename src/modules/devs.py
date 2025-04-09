@@ -32,7 +32,7 @@ from src.modules.utils.play_helpers import del_msg
 
 
 def format_exception(
-    exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
+        exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
 ) -> str:
     """Formats an exception traceback as a string, similar to the Python interpreter."""
 
@@ -75,22 +75,22 @@ async def exec_eval(c: Client, m: types.Message):
                 return print(*args, **kwargs)
 
         eval_vars = {
-            "loop": c.loop,
-            "client": c,
-            "stdout": out_buf,
-            "c": c,
-            "m": m,
-            "msg": m,
-            "types": types,
-            "send": send,
-            "print": _print,
-            "inspect": inspect,
-            "os": os,
-            "re": re,
-            "sys": sys,
-            "traceback": traceback,
-            "uuid": uuid,
-            "io": io,
+                "loop": c.loop,
+                "client": c,
+                "stdout": out_buf,
+                "c": c,
+                "m": m,
+                "msg": m,
+                "types": types,
+                "send": send,
+                "print": _print,
+                "inspect": inspect,
+                "os": os,
+                "re": re,
+                "sys": sys,
+                "traceback": traceback,
+                "uuid": uuid,
+                "io": io,
         }
 
         try:
@@ -135,10 +135,10 @@ async def exec_eval(c: Client, m: types.Message):
     <pre language="python">{escape(code)}</pre>
     """
         await m.reply_document(
-            document=types.InputFileLocal(filename),
-            caption=caption,
-            disable_notification=True,
-            parse_mode="html",
+                document=types.InputFileLocal(filename),
+                caption=caption,
+                disable_notification=True,
+                parse_mode="html",
         )
         return None
 
@@ -207,9 +207,9 @@ async def broadcast(_: Client, message: types.Message):
     total_failed = user_failed + chat_failed
 
     await message.reply_text(
-        f"Broadcast completed:\n"
-        f"- Sent: {total_sent} (Users: {user_sent}, Chats: {chat_sent})\n"
-        f"- Failed: {total_failed} (Users: {user_failed}, Chats: {chat_failed})"
+            f"Broadcast completed:\n"
+            f"- Sent: {total_sent} (Users: {user_sent}, Chats: {chat_sent})\n"
+            f"- Failed: {total_failed} (Users: {user_failed}, Chats: {chat_failed})"
     )
 
 
@@ -220,7 +220,7 @@ async def sys_stats(client: Client, message: types.Message):
         return None
 
     sysroot = await message.reply_text(
-        f"ɢᴇᴛᴛɪɴɢ {client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs, ɪᴛ'ʟʟ ᴛᴀᴋᴇ ᴀ ᴡʜɪʟᴇ..."
+            f"ɢᴇᴛᴛɪɴɢ {client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs, ɪᴛ'ʟʟ ᴛᴀᴋᴇ ᴀ ᴡʜɪʟᴇ..."
     )
 
     hostname = socket.gethostname()
@@ -243,16 +243,16 @@ async def sys_stats(client: Client, message: types.Message):
         cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
 
     hdd = psutil.disk_usage("/")
-    total = hdd.total / (1024.0**3)
-    used = hdd.used / (1024.0**3)
-    free = hdd.free / (1024.0**3)
+    total = hdd.total / (1024.0 ** 3)
+    used = hdd.used / (1024.0 ** 3)
+    free = hdd.free / (1024.0 ** 3)
     platform_release = platform.release()
     platform_version = platform.version()
     chats = len(await db.get_all_chats())
     users = len(await db.get_all_users())
 
     await sysroot.edit_text(
-        f"""
+            f"""
 <b><u>{client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs</u></b>
 
 <b>Chats:</b> {chats}
@@ -282,7 +282,7 @@ async def sys_stats(client: Client, message: types.Message):
 <b>Physical Cores:</b> {p_core}
 <b>Total Cores:</b> {t_core}
 <b>CPU Frequency:</b> {cpu_freq}""",
-        parse_mode="html",
+            parse_mode="html",
     )
 
 
@@ -297,6 +297,7 @@ async def _json(_: Client, msg: types.Message) -> None:
         reply_msg = await msg.getRepliedMessage()
         await msg.reply_text(str(reply_msg))
     await msg.reply_text(str(msg))
+
 
 @Client.on_message(filters=Filter.command("activevc"))
 async def active_vc(_: Client, message: types.Message):
@@ -313,19 +314,17 @@ async def active_vc(_: Client, message: types.Message):
 
     for chat_id in active_chats:
         queue_length = chat_cache.count(chat_id)
-        current_song = chat_cache.get_current_song(chat_id)
-
-        if current_song:
+        if current_song := chat_cache.get_current_song(chat_id):
             song_info = (
-                f"🎶 <b>Now Playing:</b> <a href='{current_song.url}'>{current_song.name}</a> - {current_song.artist} ({current_song.duration}s)"
+                    f"🎶 <b>Now Playing:</b> <a href='{current_song.url}'>{current_song.name}</a> - {current_song.artist} ({current_song.duration}s)"
             )
         else:
             song_info = "🔇 No song playing."
 
         text += (
-            f"➤ <b>Chat ID:</b> <code>{chat_id}</code>\n"
-            f"📌 <b>Queue Size:</b> {queue_length}\n"
-            f"{song_info}\n\n"
+                f"➤ <b>Chat ID:</b> <code>{chat_id}</code>\n"
+                f"📌 <b>Queue Size:</b> {queue_length}\n"
+                f"{song_info}\n\n"
         )
 
     if len(text) > 4096:
