@@ -348,13 +348,13 @@ async def play_audio(c: Client, msg: types.Message) -> None:
             return
 
     await del_msg(msg)
-    user_by = await msg.mention()
     wrapper = MusicServiceWrapper(url or args)
 
     # Handle different play scenarios
     if not args and not url and not (reply and Telegram(reply).is_valid()):
         return await _handle_recommendations(c, reply_message, wrapper)
 
+    user_by = await msg.mention()
     if reply and Telegram(reply).is_valid():
         return await _handle_telegram_file(c, msg, reply, reply_message, user_by)
 

@@ -23,12 +23,13 @@ from pyrogram import __version__ as pyrover
 from pytdbot import types, Client, VERSION as pyTdVer
 from pytgcalls import __version__ as pytgver
 
-from config import OWNER_ID
+
+from config import OWNER_ID, LOGGER_ID
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
 from src.modules.utils.cacher import chat_cache
-from src.modules.utils.play_helpers import del_msg
+from src.modules.utils.play_helpers import del_msg, extract_argument
 
 
 def format_exception(
@@ -282,21 +283,7 @@ async def sys_stats(client: Client, message: types.Message):
 <b>Physical Cores:</b> {p_core}
 <b>Total Cores:</b> {t_core}
 <b>CPU Frequency:</b> {cpu_freq}""",
-            parse_mode="html",
     )
-
-
-@Client.on_message(filters=Filter.command("json"))
-async def _json(_: Client, msg: types.Message) -> None:
-    if int(msg.from_id) != OWNER_ID:
-        await del_msg(msg)
-        return None
-
-    reply = msg.reply_to_message_id
-    if reply:
-        reply_msg = await msg.getRepliedMessage()
-        await msg.reply_text(str(reply_msg))
-    await msg.reply_text(str(msg))
 
 
 @Client.on_message(filters=Filter.command("activevc"))
@@ -333,3 +320,28 @@ async def active_vc(_: Client, message: types.Message):
     reply = await message.reply_text(text, disable_web_page_preview=True)
     if isinstance(reply, types.Error):
         return await message.reply_text(reply.message)
+
+@Client.on_message(filters=Filter.command("logger"))
+async def logger(_: Client, message: types.Message):
+    if message.from_id != OWNER_ID:
+        await del_msg(message)
+        return
+
+    if LOGGER_ID == 0 or not LOGGER_ID:
+        await message.reply_text("Please set LOGGER_ID in .env first.")
+        return None
+
+    args = extract_argument(message.text)
+    enabled = await db.get_logger_status()
+    if not args:
+        await message.reply_text("Usage: /logger [enable|disable|on|off]\n\nCurrent status: " + ("enabled" if enabled else "disabled"))
+        return
+
+    if args.lower() in ["on", "enable"]:
+        await db.set_logger_status(True)
+        await message.reply_text("Logger enabled.")
+    elif args.lower() in ["off", "disable"]:
+        await db.set_logger_status(False)
+        await message.reply_text("Logger disabled.")
+    else:
+        await message.reply_text(f"Usage: /logger [enable|disable]\n\nYour argument is {args}")

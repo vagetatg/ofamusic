@@ -26,7 +26,7 @@ from pytgcalls.types import (
 import config
 from src.database import db
 from src.logger import LOGGER
-from src.modules.utils import sec_to_min, get_audio_duration, PlayButton
+from src.modules.utils import sec_to_min, get_audio_duration, PlayButton, send_logger
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.thumbnails import gen_thumb
 from src.platforms import ApiData, YouTubeData, JiosaavnData
@@ -152,6 +152,8 @@ class MusicBot:
 
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].play(chat_id, _stream)
+            if await db.get_logger_status():
+                asyncio.create_task(send_logger(self.bot, chat_id, chat_cache.get_current_song(chat_id)))
         except (errors.ChatAdminRequired, exceptions.NoActiveGroupCall) as e:
             LOGGER.warning(f"Error playing media for chat {chat_id}: {e}")
             chat_cache.clear_chat(chat_id)
@@ -245,7 +247,6 @@ class MusicBot:
     @staticmethod
     async def song_download(song: CachedTrack) -> Optional[Path]:
         """Handle song downloading based on platform."""
-
         platform_handlers = {
                 "youtube": YouTubeData(song.track_id),
                 "jiosaavn": JiosaavnData(song.url),
@@ -254,7 +255,7 @@ class MusicBot:
                 "soundcloud": ApiData(song.url),
         }
 
-        if handler := platform_handlers.get(song.platform):
+        if handler := platform_handlers.get(song.platform.lower()):
             if track := await handler.get_track():
                 return await handler.download_track(track)
 

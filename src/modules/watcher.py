@@ -40,6 +40,7 @@ def is_valid_supergroup(chat_id: int) -> bool:
 async def handle_bot_join(client: Client, chat_id: int) -> None:
     """Handle logic when bot is added to a new chat."""
     LOGGER.info(f"Bot joined the chat {chat_id}.")
+    chat_id = chat_id[4:] if str(chat_id).startswith("-100") else chat_id
     chat_info = await client.getSupergroupFullInfo(chat_id)
     if isinstance(chat_info, types.Error):
         LOGGER.warning(f"Failed to get supergroup info for {chat_id}")

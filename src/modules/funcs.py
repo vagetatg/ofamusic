@@ -462,7 +462,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             return cb_data in {"play_skip", "play_stop", "play_pause", "play_resume"}
 
         if requires_admin(data) and not await is_admin(chat_id, user_id):
-            await message.answer("⚠️ You must be an admin to use this command.")
+            await message.answer("⚠️ You must be an admin to use this command.", show_alert=True)
             return
 
         # Check if chat is active for control actions
