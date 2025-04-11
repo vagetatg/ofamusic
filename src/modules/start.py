@@ -54,6 +54,7 @@ async def help_cmd(c: Client, message: types.Message):
     text = f"""<b>Help for {c.me.first_name}:</b>
 <b>/start:</b> Start the bot.
 <b>/reload:</b> Reload chat administrator list.
+<b>/authlist:</b> Get the list of authorized users.
 <b>/play:</b> Reply to an audio or provide a song name to play music.
 <b>/speed:</b> Change the playback speed of the current song (0.5 - 4.0).
 <b>/skip:</b> Skip the current song.  
@@ -72,7 +73,11 @@ async def help_cmd(c: Client, message: types.Message):
 <b>/setPlayType:</b> Change the play type of the bot.
 <b>/privacy:</b> Read our privacy policy.
 
-<b>Owner Commands:</b>
+<b>Chat Owner Commands:</b>
+<b>/auth:</b> Grant auth permissions to a user.
+<b>/unauth:</b> Revoke auth permissions from a user.
+
+<b>Bot Owner Commands:</b>
 <b>/stats:</b> Get the statistics of the bot.
 <b>/logger:</b> Toggle the logger for the bot.
 <b>/broadcast:</b> Broadcast a message to all chats and users.
@@ -81,8 +86,7 @@ async def help_cmd(c: Client, message: types.Message):
 ──────────────────────────────────────────
 <b>Note:</b> This bot works best in groups and requires admin permissions to function.
 """
-
-    reply = await message.reply_text(text=text, parse_mode="html")
+    reply = await message.reply_text(text=text)
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending help message: {reply.message}")
 

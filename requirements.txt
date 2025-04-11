@@ -11,7 +11,7 @@ psutil~=7.0.0
 py-yt-search~=0.2
 py_tgcalls @ git+https://github.com/pytgcalls/pytgcalls.git@master
 pycryptodome~=3.22.0
-pydantic~=2.11.2
+pydantic~=2.11.3
 PyTgCrypto~=1.2.9.2
 python-dotenv~=1.1.0
 pytdbot~=0.9.2.dev2
@@ -19,4 +19,4 @@ pytz~=2025.2
 tdjson~=1.8.46
 ujson~=5.10.0
 yt-dlp~=2025.3.31
-yteva~=2025.4.13
+yteva~=2025.4.14

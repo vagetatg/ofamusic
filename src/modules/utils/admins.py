@@ -7,6 +7,7 @@ from typing import Optional, Tuple
 from cachetools import TTLCache
 from pytdbot import types, Client
 
+from src import db
 from src.logger import LOGGER
 
 admin_cache = TTLCache(maxsize=1000, ttl=30 * 60)
@@ -72,15 +73,18 @@ async def is_owner(chat_id: int, user_id: int) -> bool:
 
 async def is_admin(chat_id: int, user_id: int) -> bool:
     """
-    Check if the user is an admin (including the owner) in the chat.
+    Check if the user is an admin (including the owner & auth) in the chat.
     """
     is_cached, user = await get_admin_cache_user(chat_id, user_id)
     user_status = user["status"]["@type"] if user else None
     if chat_id == user_id:
         return True  # Anon Admin
 
+    auth_users = await db.get_auth_users(chat_id)
+    if user_id in auth_users:
+        return True
+
     return is_cached and user_status in [
             "chatMemberStatusCreator",
             "chatMemberStatusAdministrator",
     ]
-
