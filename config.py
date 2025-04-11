@@ -46,6 +46,9 @@ SESSION_STRINGS = [
 "Your Telegram User ID"
 OWNER_ID = int(getenv("OWNER_ID", 5938660179))
 
+"Channel/Group ID for logging; where logs will be sent"
+LOGGER_ID = int(getenv("LOGGER_ID", 0))
+
 "Your MongoDB URI; get it from https://cloud.mongodb.com"
 MONGO_URI = getenv("MONGO_URI", None)
 
@@ -57,7 +60,7 @@ API_KEY = getenv("API_KEY", None)
 PROXY_URL = getenv("PROXY_URL", None)
 
 "Default platform to search for songs; options: youtube, spotify, jiosaavn"
-DEFAULT_SERVICE = getenv("DEFAULT_SERVICE", "youtube")
+DEFAULT_SERVICE = getenv("DEFAULT_SERVICE", "youtube").lower()
 
 "Directory for downloads and TDLib db"
 DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")

@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 from typing import Optional
 
 from cachetools import TTLCache
@@ -11,16 +10,17 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import config
 from src.logger import LOGGER
 
-
 class Database:
     def __init__(self):
         self.mongo_client = AsyncIOMotorClient(config.MONGO_URI)
         _db = self.mongo_client["MusicBot"]
         self.chat_db = _db["chats"]
         self.users_db = _db["users"]
+        self.bot_db = _db["bot"]
 
         self.play_type_cache = TTLCache(maxsize=1000, ttl=600)
         self.assistant_cache = TTLCache(maxsize=1000, ttl=600)
+        self.bot_cache = TTLCache(maxsize=1000, ttl=600)
 
     async def ping(self) -> None:
         """Ping the MongoDB server to check the connection."""
@@ -47,7 +47,7 @@ class Database:
     async def set_play_type(self, chat_id: int, play_type: int) -> None:
         """Set the play type for a chat and cache it."""
         await self.chat_db.update_one(
-            {"_id": chat_id}, {"$set": {"play_type": play_type}}, upsert=True
+                {"_id": chat_id}, {"$set": {"play_type": play_type}}, upsert=True
         )
         self.play_type_cache[chat_id] = play_type
 
@@ -64,7 +64,7 @@ class Database:
     async def set_assistant(self, chat_id: int, assistant: str) -> None:
         """Set the assistant for a chat and cache it."""
         await self.chat_db.update_one(
-            {"_id": chat_id}, {"$set": {"assistant": assistant}}, upsert=True
+                {"_id": chat_id}, {"$set": {"assistant": assistant}}, upsert=True
         )
         self.assistant_cache[chat_id] = assistant
 
@@ -86,14 +86,14 @@ class Database:
     async def add_auth_user(self, chat_id: int, auth_user: int) -> None:
         """Add an authorized user to a chat."""
         await self.chat_db.update_one(
-            {"_id": chat_id}, {"$addToSet": {"auth_users": auth_user}}, upsert=True
+                {"_id": chat_id}, {"$addToSet": {"auth_users": auth_user}}, upsert=True
         )
 
     async def remove_auth_user(self, chat_id: int, auth_user: int) -> None:
         """Remove an authorized user from a chat."""
         await self.chat_db.update_one(
-            {"_id": chat_id},
-            {"$pull": {"auth_users": auth_user}},
+                {"_id": chat_id},
+                {"$pull": {"auth_users": auth_user}},
         )
 
     async def get_auth_users(self, chat_id: int) -> list[int]:
@@ -137,6 +137,22 @@ class Database:
     async def get_all_chats(self) -> list[int]:
         """Retrieve all chat IDs from the chats collection."""
         return [chat["_id"] async for chat in self.chat_db.find()]
+
+    async def get_logger_status(self) -> bool:
+        if "logger" in self.bot_cache:
+            return self.bot_cache["logger"]
+
+        bot_data = await self.bot_db.find_one({"_id": "global"})
+        status = bot_data.get("logger", False) if bot_data else False
+        self.bot_cache["logger"] = status
+        return status
+
+    async def set_logger_status(self, status: bool) -> None:
+        await self.bot_db.update_one(
+            {"_id": "global"}, {"$set": {"logger": status}}, upsert=True
+        )
+        self.bot_cache["logger"] = status
+
 
     async def close(self) -> None:
         """Close the MongoDB connection."""

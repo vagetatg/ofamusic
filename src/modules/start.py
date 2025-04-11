@@ -54,6 +54,7 @@ async def help_cmd(c: Client, message: types.Message):
     text = f"""<b>Help for {c.me.first_name}:</b>
 <b>/start:</b> Start the bot.
 <b>/reload:</b> Reload chat administrator list.
+<b>/authlist:</b> Get the list of authorized users.
 <b>/play:</b> Reply to an audio or provide a song name to play music.
 <b>/speed:</b> Change the playback speed of the current song (0.5 - 4.0).
 <b>/skip:</b> Skip the current song.  
@@ -72,11 +73,20 @@ async def help_cmd(c: Client, message: types.Message):
 <b>/setPlayType:</b> Change the play type of the bot.
 <b>/privacy:</b> Read our privacy policy.
 
+<b>Chat Owner Commands:</b>
+<b>/auth:</b> Grant auth permissions to a user.
+<b>/unauth:</b> Revoke auth permissions from a user.
+
+<b>Bot Owner Commands:</b>
+<b>/stats:</b> Get the statistics of the bot.
+<b>/logger:</b> Toggle the logger for the bot.
+<b>/broadcast:</b> Broadcast a message to all chats and users.
+<b>/activevc:</b> Get the active voice chats list with details.
+
 ──────────────────────────────────────────
 <b>Note:</b> This bot works best in groups and requires admin permissions to function.
 """
-
-    reply = await message.reply_text(text=text, parse_mode="html")
+    reply = await message.reply_text(text=text)
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending help message: {reply.message}")
 
@@ -147,7 +157,7 @@ async def reload_cmd(c: Client, message: types.Message):
         last_used_time = rate_limit_cache[user_id]
         time_remaining = 180 - (datetime.now() - last_used_time).total_seconds()
         reply = await message.reply_text(
-            f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min."
+                f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min."
         )
         if isinstance(reply, types.Error):
             c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
@@ -162,15 +172,15 @@ async def reload_cmd(c: Client, message: types.Message):
     ub = await call.get_client(chat_id)
     if isinstance(ub, (types.Error, NoneType)):
         return await reply.edit_text(
-            "❌ Something went wrong. Assistant not found for this chat."
+                "❌ Something went wrong. Assistant not found for this chat."
         )
 
     chat_invite_cache.pop(chat_id, None)
     user_key = f"{chat_id}:{ub.me.id}"
     user_status_cache.pop(user_key, None)
 
-    if not await chat_cache.is_active(chat_id):
-        await chat_cache.clear_chat(chat_id)
+    if not chat_cache.is_active(chat_id):
+        chat_cache.clear_chat(chat_id)
 
     load_admins, _ = await load_admin_cache(c, chat_id, True)
 
@@ -180,15 +190,14 @@ async def reload_cmd(c: Client, message: types.Message):
 
     loaded = "✅" if load_admins else "❌"
     text = (
-        f"<b>Assistant Status:</b> {ub_stats}\n"
-        f"<b>Admins Loaded:</b> {loaded}\n"
-        f"<b>» Reloaded by:</b> {await message.mention()}"
+            f"<b>Assistant Status:</b> {ub_stats}\n"
+            f"<b>Admins Loaded:</b> {loaded}\n"
+            f"<b>» Reloaded by:</b> {await message.mention()}"
     )
 
-    reply = await reply.edit_text(text, parse_mode="html")
+    reply = await reply.edit_text(text)
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
-
     return
 
 

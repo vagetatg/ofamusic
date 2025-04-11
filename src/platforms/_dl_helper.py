@@ -7,18 +7,19 @@ import asyncio
 import os
 import random
 import subprocess
-from pathlib import Path
 from typing import Optional
 
 import aiofiles
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
+from pytdbot import types
 from yt_dlp import YoutubeDL, utils
 
+import config
 from config import DOWNLOADS_DIR, PROXY_URL
-from src.logger import LOGGER
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
+from ..logger import LOGGER
 
 
 class YouTubeDownload:
@@ -29,7 +30,6 @@ class YouTubeDownload:
         self.track = track
         self.video_id = track.tc
         self.video_url = f"https://www.youtube.com/watch?v={self.video_id}"
-        self.output_file = Path(DOWNLOADS_DIR) / f"{track.tc}.mp3"
 
     @staticmethod
     async def get_cookie_file():
@@ -54,52 +54,85 @@ class YouTubeDownload:
 
     async def process(self) -> Optional[str]:
         """Download the audio from YouTube and return the path to the downloaded file."""
-        if self.output_file.exists():
-            LOGGER.info(f"✅ Found existing file: {self.output_file}")
-            return str(self.output_file)
+        if file_path := await self._dl_from_yt_eva():
+            return file_path
+
         return await self._download_with_yt_dlp()
 
+    async def _dl_from_yt_eva(self):
+        try:
+            from yteva import YTeva_direct
+            from src import client
+            # THANKS TO https://t.me/yteva_lib/5
+            yd = YTeva_direct(api_key="a741b767c2msh6968fd2e45c2006p10fa9ejsn9912d34d7e92")
+            msg_id = await yd.play_audio_direct(self.video_id)
+            if not msg_id:
+                return None
+            if not isinstance(msg_id, int):
+                # Possibly a live stream or invalid response
+                return None
+        except Exception as e:
+            LOGGER.error(f"Error downloading from yteva: {e}")
+            return None
+
+        link = f"https://t.me/Data_eva/{msg_id}"
+        info = await client.getMessageLinkInfo(link)
+        if isinstance(info, types.Error):
+            LOGGER.error(f"❌ Could not resolve message from link: {link}")
+            return None
+
+        if info.message is None:
+            LOGGER.error(f"❌ Could not resolve message from link: {link}")
+            return None
+
+        msg = await client.getMessage(info.message.chat_id, info.message.id)
+        if isinstance(msg, types.Error):
+            LOGGER.error(f"❌ Failed to fetch message with ID {info.message.id}")
+            return None
+
+        file = await msg.download()
+        if isinstance(file, types.Error):
+            LOGGER.error(f"❌ Failed to download message with ID {info.message.id}")
+            return None
+
+        return file.path
+
+
     async def _download_with_yt_dlp(self) -> Optional[str]:
-        """Download audio using yt-dlp with proxy support."""
+        """Download audio using yt-dlp."""
         ydl_opts = {
-            "format": "bestaudio/best",
-            "postprocessors": [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192",
-                }
-            ],
-            "outtmpl": str(self.output_file.with_suffix("")),
-            "geo_bypass": True,
-            "nocheckcertificate": True,
-            "quiet": True,
-            "no_warnings": True,
-            "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-            },
+                "format": "bestaudio/best",
+                "outtmpl": f"{config.DOWNLOADS_DIR}/%(id)s.%(ext)s",
+                "geo_bypass": True,
+                "nocheckcertificate": True,
+                "quiet": True,
+                "no_warnings": True,
         }
 
-        if cookie_file := await self.get_cookie_file():
-            ydl_opts["cookiefile"] = cookie_file
-
-        # Add proxy if configured
         if PROXY_URL:
             ydl_opts["proxy"] = PROXY_URL
+        else:
+            if cookie_file := await self.get_cookie_file():
+                ydl_opts["cookiefile"] = cookie_file
 
         try:
-            loop = asyncio.get_running_loop()
-            with YoutubeDL(ydl_opts) as ydl:
-                await loop.run_in_executor(None, ydl.download, [self.video_url])
-            LOGGER.info(f"✅ Downloaded: {self.output_file}")
-            return str(self.output_file)
+            def run_yt_dlp():
+                with YoutubeDL(ydl_opts) as ydl:
+                    song_info = ydl.extract_info(self.video_url, download=True)
+                    file_name = ydl.prepare_filename(song_info)
+                    return file_name, song_info
+
+            filename, info = await asyncio.to_thread(run_yt_dlp)
+            if not os.path.exists(filename):
+                LOGGER.warning(f"⚠️ File not found after download: {filename}")
+                return None
+            LOGGER.info(f"Downloaded: {filename}")
+            return filename
         except utils.DownloadError as e:
             LOGGER.error(f"❌ Download error for {self.video_url}: {e}")
             return None
         except Exception as e:
-            LOGGER.error(
-                f"❌ Unexpected error downloading {self.video_url}: {e}", exc_info=True
-            )
+            LOGGER.error(f"❌ Unexpected error downloading {self.video_url}: {e}")
             return None
 
 
@@ -156,7 +189,7 @@ class SpotifyDownload:
             iv = bytes.fromhex("72e067fbddcbcf77ebe8bc643f630d93")
             iv_int = int.from_bytes(iv, "big")
             cipher = AES.new(
-                key, AES.MODE_CTR, counter=Counter.new(128, initial_value=iv_int)
+                    key, AES.MODE_CTR, counter=Counter.new(128, initial_value=iv_int)
             )
 
             chunk_size = 8192  # 8KB chunks
@@ -174,14 +207,14 @@ class SpotifyDownload:
         """Fix the decrypted audio file using FFmpeg."""
         try:
             process = await asyncio.create_subprocess_exec(
-                "ffmpeg",
-                "-i",
-                self.decrypted_file,
-                "-c",
-                "copy",
-                self.output_file,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                    "ffmpeg",
+                    "-i",
+                    self.decrypted_file,
+                    "-c",
+                    "copy",
+                    self.output_file,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
             )
             stdout, stderr = await process.communicate()
             if process.returncode != 0:

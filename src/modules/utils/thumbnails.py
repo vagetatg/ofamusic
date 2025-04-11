@@ -1,8 +1,6 @@
 #  Copyright (c) 2025 AshokShau
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
-#
-#
 
 import asyncio
 from io import BytesIO
@@ -16,10 +14,10 @@ from src.logger import LOGGER
 from src.platforms.dataclass import CachedTrack
 
 FONTS = {
-    "cfont": ImageFont.truetype("src/modules/utils/cfont.ttf", 15),
-    "dfont": ImageFont.truetype("src/modules/utils/font2.otf", 12),
-    "nfont": ImageFont.truetype("src/modules/utils/font.ttf", 10),
-    "tfont": ImageFont.truetype("src/modules/utils/font.ttf", 20),
+        "cfont": ImageFont.truetype("src/modules/utils/cfont.ttf", 15),
+        "dfont": ImageFont.truetype("src/modules/utils/font2.otf", 12),
+        "nfont": ImageFont.truetype("src/modules/utils/font.ttf", 10),
+        "tfont": ImageFont.truetype("src/modules/utils/font.ttf", 20),
 }
 
 
@@ -79,10 +77,11 @@ async def fetch_image(url: str) -> Image.Image | None:
             LOGGER.error(f"Image loading error: {e}")
             return None
 
-def clean_text(text: str, limit: int = 20) -> str:
+
+def clean_text(text: str, limit: int = 17) -> str:
     """Sanitizes and truncates text to fit within the limit."""
     text = text.strip()
-    return text[: limit - 3] + "..." if len(text) > limit else text
+    return f"{text[:limit - 3]}..." if len(text) > limit else text
 
 
 def add_controls(img: Image.Image) -> Image.Image:
@@ -96,7 +95,7 @@ def add_controls(img: Image.Image) -> Image.Image:
 
     mask = Image.new("L", dark_region.size, 0)
     ImageDraw.Draw(mask).rounded_rectangle(
-        (0, 0, box[2] - box[0], box[3] - box[1]), 40, fill=255
+            (0, 0, box[2] - box[0], box[3] - box[1]), 40, fill=255
     )
 
     img.paste(dark_region, box, mask)
@@ -110,12 +109,12 @@ def make_sq(image: Image.Image, size: int = 125) -> Image.Image:
     width, height = image.size
     side_length = min(width, height)
     crop = image.crop(
-        (
-            (width - side_length) // 2,
-            (height - side_length) // 2,
-            (width + side_length) // 2,
-            (height + side_length) // 2,
-        )
+            (
+                    (width - side_length) // 2,
+                    (height - side_length) // 2,
+                    (width + side_length) // 2,
+                    (height + side_length) // 2,
+            )
     )
     resize = crop.resize((size, size), Image.Resampling.LANCZOS)
 

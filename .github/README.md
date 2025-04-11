@@ -12,17 +12,21 @@ Telegram Group Calls Streaming bot with some useful features, written in Python 
 
 ### 🚫 Tired of IP Bans from YouTube?
 
-Say goodbye to restrictions with our Premium Music API – the ultimate solution for seamless, high-quality downloads.
+Say goodbye to restrictions with our **Premium Music API** – your ultimate solution for seamless, high-quality downloads.
 
 - **Easy Integration** – Just set `API_URL` in your bot configuration.  
-- **High-Quality Downloader** – Download high-quality music directly from Spotify, Apple Music, and SoundCloud.
-- **Unlimited Access** – No download limits or interruptions.  
+- **High-Quality Downloads** – Get music from **Spotify, Apple Music, SoundCloud**, and **YouTube** in top quality.  
+- **Unlimited Access** – No limits, no interruptions – download as much as you want.
 
-[➡️ Click here for more details](https://gist.github.com/AshokShau/7528cddc5b264035dee40523a44ff153)  
+[➡️ Click here for more details](https://gist.github.com/AshokShau/7528cddc5b264035dee40523a44ff153)
 
-📩 **[Contact me on Telegram](https://t.me/AshokShau) to get access!**  
+📩 **[Contact me on Telegram](https://t.me/AshokShau) to get access!**
 
-> 📘 Need help with cookies? Check out this [guide](https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md) on downloading and using them.
+---
+
+### Want to use cookies?
+> 📘 Check out this [guide](https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md) for instructions on downloading and using them.
+
 ---
 
 ## **Features**  
@@ -40,7 +44,9 @@ Say goodbye to restrictions with our Premium Music API – the ultimate solution
 
 ## **Installation**  
 <details>
-<summary><strong>📌 Using Docker (Recommended) (<small>Click to expand</small>)</strong></summary>
+<summary><strong>📌 Using Docker (Recommended) (Click to expand)</strong></summary>
+
+> Check [here](https://docs.docker.com/get-docker/) for installation instructions.
 
 1. Clone the repository:  
    ```sh
@@ -62,35 +68,53 @@ Say goodbye to restrictions with our Premium Music API – the ultimate solution
 </details>
 
 <details>
-<summary><strong>📌 Manual Installation (<small>Click to expand</small>)</strong></summary>
+<summary><strong>📌 Manual Installation (Click to expand)</strong></summary>
 
-1. Clone the repository:  
+1. Update and Upgrade your system:
+   ```sh
+   sudo apt-get update && sudo apt-get upgrade -y
+   ```
+
+2. Install required packages:
+   ```sh
+   sudo apt-get install git python3-pip ffmpeg -y
+   ```
+
+3. Clone the repository:  
    ```sh
    git clone https://github.com/AshokShau/TgMusicBot.git && cd TgMusicBot
    ```
-2. Create a virtual environment:  
+
+4. Create a virtual environment:  
    ```sh
    python3 -m venv venv
    ```
-3. Activate the virtual environment:  
-   - Windows: `venv/Scripts/activate`  
+
+5. Activate the virtual environment:  
+   - Windows: `venv/Scripts/activate`
    - Linux/Mac: `source venv/bin/activate`
-4. Install dependencies:  
+
+6. Install dependencies:  
    ```sh
    pip install -r requirements.txt
    ```
-5. Set up environment variables:  
+
+7. Set up environment variables:  
    ```sh
    cp sample.env .env && vi .env
    ```
-6. Install FFmpeg:  
+   > Press `Ctrl+C` when you're done with editing env and `:wq` to save the environment variables.
+
+8. Install tmux to keep running your bot when you close the terminal by:
    ```sh
-   sudo apt-get install ffmpeg
+   sudo apt install tmux && tmux
    ```
-7. Start the bot:  
+
+9. Finally run the bot by:  
    ```sh
    bash start
    ```
+   > For getting out from tmux session : Press `Ctrl+b` and then `d`.
 
 </details>
 
