@@ -56,7 +56,7 @@ class Telegram:
 
             elif isinstance(self.content, types.MessageDocument):
                 mime = (self.content.document.mime_type or "").lower()
-                if mime and mime.startswith("audio/") or mime and mime.startswith("video/"):
+                if (mime and mime.startswith("audio/")) or (mime and mime.startswith("video/")):
                     return self.content.document.document.size, self.content.document.file_name or "Document.mp4"
         except Exception as e:
             LOGGER.error("Error while extracting file info: %s", e)

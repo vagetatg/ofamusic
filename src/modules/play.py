@@ -132,7 +132,7 @@ async def _handle_single_track(c: Client, msg: types.Message, chat_id: int,
 
     reply = await _update_msg_with_thumb(c, msg, text, thumb, PlayButton)
     if isinstance(reply, types.Error):
-        LOGGER.info(f"sending reply: {reply}")
+        LOGGER.warning(f"sending reply: {reply}")
         return None
 
 
@@ -181,6 +181,16 @@ async def _handle_multiple_tracks(_: Client, msg: types.Message, chat_id: int,
 
     await edit_text(msg, text, reply_markup=PlayButton)
 
+def build_song_selection_message(user_by: str, tracks: list[MusicTrack]) -> tuple[str, types.ReplyMarkupInlineKeyboard]:
+    text = f"{user_by}, select a song to play:" if user_by else "Select a song to play:"
+    buttons = [
+        [types.InlineKeyboardButton(
+            f"{rec.name[:18]} - {rec.artist}",
+            type=types.InlineKeyboardButtonTypeCallback(f"play_{rec.platform.lower()}_{rec.id}".encode())
+        )]
+        for rec in tracks[:4]
+    ]
+    return text, types.ReplyMarkupInlineKeyboard(buttons)
 
 async def play_music(c: Client, msg: types.Message, url_data: PlatformTracks,
                      user_by: str, tg_file_path: str = None, is_video: bool = False):
@@ -207,20 +217,14 @@ async def _handle_recommendations(_: Client, msg: types.Message, wrapper: MusicS
         await edit_text(msg, text=text, reply_markup=SupportButton)
         return
 
-    platform = recommendations.tracks[0].platform
-    text += "Tap on a song name to play it."
-    buttons = [
-            [types.InlineKeyboardButton(
-                    f"{track.name[:18]} - {track.artist}",
-                    type=types.InlineKeyboardButtonTypeCallback(
-                            f"play_{platform}_{track.id}".encode()
-                    )
-            )] for track in recommendations.tracks
-    ]
-
+    text, keyboard = build_song_selection_message("", recommendations.tracks)
     await edit_text(
-            msg, text=text, reply_markup=types.ReplyMarkupInlineKeyboard(buttons)
+        msg,
+        text=text,
+        reply_markup=keyboard,
+        disable_web_page_preview=True,
     )
+
 
 
 async def _handle_telegram_file(c: Client, _: types.Message, reply: types.Message,
@@ -271,20 +275,12 @@ async def _handle_text_search(c: Client, msg: types.Message, chat_id: int,
                 msg, text="❌ Unable to retrieve song info.", reply_markup=SupportButton
         )
 
-    buttons = [
-            [types.InlineKeyboardButton(
-                    f"{rec.name[:18]} - {rec.artist}",
-                    type=types.InlineKeyboardButtonTypeCallback(
-                            f"play_{rec.platform.lower()}_{rec.id}".encode()
-                    )
-            )] for rec in search.tracks[:4]
-    ]
-
+    text, keyboard = build_song_selection_message(user_by, search.tracks)
     await edit_text(
-            msg,
-            text=f"{user_by}, select a song to play:",
-            reply_markup=types.ReplyMarkupInlineKeyboard(buttons),
-            disable_web_page_preview=True,
+        msg,
+        text=text,
+        reply_markup=keyboard,
+        disable_web_page_preview=True,
     )
 
 
