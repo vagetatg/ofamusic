@@ -89,7 +89,7 @@ async def join_ub(chat_id: int, c: Client, ub: pyrogram.Client):
 
     if not invite_link:
         return types.Error(
-            code=400, message=f"Failed to get invite link for chat {chat_id}"
+                code=400, message=f"Failed to get invite link for chat {chat_id}"
         )
 
     chat_invite_cache[chat_id] = invite_link
@@ -104,7 +104,7 @@ async def join_ub(chat_id: int, c: Client, ub: pyrogram.Client):
     except errors.InviteRequestSent:
         with contextlib.suppress(Exception):
             await c.processChatJoinRequest(
-                chat_id=chat_id, user_id=ub.me.id, approve=True
+                    chat_id=chat_id, user_id=ub.me.id, approve=True
             )
     except errors.UserAlreadyParticipant:
         user_status_cache[user_key] = "chatMemberStatusMember"
@@ -114,15 +114,16 @@ async def join_ub(chat_id: int, c: Client, ub: pyrogram.Client):
 
 async def unban_ub(c: Client, chat_id: int, user_id: int):
     await c.setChatMemberStatus(
-        chat_id=chat_id,
-        member_id=types.MessageSenderUser(user_id),
-        status=types.ChatMemberStatusMember(),
+            chat_id=chat_id,
+            member_id=types.MessageSenderUser(user_id),
+            status=types.ChatMemberStatusMember(),
     )
 
 
 async def check_user_status(
         c: Client, chat_id: int, user_id: int
-) -> Literal["chatMemberStatusLeft", "chatMemberStatusCreator", "chatMemberStatusAdministrator", "chatMemberStatusMember", "chatMemberStatusRestricted", "chatMemberStatusBanned"] | Any:
+) -> Literal[
+         "chatMemberStatusLeft", "chatMemberStatusCreator", "chatMemberStatusAdministrator", "chatMemberStatusMember", "chatMemberStatusRestricted", "chatMemberStatusBanned"] | Any:
     user_status = user_status_cache.get((chat_id, user_id))
     if not user_status:
         user = await c.getChatMember(chat_id=chat_id, member_id=types.MessageSenderUser(user_id))

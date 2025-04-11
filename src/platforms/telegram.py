@@ -14,9 +14,10 @@ class Telegram:
 
     MAX_FILE_SIZE = 400 * 1024 * 1024  # 400MB
     UNSUPPORTED_TYPES = (
-        types.MessagePhoto,
-        types.MessageSticker,
-        types.MessageAnimation,
+            types.MessageText,
+            types.MessagePhoto,
+            types.MessageSticker,
+            types.MessageAnimation,
     )
 
     def __init__(self, reply: Optional[types.Message]):
@@ -29,7 +30,6 @@ class Telegram:
             return False
 
         if isinstance(self.content, self.UNSUPPORTED_TYPES):
-            LOGGER.info("Unsupported media type: %s", type(self.content).__name__)
             return False
 
         file_size, _ = self._extract_file_info()
@@ -56,11 +56,11 @@ class Telegram:
 
             elif isinstance(self.content, types.MessageDocument):
                 mime = (self.content.document.mime_type or "").lower()
-                if mime.startswith("audio/") or mime.startswith("video/"):
+                if (mime and mime.startswith("audio/")) or (mime and mime.startswith("video/")):
                     return self.content.document.document.size, self.content.document.file_name or "Document.mp4"
         except Exception as e:
             LOGGER.error("Error while extracting file info: %s", e)
-    
+
         LOGGER.info("Unknown or unsupported content type: %s", type(self.content).__name__)
         return 0, "UnknownMedia"
 
