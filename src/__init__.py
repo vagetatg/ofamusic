@@ -5,8 +5,8 @@
 
 import asyncio
 import os
+import sys
 import shutil
-
 
 from pytdbot import Client, types
 
@@ -16,6 +16,16 @@ from src.modules.jobs import InactiveCallManager
 from src.pytgcalls import call, start_clients
 
 __version__ = "1.1.5"
+
+
+# Enforce minimum Python version
+if sys.version_info < (3, 10):
+    raise RuntimeError(
+        "\n\n❌ Your Python version is too old!\n"
+        "   This project requires Python 3.10 or newer to run.\n"
+        "   Please upgrade Python:\n"
+        "     🔗 https://www.python.org/downloads/\n"
+    )
 
 
 class Telegram(Client):
