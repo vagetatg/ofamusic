@@ -12,7 +12,6 @@ from typing import Optional
 import aiofiles
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from pytdbot import types
 from yt_dlp import YoutubeDL, utils
 
 import config
@@ -54,49 +53,7 @@ class YouTubeDownload:
 
     async def process(self) -> Optional[str]:
         """Download the audio from YouTube and return the path to the downloaded file."""
-        if file_path := await self._dl_from_yt_eva():
-            return file_path
-
         return await self._download_with_yt_dlp()
-
-    async def _dl_from_yt_eva(self):
-        try:
-            from yteva import YTeva_direct
-            from src import client
-            # THANKS TO https://t.me/yteva_lib/5
-            yd = YTeva_direct(api_key="a741b767c2msh6968fd2e45c2006p10fa9ejsn9912d34d7e92")
-            msg_id = await yd.play_audio_direct(self.video_id)
-            if not msg_id:
-                return None
-            if not isinstance(msg_id, int):
-                # Possibly a live stream or invalid response
-                return None
-        except Exception as e:
-            LOGGER.error(f"Error downloading from yteva: {e}")
-            return None
-
-        link = f"https://t.me/Data_eva/{msg_id}"
-        info = await client.getMessageLinkInfo(link)
-        if isinstance(info, types.Error):
-            LOGGER.error(f"❌ Could not resolve message from link: {link}")
-            return None
-
-        if info.message is None:
-            LOGGER.error(f"❌ Could not resolve message from link: {link}")
-            return None
-
-        msg = await client.getMessage(info.message.chat_id, info.message.id)
-        if isinstance(msg, types.Error):
-            LOGGER.error(f"❌ Failed to fetch message with ID {info.message.id}")
-            return None
-
-        file = await msg.download()
-        if isinstance(file, types.Error):
-            LOGGER.error(f"❌ Failed to download message with ID {info.message.id}")
-            return None
-
-        return file.path
-
 
     async def _download_with_yt_dlp(self) -> Optional[str]:
         """Download audio using yt-dlp."""
