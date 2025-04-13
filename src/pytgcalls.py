@@ -148,7 +148,7 @@ class MusicBot:
             _stream = MediaStream(
                 audio_path=file_path,
                 media_path=file_path,
-                audio_parameters=AudioQuality.MEDIUM if video else AudioQuality.STUDIO,
+                audio_parameters=AudioQuality.HIGH if video else AudioQuality.STUDIO,
                 video_parameters=(
                     VideoQuality.FHD_1080p if video else VideoQuality.SD_360p
                 ),
