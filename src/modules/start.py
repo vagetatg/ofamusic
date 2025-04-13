@@ -58,6 +58,7 @@ async def help_cmd(c: Client, message: types.Message):
 <b>/reload:</b> Reload chat administrator list.
 <b>/authlist:</b> Get the list of authorized users.
 <b>/play:</b> Reply to an audio or provide a song name to play music.
+<b>/vplay:</b> Reply to a video or provide a song name to play video.
 <b>/speed:</b> Change the playback speed of the current song (0.5 - 4.0).
 <b>/skip:</b> Skip the current song.  
 <b>/remove x:</b> Remove x song from the queue.
