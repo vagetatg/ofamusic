@@ -59,12 +59,7 @@ async def _update_msg_with_thumb(c: Client, msg: types.Message, text: str, thumb
     if isinstance(parsed_text, types.Error):
         return await edit_text(msg, text=str(parsed_text), reply_markup=button)
 
-    input_content = types.InputMessagePhoto(
-            photo=types.InputFileRemote(thumb) if thumb.startswith("http")
-            else types.InputFileLocal(thumb),
-            caption=parsed_text,
-    )
-
+    input_content = types.InputMessagePhoto(types.InputFileLocal(thumb), caption=parsed_text)
     reply = await c.editMessageMedia(
             chat_id=msg.chat_id,
             message_id=msg.id,
@@ -72,9 +67,9 @@ async def _update_msg_with_thumb(c: Client, msg: types.Message, text: str, thumb
             reply_markup=button,
     )
 
-    return await edit_text(
-                       msg, text=str(reply), reply_markup=button
-               ) if isinstance(reply, types.Error) else reply
+    return reply if not isinstance(reply, types.Error) else await edit_text(
+            msg, text=str(reply), reply_markup=button
+    )
 
 
 async def _handle_single_track(c: Client, msg: types.Message, chat_id: int,
@@ -110,8 +105,8 @@ async def _handle_single_track(c: Client, msg: types.Message, chat_id: int,
                 f"‣ <b>Duration:</b> {sec_to_min(song.duration)}\n"
                 f"‣ <b>Requested by:</b> {song.user}"
         )
-        thumb = await gen_thumb(song)
-        await _update_msg_with_thumb(c, msg, text, thumb, PlayButton)
+        thumb = await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
+        await _update_msg_with_thumb(c, msg, text, thumb, PlayButton if await db.get_buttons_status(chat_id) else None)
         return None
 
     chat_cache.set_active(chat_id, True)
@@ -122,7 +117,7 @@ async def _handle_single_track(c: Client, msg: types.Message, chat_id: int,
     except CallError as e:
         return await edit_text(msg, text=f"⚠️ {e}")
 
-    thumb = await gen_thumb(song)
+    thumb = await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
     text = (
             f"🎵 <b>Now playing:</b>\n\n"
             f"‣ <b>Title:</b> {song.name}\n"
@@ -130,11 +125,21 @@ async def _handle_single_track(c: Client, msg: types.Message, chat_id: int,
             f"‣ <b>Requested by:</b> {song.user}"
     )
 
-    reply = await _update_msg_with_thumb(c, msg, text, thumb, PlayButton)
+    reply = await _update_msg_with_thumb(c, msg, text, thumb, PlayButton if await db.get_buttons_status(chat_id) else None)
     if isinstance(reply, types.Error):
         LOGGER.warning(f"sending reply: {reply}")
         return None
 
+def build_song_selection_message(user_by: str, tracks: list[MusicTrack]) -> tuple[str, types.ReplyMarkupInlineKeyboard]:
+    text = f"{user_by}, select a song to play:" if user_by else "Select a song to play:"
+    buttons = [
+        [types.InlineKeyboardButton(
+            f"{rec.name[:18]} - {rec.artist}",
+            type=types.InlineKeyboardButtonTypeCallback(f"play_{rec.platform.lower()}_{rec.id}".encode())
+        )]
+        for rec in tracks[:4]
+    ]
+    return text, types.ReplyMarkupInlineKeyboard(buttons)
 
 async def _handle_multiple_tracks(_: Client, msg: types.Message, chat_id: int,
                                   tracks: list[MusicTrack], user_by: str):
@@ -181,16 +186,6 @@ async def _handle_multiple_tracks(_: Client, msg: types.Message, chat_id: int,
 
     await edit_text(msg, text, reply_markup=PlayButton)
 
-def build_song_selection_message(user_by: str, tracks: list[MusicTrack]) -> tuple[str, types.ReplyMarkupInlineKeyboard]:
-    text = f"{user_by}, select a song to play:" if user_by else "Select a song to play:"
-    buttons = [
-        [types.InlineKeyboardButton(
-            f"{rec.name[:18]} - {rec.artist}",
-            type=types.InlineKeyboardButtonTypeCallback(f"play_{rec.platform.lower()}_{rec.id}".encode())
-        )]
-        for rec in tracks[:4]
-    ]
-    return text, types.ReplyMarkupInlineKeyboard(buttons)
 
 async def play_music(c: Client, msg: types.Message, url_data: PlatformTracks,
                      user_by: str, tg_file_path: str = None, is_video: bool = False):
@@ -216,15 +211,8 @@ async def _handle_recommendations(_: Client, msg: types.Message, wrapper: MusicS
     if not recommendations:
         await edit_text(msg, text=text, reply_markup=SupportButton)
         return
-
     text, keyboard = build_song_selection_message("", recommendations.tracks)
-    await edit_text(
-        msg,
-        text=text,
-        reply_markup=keyboard,
-        disable_web_page_preview=True,
-    )
-
+    await edit_text(msg, text=text, reply_markup=keyboard, disable_web_page_preview=True)
 
 
 async def _handle_telegram_file(c: Client, _: types.Message, reply: types.Message,
@@ -276,12 +264,7 @@ async def _handle_text_search(c: Client, msg: types.Message, chat_id: int,
         )
 
     text, keyboard = build_song_selection_message(user_by, search.tracks)
-    await edit_text(
-        msg,
-        text=text,
-        reply_markup=keyboard,
-        disable_web_page_preview=True,
-    )
+    await edit_text(msg, text=text, reply_markup=keyboard, disable_web_page_preview=True)
 
 
 @Client.on_message(filters=Filter.command("play"))
@@ -337,7 +320,6 @@ async def play_audio(c: Client, msg: types.Message) -> None:
     if user_status in {"chatMemberStatusBanned", "chatMemberStatusLeft", "chatMemberStatusRestricted"}:
         if user_status == "chatMemberStatusBanned":
             await unban_ub(c, chat_id, ub.me.id)
-
         join = await join_ub(chat_id, c, ub)
         if isinstance(join, types.Error):
             await edit_text(reply_message, text=f"❌ {str(join)}")

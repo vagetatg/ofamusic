@@ -6,66 +6,55 @@
 from pytdbot import types
 
 import config
-
 PlayButton = types.ReplyMarkupInlineKeyboard(
+    [
         [
-                [
-                        types.InlineKeyboardButton(
-                                text="▶️ Skip", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
-                        ),
-                        types.InlineKeyboardButton(
-                                text="⏹️ End", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
-                        ),
-                ],
-                [
-                        types.InlineKeyboardButton(
-                                text="⏸️ Pause",
-                                type=types.InlineKeyboardButtonTypeCallback(b"play_pause"),
-                        ),
-                        types.InlineKeyboardButton(
-                                text="⏯️ Resume",
-                                type=types.InlineKeyboardButtonTypeCallback(b"play_resume"),
-                        ),
-                ],
-        ]
+            types.InlineKeyboardButton(
+                text="⏭️", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
+            ),
+            types.InlineKeyboardButton(
+                text="⏹️", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
+            ),
+            types.InlineKeyboardButton(
+                text="⏸️", type=types.InlineKeyboardButtonTypeCallback(b"play_pause")
+            ),
+            types.InlineKeyboardButton(
+                text="🔁", type=types.InlineKeyboardButtonTypeCallback(b"play_resume")
+            ),
+        ],
+    ]
 )
 
 PauseButton = types.ReplyMarkupInlineKeyboard(
+    [
         [
-                [
-                        types.InlineKeyboardButton(
-                                text="▶️ Skip", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
-                        ),
-                        types.InlineKeyboardButton(
-                                text="⏹️ End", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
-                        ),
-                ],
-                [
-                        types.InlineKeyboardButton(
-                                text="⏯️ Resume",
-                                type=types.InlineKeyboardButtonTypeCallback(b"play_resume"),
-                        ),
-                ],
-        ]
+            types.InlineKeyboardButton(
+                text="⏭️", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
+            ),
+            types.InlineKeyboardButton(
+                text="⏹️", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
+            ),
+            types.InlineKeyboardButton(
+                text="🔁", type=types.InlineKeyboardButtonTypeCallback(b"play_resume")
+            ),
+        ],
+    ]
 )
 
 ResumeButton = types.ReplyMarkupInlineKeyboard(
+    [
         [
-                [
-                        types.InlineKeyboardButton(
-                                text="▶️ Skip", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
-                        ),
-                        types.InlineKeyboardButton(
-                                text="⏹️ End", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
-                        ),
-                ],
-                [
-                        types.InlineKeyboardButton(
-                                text="⏸️ Pause",
-                                type=types.InlineKeyboardButtonTypeCallback(b"play_pause"),
-                        ),
-                ],
-        ]
+            types.InlineKeyboardButton(
+                text="⏭️", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
+            ),
+            types.InlineKeyboardButton(
+                text="⏹️", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
+            ),
+            types.InlineKeyboardButton(
+                text="⏸️", type=types.InlineKeyboardButtonTypeCallback(b"play_pause")
+            ),
+        ],
+    ]
 )
 
 SupportButton = types.ReplyMarkupInlineKeyboard(
