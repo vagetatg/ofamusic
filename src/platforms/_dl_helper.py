@@ -64,7 +64,7 @@ class YouTubeDownload:
     async def _download_with_api(self) -> Optional[str]:
         """Download audio using the API."""
         dl_url = (
-            f"https://{config.API_URL}/yt?api_key={config.API_KEY}&id={self.video_id}"
+            f"{config.API_URL}/yt?api_key={config.API_KEY}&id={self.video_id}"
         )
         download_path = Path(config.DOWNLOADS_DIR) / f"{self.video_id}.webm"
         dl = await self.client.download_file(dl_url, download_path)
