@@ -26,13 +26,25 @@ async def get_broadcast_targets(target: str) -> tuple[list[int], list[int]]:
 async def send_message(target_id: int, message: types.Message, is_copy: bool) -> bool:
     try:
         async with semaphore:
-            result = await (message.copy(target_id) if is_copy else message.forward(target_id))
+            result = await (
+                message.copy(target_id) if is_copy else message.forward(target_id)
+            )
             if isinstance(result, types.Error):
                 if result.code == 429:
-                    retry_after = int(result.message.split("retry after ")[1]) if "retry after" in result.message else 5
-                    LOGGER.warning(f"Rate limited, retrying in {retry_after} seconds...")
+                    retry_after = (
+                        int(result.message.split("retry after ")[1])
+                        if "retry after" in result.message
+                        else 5
+                    )
+                    LOGGER.warning(
+                        f"Rate limited, retrying in {retry_after} seconds..."
+                    )
                     await asyncio.sleep(retry_after)
-                    await (message.copy(target_id) if is_copy else message.forward(target_id))
+                    await (
+                        message.copy(target_id)
+                        if is_copy
+                        else message.forward(target_id)
+                    )
                 elif result.code == 400:
                     LOGGER.warning(f"Invalid target {target_id}: {result.message}")
                     return False
@@ -43,7 +55,9 @@ async def send_message(target_id: int, message: types.Message, is_copy: bool) ->
         return False
 
 
-async def broadcast_to_targets(targets: list[int], message: types.Message, is_copy: bool) -> tuple[int, int]:
+async def broadcast_to_targets(
+    targets: list[int], message: types.Message, is_copy: bool
+) -> tuple[int, int]:
     sent = failed = 0
     for target_id in targets:
         success = await send_message(target_id, message, is_copy)
@@ -83,8 +97,12 @@ async def broadcast(_: Client, message: types.Message):
         return await message.reply_text("No users or chats to broadcast to.")
 
     # Broadcast to users and chats concurrently
-    user_task = broadcast_to_targets(users, reply, target in "copy") if users else (0, 0)
-    chat_task = broadcast_to_targets(chats, reply, target in "copy") if chats else (0, 0)
+    user_task = (
+        broadcast_to_targets(users, reply, target in "copy") if users else (0, 0)
+    )
+    chat_task = (
+        broadcast_to_targets(chats, reply, target in "copy") if chats else (0, 0)
+    )
 
     user_sent, user_failed = await user_task
     chat_sent, chat_failed = await chat_task

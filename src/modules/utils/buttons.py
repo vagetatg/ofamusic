@@ -6,6 +6,7 @@
 from pytdbot import types
 
 import config
+
 PlayButton = types.ReplyMarkupInlineKeyboard(
     [
         [
@@ -58,18 +59,18 @@ ResumeButton = types.ReplyMarkupInlineKeyboard(
 )
 
 SupportButton = types.ReplyMarkupInlineKeyboard(
+    [
         [
-                [
-                        types.InlineKeyboardButton(
-                                text="❄ Channel",
-                                type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
-                        ),
-                        types.InlineKeyboardButton(
-                                text="✨ Group",
-                                type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
-                        ),
-                ]
+            types.InlineKeyboardButton(
+                text="❄ Channel",
+                type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
+            ),
+            types.InlineKeyboardButton(
+                text="✨ Group",
+                type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
+            ),
         ]
+    ]
 )
 
 
@@ -82,24 +83,24 @@ def add_me_button(username: str) -> types.ReplyMarkupInlineKeyboard:
         types.ReplyMarkupInlineKeyboard: Configured inline keyboard markup
     """
     return types.ReplyMarkupInlineKeyboard(
+        [
             [
-                    [
-                            types.InlineKeyboardButton(
-                                    text="Add me to your group",
-                                    type=types.InlineKeyboardButtonTypeUrl(
-                                            f"https://t.me/{username}?startgroup=true"
-                                    ),
-                            ),
-                    ],
-                    [
-                            types.InlineKeyboardButton(
-                                    text="❄ Channel",
-                                    type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
-                            ),
-                            types.InlineKeyboardButton(
-                                    text="✨ Group",
-                                    type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
-                            ),
-                    ],
-            ]
+                types.InlineKeyboardButton(
+                    text="Add me to your group",
+                    type=types.InlineKeyboardButtonTypeUrl(
+                        f"https://t.me/{username}?startgroup=true"
+                    ),
+                ),
+            ],
+            [
+                types.InlineKeyboardButton(
+                    text="❄ Channel",
+                    type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
+                ),
+                types.InlineKeyboardButton(
+                    text="✨ Group",
+                    type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
+                ),
+            ],
+        ]
     )

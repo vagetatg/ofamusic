@@ -12,6 +12,7 @@ from src import client
 async def create_directories() -> None:
     """Create necessary directories."""
     from src.platforms.save_cookies import save_all_cookies
+
     try:
         await os.makedirs(config.DOWNLOADS_DIR, exist_ok=True)
         await os.makedirs("database/photos", exist_ok=True)

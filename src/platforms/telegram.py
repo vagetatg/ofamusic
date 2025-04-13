@@ -14,10 +14,10 @@ class Telegram:
 
     MAX_FILE_SIZE = 400 * 1024 * 1024  # 400MB
     UNSUPPORTED_TYPES = (
-            types.MessageText,
-            types.MessagePhoto,
-            types.MessageSticker,
-            types.MessageAnimation,
+        types.MessageText,
+        types.MessagePhoto,
+        types.MessageSticker,
+        types.MessageAnimation,
     )
 
     def __init__(self, reply: Optional[types.Message]):
@@ -43,10 +43,16 @@ class Telegram:
         """Extract file size and filename from supported media types."""
         try:
             if isinstance(self.content, types.MessageVideo):
-                return self.content.video.video.size, self.content.video.file_name or "Video.mp4"
+                return (
+                    self.content.video.video.size,
+                    self.content.video.file_name or "Video.mp4",
+                )
 
             elif isinstance(self.content, types.MessageAudio):
-                return self.content.audio.audio.size, self.content.audio.file_name or "Audio.mp3"
+                return (
+                    self.content.audio.audio.size,
+                    self.content.audio.file_name or "Audio.mp3",
+                )
 
             elif isinstance(self.content, types.MessageVoiceNote):
                 return self.content.voice_note.voice.size, "VoiceNote.ogg"
@@ -56,18 +62,28 @@ class Telegram:
 
             elif isinstance(self.content, types.MessageDocument):
                 mime = (self.content.document.mime_type or "").lower()
-                if (mime and mime.startswith("audio/")) or (mime and mime.startswith("video/")):
-                    return self.content.document.document.size, self.content.document.file_name or "Document.mp4"
+                if (mime and mime.startswith("audio/")) or (
+                    mime and mime.startswith("video/")
+                ):
+                    return (
+                        self.content.document.document.size,
+                        self.content.document.file_name or "Document.mp4",
+                    )
         except Exception as e:
             LOGGER.error("Error while extracting file info: %s", e)
 
-        LOGGER.info("Unknown or unsupported content type: %s", type(self.content).__name__)
+        LOGGER.info(
+            "Unknown or unsupported content type: %s", type(self.content).__name__
+        )
         return 0, "UnknownMedia"
 
     async def dl(self) -> tuple[Union["types.Error", "types.LocalFile"], str]:
         """Asynchronously download the media file."""
         if not self.is_valid():
-            return types.Error(message="Invalid or unsupported media file."), "InvalidMedia"
+            return (
+                types.Error(message="Invalid or unsupported media file."),
+                "InvalidMedia",
+            )
 
         _, file_name = self._extract_file_info()
         return await self.msg.download(), file_name

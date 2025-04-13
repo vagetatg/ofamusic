@@ -42,7 +42,9 @@ Your ultimate music companion for Telegram voice chats!
 <b>📢 Note:</b> This bot works best in groups and requires admin permissions to function.
     """
     bot_username = c.me.usernames.editable_username
-    reply = await message.reply_text(text, parse_mode="html", reply_markup=add_me_button(bot_username))
+    reply = await message.reply_text(
+        text, parse_mode="html", reply_markup=add_me_button(bot_username)
+    )
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending start message: {reply.message}")
 
@@ -159,7 +161,7 @@ async def reload_cmd(c: Client, message: types.Message):
         last_used_time = rate_limit_cache[user_id]
         time_remaining = 180 - (datetime.now() - last_used_time).total_seconds()
         reply = await message.reply_text(
-                f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min."
+            f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min."
         )
         if isinstance(reply, types.Error):
             c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
@@ -174,7 +176,7 @@ async def reload_cmd(c: Client, message: types.Message):
     ub = await call.get_client(chat_id)
     if isinstance(ub, (types.Error, NoneType)):
         return await reply.edit_text(
-                "❌ Something went wrong. Assistant not found for this chat."
+            "❌ Something went wrong. Assistant not found for this chat."
         )
 
     chat_invite_cache.pop(chat_id, None)
@@ -192,9 +194,9 @@ async def reload_cmd(c: Client, message: types.Message):
 
     loaded = "✅" if load_admins else "❌"
     text = (
-            f"<b>Assistant Status:</b> {ub_stats}\n"
-            f"<b>Admins Loaded:</b> {loaded}\n"
-            f"<b>» Reloaded by:</b> {await message.mention()}"
+        f"<b>Assistant Status:</b> {ub_stats}\n"
+        f"<b>Admins Loaded:</b> {loaded}\n"
+        f"<b>» Reloaded by:</b> {await message.mention()}"
     )
 
     reply = await reply.edit_text(text)

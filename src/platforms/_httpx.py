@@ -31,10 +31,10 @@ class HttpxClient:
     BACKOFF_FACTOR = 1.0
 
     def __init__(
-            self,
-            timeout: int = DEFAULT_TIMEOUT,
-            download_timeout: int = DEFAULT_DOWNLOAD_TIMEOUT,
-            max_redirects: int = 0
+        self,
+        timeout: int = DEFAULT_TIMEOUT,
+        download_timeout: int = DEFAULT_DOWNLOAD_TIMEOUT,
+        max_redirects: int = 0,
     ) -> None:
         """
         Initialize the HTTP client with configurable settings.
@@ -48,9 +48,9 @@ class HttpxClient:
         self._download_timeout = download_timeout
         self._max_redirects = max_redirects
         self._session = httpx.AsyncClient(
-                timeout=timeout,
-                follow_redirects=max_redirects > 0,
-                max_redirects=max_redirects,
+            timeout=timeout,
+            follow_redirects=max_redirects > 0,
+            max_redirects=max_redirects,
         )
 
     async def close(self) -> None:
@@ -61,10 +61,7 @@ class HttpxClient:
             LOGGER.error(f"Error closing HTTP session: {str(e)}")
 
     async def download_file(
-            self,
-            url: str,
-            file_path: Union[str, Path],
-            overwrite: bool = False
+        self, url: str, file_path: Union[str, Path], overwrite: bool = False
     ) -> DownloadResult:
         """
         Download a file asynchronously with proper error handling.
@@ -85,7 +82,9 @@ class HttpxClient:
             return DownloadResult(success=True, file_path=path)
 
         try:
-            async with self._session.stream("GET", url, timeout=self._download_timeout) as response:
+            async with self._session.stream(
+                "GET", url, timeout=self._download_timeout
+            ) as response:
                 response.raise_for_status()
                 path.parent.mkdir(parents=True, exist_ok=True)
                 async with aiofiles.open(path, "wb") as f:
@@ -110,11 +109,11 @@ class HttpxClient:
             return f"Unexpected error for {url}: {e}"
 
     async def make_request(
-            self,
-            url: str,
-            max_retries: int = MAX_RETRIES,
-            backoff_factor: float = BACKOFF_FACTOR,
-            **kwargs: Any
+        self,
+        url: str,
+        max_retries: int = MAX_RETRIES,
+        backoff_factor: float = BACKOFF_FACTOR,
+        **kwargs: Any,
     ) -> Optional[dict[str, Any]]:
         """
         Make an HTTP GET request with retries and exponential backoff.
@@ -132,17 +131,13 @@ class HttpxClient:
             LOGGER.warning("Empty URL provided")
             return None
 
-        headers = kwargs.pop('headers', {})
+        headers = kwargs.pop("headers", {})
         if config.API_URL and url.startswith(config.API_URL):
             headers["X-API-Key"] = API_KEY
 
         for attempt in range(max_retries):
             try:
-                response = await self._session.get(
-                        url,
-                        headers=headers,
-                        **kwargs
-                )
+                response = await self._session.get(url, headers=headers, **kwargs)
                 response.raise_for_status()
                 return response.json()
 
@@ -176,7 +171,7 @@ class HttpxClient:
                 return None
 
             # Exponential backoff
-            await asyncio.sleep(backoff_factor * (2 ** attempt))
+            await asyncio.sleep(backoff_factor * (2**attempt))
 
         return None
 

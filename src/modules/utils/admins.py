@@ -15,7 +15,7 @@ admin_cache = TTLCache(maxsize=1000, ttl=30 * 60)
 
 class AdminCache:
     def __init__(
-            self, chat_id: int, user_info: list[types.ChatMember], cached: bool = True
+        self, chat_id: int, user_info: list[types.ChatMember], cached: bool = True
     ):
         self.chat_id = chat_id
         self.user_info = user_info
@@ -23,7 +23,7 @@ class AdminCache:
 
 
 async def load_admin_cache(
-        c: Client, chat_id: int, force_reload: bool = False
+    c: Client, chat_id: int, force_reload: bool = False
 ) -> Tuple[bool, AdminCache]:
     """
     Load the admin list from Telegram and cache it, unless already cached.
@@ -33,7 +33,7 @@ async def load_admin_cache(
         return True, admin_cache[chat_id]  # Return cached data if available
 
     admin_list = await c.searchChatMembers(
-            chat_id, filter=types.ChatMembersFilterAdministrators()
+        chat_id, filter=types.ChatMembersFilterAdministrators()
     )
     if isinstance(admin_list, types.Error):
         LOGGER.warning(f"Error loading admin cache for chat_id {chat_id}: {admin_list}")
@@ -44,7 +44,7 @@ async def load_admin_cache(
 
 
 async def get_admin_cache_user(
-        chat_id: int, user_id: int
+    chat_id: int, user_id: int
 ) -> Tuple[bool, Optional[dict]]:
     """
     Check if the user is an admin using cached data.
@@ -54,13 +54,14 @@ async def get_admin_cache_user(
         return False, None  # Cache miss
 
     return next(
-            (
-                    (True, user_info)
-                    for user_info in admin_list.user_info
-                    if user_info["member_id"]["user_id"] == user_id
-            ),
-            (False, None),
+        (
+            (True, user_info)
+            for user_info in admin_list.user_info
+            if user_info["member_id"]["user_id"] == user_id
+        ),
+        (False, None),
     )
+
 
 async def is_owner(chat_id: int, user_id: int) -> bool:
     """
@@ -85,6 +86,6 @@ async def is_admin(chat_id: int, user_id: int) -> bool:
         return True
 
     return is_cached and user_status in [
-            "chatMemberStatusCreator",
-            "chatMemberStatusAdministrator",
+        "chatMemberStatusCreator",
+        "chatMemberStatusAdministrator",
     ]

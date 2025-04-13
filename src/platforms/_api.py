@@ -16,12 +16,12 @@ from .downloader import MusicService
 
 class ApiData(MusicService):
     APPLE_MUSIC_PATTERN = re.compile(
-            r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
-            re.IGNORECASE
+        r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
+        re.IGNORECASE,
     )
     SPOTIFY_PATTERN = re.compile(
-            r"^(https?://)?(open\.spotify\.com/(track|playlist|album|artist)/[a-zA-Z0-9]+)(\?.*)?$",
-            re.IGNORECASE
+        r"^(https?://)?(open\.spotify\.com/(track|playlist|album|artist)/[a-zA-Z0-9]+)(\?.*)?$",
+        re.IGNORECASE,
     )
 
     API_URL = config.API_URL
@@ -39,11 +39,13 @@ class ApiData(MusicService):
         if not url:
             return False
 
-        return any([
+        return any(
+            [
                 self.APPLE_MUSIC_PATTERN.match(url),
                 self.SPOTIFY_PATTERN.match(url),
-                "soundcloud" in url.lower()
-        ])
+                "soundcloud" in url.lower(),
+            ]
+        )
 
     async def _fetch_data(self, endpoint: str) -> Optional[dict]:
         """Helper method to make API requests and handle errors."""
@@ -82,7 +84,9 @@ class ApiData(MusicService):
         data = await self._fetch_data(f"get_track?id={self.query}")
         return TrackInfo(**data) if data else None
 
-    async def download_track(self, track: TrackInfo, video: bool = False) -> Optional[Union[str, Path]]:
+    async def download_track(
+        self, track: TrackInfo, video: bool = False
+    ) -> Optional[Union[str, Path]]:
         """
         Download a track based on its platform.
         Returns the path to the downloaded file if successful.
@@ -99,7 +103,9 @@ class ApiData(MusicService):
             return dl.file_path if dl.success else None
 
         except Exception as e:
-            LOGGER.error(f"Error downloading track {getattr(track, 'tc', 'unknown')}: {str(e)}")
+            LOGGER.error(
+                f"Error downloading track {getattr(track, 'tc', 'unknown')}: {str(e)}"
+            )
             return None
 
     @staticmethod

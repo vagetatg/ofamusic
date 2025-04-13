@@ -27,12 +27,19 @@ class YouTubeData(MusicService):
 
     def __init__(self, query: str = None) -> None:
         self.client = HttpxClient()
-        self.query = None if not query else query.split("&")[0] if query and "&" in query else query
+        self.query = (
+            None
+            if not query
+            else query.split("&")[0] if query and "&" in query else query
+        )
 
     def is_valid(self, url: str) -> bool:
         if not url:
             return False
-        return bool(self.YOUTUBE_VIDEO_PATTERN.match(url) or self.YOUTUBE_PLAYLIST_PATTERN.match(url))
+        return bool(
+            self.YOUTUBE_VIDEO_PATTERN.match(url)
+            or self.YOUTUBE_PLAYLIST_PATTERN.match(url)
+        )
 
     async def _fetch_data(self, url: str) -> Optional[dict[str, Any]]:
         if self.YOUTUBE_PLAYLIST_PATTERN.match(url):
@@ -55,7 +62,11 @@ class YouTubeData(MusicService):
         try:
             search = VideosSearch(self.query, limit=5)
             results = await search.next()
-            data = {"results": [self._format_track(video) for video in results["result"]]} if "result" in results else None
+            data = (
+                {"results": [self._format_track(video) for video in results["result"]]}
+                if "result" in results
+                else None
+            )
         except Exception as e:
             LOGGER.error(f"Error searching: {e}")
             data = None
@@ -87,7 +98,9 @@ class YouTubeData(MusicService):
             LOGGER.error(f"Error fetching track: {e}")
             return None
 
-    async def download_track(self, track: TrackInfo, video: bool = False) -> Optional[str]:
+    async def download_track(
+        self, track: TrackInfo, video: bool = False
+    ) -> Optional[str]:
         try:
             return await YouTubeDownload(track).process(video)
         except Exception as e:
@@ -102,16 +115,18 @@ class YouTubeData(MusicService):
         if data:
             video_id = normalized_url.split("v=")[1]
             return {
-                "results": [{
-                    "id": video_id,
-                    "name": data.get("title"),
-                    "duration": 0,
-                    "artist": data.get("author_name", ""),
-                    "cover": data.get("thumbnail_url", ""),
-                    "year": 0,
-                    "url": f"https://www.youtube.com/watch?v={video_id}",
-                    "platform": "youtube",
-                }]
+                "results": [
+                    {
+                        "id": video_id,
+                        "name": data.get("title"),
+                        "duration": 0,
+                        "artist": data.get("author_name", ""),
+                        "cover": data.get("thumbnail_url", ""),
+                        "year": 0,
+                        "url": f"https://www.youtube.com/watch?v={video_id}",
+                        "platform": "youtube",
+                    }
+                ]
             }
         return await self._fallback_search_youtube(normalized_url)
 
@@ -122,13 +137,26 @@ class YouTubeData(MusicService):
         except Exception as e:
             LOGGER.error(f"Error searching: {e}")
             return None
-        return {"results": [self._format_track(video) for video in results["result"]]} if "result" in results else None
+        return (
+            {"results": [self._format_track(video) for video in results["result"]]}
+            if "result" in results
+            else None
+        )
 
     @staticmethod
     async def _get_playlist(url: str) -> Optional[dict[str, Any]]:
         try:
             playlist = await Playlist.getVideos(url)
-            return {"results": [YouTubeData._format_track(track) for track in playlist.get("videos", [])]} if playlist else None
+            return (
+                {
+                    "results": [
+                        YouTubeData._format_track(track)
+                        for track in playlist.get("videos", [])
+                    ]
+                }
+                if playlist
+                else None
+            )
         except Exception as e:
             LOGGER.error(f"Error getting playlist: {e}")
             return None
@@ -161,20 +189,28 @@ class YouTubeData(MusicService):
             if len(parts) < 2:
                 return None
             path_part = parts[1]
-            video_id = path_part.partition('?')[0].partition('#')[0]
+            video_id = path_part.partition("?")[0].partition("#")[0]
             return f"https://www.youtube.com/watch?v={video_id}"
         return url
 
     @staticmethod
     def _create_platform_tracks(data: dict) -> Optional[PlatformTracks]:
-        return PlatformTracks(tracks=[MusicTrack(**track) for track in data["results"]] if data and "results" in data else [])
+        return PlatformTracks(
+            tracks=(
+                [MusicTrack(**track) for track in data["results"]]
+                if data and "results" in data
+                else []
+            )
+        )
 
     @staticmethod
     def _format_track(track_data: dict[str, Any]) -> dict[str, Any]:
         return {
             "id": track_data.get("id"),
             "name": track_data.get("title"),
-            "duration": YouTubeData._duration_to_seconds(track_data.get("duration", "0:00")),
+            "duration": YouTubeData._duration_to_seconds(
+                track_data.get("duration", "0:00")
+            ),
             "artist": track_data.get("channel", {}).get("name", "Unknown"),
             "cover": track_data.get("thumbnails", [{}])[-1].get("url", ""),
             "year": 0,

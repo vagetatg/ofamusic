@@ -74,9 +74,7 @@ class ChatCacher:
 
     def get_active_chats(self) -> list[int]:
         return [
-                chat_id
-                for chat_id, data in self.chat_cache.items()
-                if data["is_active"]
+            chat_id for chat_id, data in self.chat_cache.items() if data["is_active"]
         ]
 
 

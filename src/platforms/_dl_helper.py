@@ -63,7 +63,9 @@ class YouTubeDownload:
 
     async def _download_with_api(self) -> Optional[str]:
         """Download audio using the API."""
-        dl_url = f"https://{config.API_URL}/yt?api_key={config.API_KEY}&id={self.video_id}"
+        dl_url = (
+            f"https://{config.API_URL}/yt?api_key={config.API_KEY}&id={self.video_id}"
+        )
         download_path = Path(config.DOWNLOADS_DIR) / f"{self.video_id}.webm"
         dl = await self.client.download_file(dl_url, download_path)
         return dl.file_path if dl.success else None
@@ -71,12 +73,16 @@ class YouTubeDownload:
     async def _download_with_yt_dlp(self, video: bool) -> Optional[str]:
         """Download audio/video using yt-dlp."""
         ydl_opts = {
-                "format": "(bestvideo[height<=?720][width<=?1280][ext=mp4])+(bestaudio[ext=m4a])" if video else "bestaudio/best",
-                "outtmpl": f"{config.DOWNLOADS_DIR}/%(id)s.%(ext)s",
-                "geo_bypass": True,
-                "nocheckcertificate": True,
-                "quiet": True,
-                "no_warnings": True,
+            "format": (
+                "(bestvideo[height<=?720][width<=?1280][ext=mp4])+(bestaudio[ext=m4a])"
+                if video
+                else "bestaudio/best"
+            ),
+            "outtmpl": f"{config.DOWNLOADS_DIR}/%(id)s.%(ext)s",
+            "geo_bypass": True,
+            "nocheckcertificate": True,
+            "quiet": True,
+            "no_warnings": True,
         }
 
         if PROXY_URL:
@@ -86,6 +92,7 @@ class YouTubeDownload:
                 ydl_opts["cookiefile"] = cookie_file
 
         try:
+
             def run_yt_dlp():
                 with YoutubeDL(ydl_opts) as ydl:
                     song_info = ydl.extract_info(self.video_url, download=False)
@@ -161,12 +168,12 @@ class SpotifyDownload:
             iv = bytes.fromhex("72e067fbddcbcf77ebe8bc643f630d93")
             iv_int = int.from_bytes(iv, "big")
             cipher = AES.new(
-                    key, AES.MODE_CTR, counter=Counter.new(128, initial_value=iv_int)
+                key, AES.MODE_CTR, counter=Counter.new(128, initial_value=iv_int)
             )
 
             chunk_size = 8192  # 8KB chunks
             async with aiofiles.open(self.encrypted_file, "rb") as fin, aiofiles.open(
-                    self.decrypted_file, "wb"
+                self.decrypted_file, "wb"
             ) as fout:
                 while chunk := await fin.read(chunk_size):
                     decrypted_chunk = cipher.decrypt(chunk)
@@ -179,14 +186,14 @@ class SpotifyDownload:
         """Fix the decrypted audio file using FFmpeg."""
         try:
             process = await asyncio.create_subprocess_exec(
-                    "ffmpeg",
-                    "-i",
-                    self.decrypted_file,
-                    "-c",
-                    "copy",
-                    self.output_file,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
+                "ffmpeg",
+                "-i",
+                self.decrypted_file,
+                "-c",
+                "copy",
+                self.output_file,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
             stdout, stderr = await process.communicate()
             if process.returncode != 0:
