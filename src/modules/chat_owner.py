@@ -15,7 +15,7 @@ async def _validate_auth_command(msg: types.Message) -> Optional[types.Message]:
         return None
 
     if not await is_owner(msg.chat_id, msg.from_id):
-        await msg.reply_text("Only group owners can use this command.")
+        await msg.reply_text("Only group owner can use this command.")
         return None
 
     if not msg.reply_to_message_id:
@@ -101,8 +101,8 @@ async def _handle_toggle_command(
         await msg.reply_text("This command can only be used in supergroups.")
         return
 
-    if not await is_admin(chat_id, msg.from_id):
-        await msg.reply_text("Only admins can use this command.")
+    if not await is_owner(chat_id, msg.from_id):
+        await msg.reply_text("Only group owner can use this command.")
         return
 
     current = await get_func(chat_id)
