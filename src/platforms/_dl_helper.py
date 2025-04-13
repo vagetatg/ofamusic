@@ -7,6 +7,7 @@ import asyncio
 import os
 import random
 import subprocess
+from pathlib import Path
 from typing import Optional
 
 import aiofiles
@@ -29,6 +30,7 @@ class YouTubeDownload:
         self.track = track
         self.video_id = track.tc
         self.video_url = f"https://www.youtube.com/watch?v={self.video_id}"
+        self.client = HttpxClient()
 
     @staticmethod
     async def get_cookie_file():
@@ -53,7 +55,17 @@ class YouTubeDownload:
 
     async def process(self) -> Optional[str]:
         """Download the audio from YouTube and return the path to the downloaded file."""
+        if config.API_URL and config.API_KEY:
+            if file_path := await self._download_with_api():
+                return file_path
         return await self._download_with_yt_dlp()
+
+    async def _download_with_api(self) -> Optional[str]:
+        """Download audio using the API."""
+        dl_url = f"https://{config.API_URL}/yt?api_key={config.API_KEY}&id={self.video_id}"
+        download_path = Path(config.DOWNLOADS_DIR) / f"{self.video_id}.webm"
+        dl = await self.client.download_file(dl_url, download_path)
+        return dl.file_path if dl.success else None
 
     async def _download_with_yt_dlp(self) -> Optional[str]:
         """Download audio using yt-dlp."""
