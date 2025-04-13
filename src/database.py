@@ -10,6 +10,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import config
 from src.logger import LOGGER
 
+
 class Database:
     def __init__(self):
         self.mongo_client = AsyncIOMotorClient(config.MONGO_URI)
@@ -18,12 +19,10 @@ class Database:
         self.users_db = _db["users"]
         self.bot_db = _db["bot"]
 
-        self.play_type_cache = TTLCache(maxsize=1000, ttl=600)
-        self.assistant_cache = TTLCache(maxsize=1000, ttl=600)
+        self.chat_cache = TTLCache(maxsize=1000, ttl=600)
         self.bot_cache = TTLCache(maxsize=1000, ttl=600)
 
     async def ping(self) -> None:
-        """Ping the MongoDB server to check the connection."""
         try:
             await self.mongo_client.admin.command("ping")
             LOGGER.info("Database connection completed.")
@@ -32,9 +31,12 @@ class Database:
             raise
 
     async def get_chat(self, chat_id: int) -> Optional[dict]:
-        """Retrieve a chat document by chat_id."""
+        if chat_id in self.chat_cache:
+            return self.chat_cache[chat_id]
         try:
-            return await self.chat_db.find_one({"_id": chat_id})
+            if chat :=  await self.chat_db.find_one({"_id": chat_id}):
+                self.chat_cache[chat_id] = chat
+            return chat
         except Exception as e:
             LOGGER.warning(f"Error getting chat: {e}")
             return None
@@ -44,98 +46,93 @@ class Database:
             LOGGER.info(f"Added chat: {chat_id}")
             await self.chat_db.insert_one({"_id": chat_id})
 
-    async def set_play_type(self, chat_id: int, play_type: int) -> None:
-        """Set the play type for a chat and cache it."""
-        await self.chat_db.update_one(
-                {"_id": chat_id}, {"$set": {"play_type": play_type}}, upsert=True
-        )
-        self.play_type_cache[chat_id] = play_type
+    async def _update_chat_field(self, chat_id: int, key: str, value) -> None:
+        await self.chat_db.update_one({"_id": chat_id}, {"$set": {key: value}}, upsert=True)
+        cached = self.chat_cache.get(chat_id, {})
+        cached[key] = value
+        self.chat_cache[chat_id] = cached
 
     async def get_play_type(self, chat_id: int) -> int:
-        """Retrieve the play type for a chat, using cache if available."""
-        if chat_id in self.play_type_cache:
-            return self.play_type_cache[chat_id]
-
         chat = await self.get_chat(chat_id)
-        play_type = chat.get("play_type", 0) if chat else 0
-        self.play_type_cache[chat_id] = play_type
-        return play_type
+        return chat.get("play_type", 0) if chat else 0
 
-    async def set_assistant(self, chat_id: int, assistant: str) -> None:
-        """Set the assistant for a chat and cache it."""
-        await self.chat_db.update_one(
-                {"_id": chat_id}, {"$set": {"assistant": assistant}}, upsert=True
-        )
-        self.assistant_cache[chat_id] = assistant
+    async def set_play_type(self, chat_id: int, play_type: int) -> None:
+        await self._update_chat_field(chat_id, "play_type", play_type)
 
     async def get_assistant(self, chat_id: int) -> Optional[str]:
-        """Retrieve the assistant for a chat, using cache if available."""
-        if chat_id in self.assistant_cache:
-            return self.assistant_cache[chat_id]
-
         chat = await self.get_chat(chat_id)
-        assistant = chat.get("assistant", None) if chat else None
-        self.assistant_cache[chat_id] = assistant
-        return assistant
+        return chat.get("assistant") if chat else None
+
+    async def set_assistant(self, chat_id: int, assistant: str) -> None:
+        await self._update_chat_field(chat_id, "assistant", assistant)
 
     async def remove_assistant(self, chat_id: int) -> None:
-        """Remove the assistant for a chat and clear it from the cache."""
-        await self.chat_db.update_one({"_id": chat_id}, {"$set": {"assistant": None}})
-        self.assistant_cache.pop(chat_id, None)
+        await self._update_chat_field(chat_id, "assistant", None)
 
     async def add_auth_user(self, chat_id: int, auth_user: int) -> None:
-        """Add an authorized user to a chat."""
         await self.chat_db.update_one(
-                {"_id": chat_id}, {"$addToSet": {"auth_users": auth_user}}, upsert=True
+            {"_id": chat_id}, {"$addToSet": {"auth_users": auth_user}}, upsert=True
         )
+        chat = await self.get_chat(chat_id)
+        auth_users = chat.get("auth_users", [])
+        if auth_user not in auth_users:
+            auth_users.append(auth_user)
+        self.chat_cache[chat_id]["auth_users"] = auth_users
 
     async def remove_auth_user(self, chat_id: int, auth_user: int) -> None:
-        """Remove an authorized user from a chat."""
         await self.chat_db.update_one(
-                {"_id": chat_id},
-                {"$pull": {"auth_users": auth_user}},
+            {"_id": chat_id}, {"$pull": {"auth_users": auth_user}}
         )
+        chat = await self.get_chat(chat_id)
+        auth_users = chat.get("auth_users", [])
+        if auth_user in auth_users:
+            auth_users.remove(auth_user)
+        self.chat_cache[chat_id]["auth_users"] = auth_users
+
+    async def reset_auth_users(self, chat_id: int) -> None:
+        await self._update_chat_field(chat_id, "auth_users", [])
 
     async def get_auth_users(self, chat_id: int) -> list[int]:
-        """Retrieve the list of authorized users for a chat."""
         chat = await self.get_chat(chat_id)
         return chat.get("auth_users", []) if chat else []
 
-    async def remove_chat(self, chat_id: int) -> None:
-        """Remove a chat and clear its cache."""
-        await self.chat_db.delete_one({"_id": chat_id})
-        self.play_type_cache.pop(chat_id, None)
-        self.assistant_cache.pop(chat_id, None)
-
-    async def reset_auth_users(self, chat_id: int) -> None:
-        """Reset the list of authorized users for a chat."""
-        await self.chat_db.update_one({"_id": chat_id}, {"$set": {"auth_users": []}})
-
     async def is_auth_user(self, chat_id: int, user_id: int) -> bool:
-        """Check if a user is authorized in a chat."""
         return user_id in await self.get_auth_users(chat_id)
 
+    async def set_buttons_status(self, chat_id: int, status: bool) -> None:
+        await self._update_chat_field(chat_id, "buttons", status)
+
+    async def get_buttons_status(self, chat_id: int) -> bool:
+        chat = await self.get_chat(chat_id)
+        return chat.get("buttons", True) if chat else True
+
+    async def set_thumb_status(self, chat_id: int, status: bool) -> None:
+        await self._update_chat_field(chat_id, "thumb", status)
+
+    async def get_thumb_status(self, chat_id: int) -> bool:
+        chat = await self.get_chat(chat_id)
+        return chat.get("thumb", True) if chat else True
+
+    async def remove_chat(self, chat_id: int) -> None:
+        await self.chat_db.delete_one({"_id": chat_id})
+        self.chat_cache.pop(chat_id, None)
+
     async def add_user(self, user_id: int) -> None:
-        """Add a user to the users collection if they don't already exist."""
         if await self.is_user_exist(user_id):
             return
         LOGGER.info(f"Added user: {user_id}")
         await self.users_db.insert_one({"_id": user_id})
 
     async def remove_user(self, user_id: int) -> None:
-        """Remove a user from the user's collection."""
         await self.users_db.delete_one({"_id": user_id})
 
     async def is_user_exist(self, user_id: int) -> bool:
-        """Check if a user exists in the user's collection."""
         return await self.users_db.find_one({"_id": user_id}) is not None
 
     async def get_all_users(self) -> list[int]:
-        """Retrieve all user IDs from the users collection."""
         return [user["_id"] async for user in self.users_db.find()]
 
     async def get_all_chats(self) -> list[int]:
-        """Retrieve all chat IDs from the chats collection."""
         return [chat["_id"] async for chat in self.chat_db.find()]
 
     async def get_logger_status(self) -> bool:
@@ -153,9 +150,7 @@ class Database:
         )
         self.bot_cache["logger"] = status
 
-
     async def close(self) -> None:
-        """Close the MongoDB connection."""
         self.mongo_client.close()
         LOGGER.info("Database connection closed.")
 

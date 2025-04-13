@@ -121,12 +121,13 @@ class MusicBot:
 
             @call_instance.on_update()
             async def general_handler(_, update: Update):
+
                 try:
                     LOGGER.debug(f"Received update: {update}")
                     if isinstance(update, stream.StreamEnded):
                         return await _handle_stream_ended(update)
                     if isinstance(update, UpdatedGroupCallParticipant):
-                        return
+                        return None
                     if isinstance(update, ChatUpdate) and (update.status.KICKED or update.status.LEFT_GROUP):
                         return await _handle_chat_update(update)
                 except Exception as e:
@@ -219,28 +220,26 @@ class MusicBot:
                     f"‣ <b>Requested by:</b> {song.user}"
             )
 
-            thumbnail = await gen_thumb(song)
+            thumbnail = await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
             parse = await self.bot.parseTextEntities(text, types.TextParseModeHTML())
             if isinstance(parse, types.Error):
                 LOGGER.error(f"Parse error: {parse}")
                 parse = parse.message
-
-            input_content = types.InputMessagePhoto(
-                    photo=(
-                            types.InputFileRemote(thumbnail)
-                            if thumbnail.startswith("http")
-                            else types.InputFileLocal(thumbnail)
-                    ),
-                    caption=parse,
-            )
-
-            reply = await self.bot.editMessageMedia(
+            if thumbnail:
+                input_content = types.InputMessagePhoto(photo=types.InputFileLocal(thumbnail), caption=parse)
+                reply = await self.bot.editMessageMedia(
                     chat_id=chat_id,
                     message_id=reply.id,
                     input_message_content=input_content,
-                    reply_markup=PlayButton,
-            )
-
+                    reply_markup=PlayButton if await db.get_buttons_status(chat_id) else None,
+                )
+            else:
+                reply = await self.bot.editMessageText(
+                    chat_id=chat_id,
+                    message_id=reply.id,
+                    input_message_content=types.InputMessageText(text=parse, link_preview_options=types.LinkPreviewOptions(is_disabled=True)),
+                    reply_markup=PlayButton if await db.get_buttons_status(chat_id) else None,
+                )
             if isinstance(reply, types.Error):
                 LOGGER.warning(f"Error editing message: {reply}")
                 return

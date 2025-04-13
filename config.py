@@ -1,8 +1,7 @@
 #  Copyright (c) 2025 AshokShau
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
-#
-#
+
 
 from os import getenv
 from typing import Optional
@@ -64,9 +63,6 @@ DEFAULT_SERVICE = getenv("DEFAULT_SERVICE", "youtube").lower()
 
 "Directory for downloads and TDLib db"
 DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")
-
-"if get_thumb fails, use this image"
-IMG_URL = "https://te.legra.ph/file/6298d377ad3eb46711644.jpg"
 
 "Support group and channel"
 SUPPORT_GROUP = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
