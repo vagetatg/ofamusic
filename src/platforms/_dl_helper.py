@@ -53,12 +53,13 @@ class YouTubeDownload:
             LOGGER.warning(f"Error accessing cookie directory: {e}")
             return None
 
-    async def process(self) -> Optional[str]:
-        """Download the audio from YouTube and return the path to the downloaded file."""
-        if config.API_URL and config.API_KEY:
+    async def process(self, video: bool = False) -> Optional[str]:
+        """Download the audio/video from YouTube and return the path to the downloaded file."""
+        if config.API_URL and config.API_KEY and not video:
             if file_path := await self._download_with_api():
                 return file_path
-        return await self._download_with_yt_dlp()
+
+        return await self._download_with_yt_dlp(video)
 
     async def _download_with_api(self) -> Optional[str]:
         """Download audio using the API."""
@@ -67,10 +68,10 @@ class YouTubeDownload:
         dl = await self.client.download_file(dl_url, download_path)
         return dl.file_path if dl.success else None
 
-    async def _download_with_yt_dlp(self) -> Optional[str]:
-        """Download audio using yt-dlp."""
+    async def _download_with_yt_dlp(self, video: bool) -> Optional[str]:
+        """Download audio/video using yt-dlp."""
         ydl_opts = {
-                "format": "bestaudio/best",
+                "format": "(bestvideo[height<=?720][width<=?1280][ext=mp4])+(bestaudio[ext=m4a])" if video else "bestaudio/best",
                 "outtmpl": f"{config.DOWNLOADS_DIR}/%(id)s.%(ext)s",
                 "geo_bypass": True,
                 "nocheckcertificate": True,
@@ -87,8 +88,10 @@ class YouTubeDownload:
         try:
             def run_yt_dlp():
                 with YoutubeDL(ydl_opts) as ydl:
-                    song_info = ydl.extract_info(self.video_url, download=True)
+                    song_info = ydl.extract_info(self.video_url, download=False)
                     file_name = ydl.prepare_filename(song_info)
+                    if not os.path.exists(file_name):
+                        ydl.download([self.video_url])
                     return file_name, song_info
 
             filename, info = await asyncio.to_thread(run_yt_dlp)

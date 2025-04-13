@@ -82,7 +82,7 @@ class ApiData(MusicService):
         data = await self._fetch_data(f"get_track?id={self.query}")
         return TrackInfo(**data) if data else None
 
-    async def download_track(self, track: TrackInfo) -> Optional[Union[str, Path]]:
+    async def download_track(self, track: TrackInfo, video: bool = False) -> Optional[Union[str, Path]]:
         """
         Download a track based on its platform.
         Returns the path to the downloaded file if successful.

@@ -121,7 +121,6 @@ class MusicBot:
 
             @call_instance.on_update()
             async def general_handler(_, update: Update):
-
                 try:
                     LOGGER.debug(f"Received update: {update}")
                     if isinstance(update, stream.StreamEnded):
@@ -259,7 +258,7 @@ class MusicBot:
 
         if handler := platform_handlers.get(song.platform.lower()):
             if track := await handler.get_track():
-                return await handler.download_track(track)
+                return await handler.download_track(track, song.is_video)
 
         LOGGER.warning(f"Unknown platform: {song.platform} for track: {song.track_id}")
         return None

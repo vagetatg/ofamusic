@@ -87,9 +87,9 @@ class YouTubeData(MusicService):
             LOGGER.error(f"Error fetching track: {e}")
             return None
 
-    async def download_track(self, track: TrackInfo) -> Optional[str]:
+    async def download_track(self, track: TrackInfo, video: bool = False) -> Optional[str]:
         try:
-            return await YouTubeDownload(track).process()
+            return await YouTubeDownload(track).process(video)
         except Exception as e:
             LOGGER.error(f"Error downloading track: {e}")
             return None

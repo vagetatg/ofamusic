@@ -18,6 +18,7 @@ class CachedTrack(BaseModel):
     thumbnail: str
     track_id: str
     duration: int = 0
+    is_video: bool
     platform: str
 
 
