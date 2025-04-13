@@ -43,13 +43,13 @@ async def broadcast(_: Client, message: types.Message):
         for target_id in targets:
             try:
                 async with semaphore:
-                    fwd = await reply.copy(target_id) if target in "copy" else await reply.forward(target_id)
+                    fwd = await (reply.copy(target_id) if target in "copy" else reply.forward(target_id))
                     if isinstance(fwd, types.Error):
                         if fwd.code == 429:
                             retry_after = int(fwd.message.split("retry after ")[1]) if "retry after" in fwd.message else 0
                             LOGGER.warning(f"Rate limited, retrying in {retry_after} seconds...")
                             await asyncio.sleep(retry_after)
-                            await reply.forward(target_id)
+                            await (reply.copy(target_id) if target in "copy" else reply.forward(target_id))
                         elif fwd.code == 400:
                             # TODO: remove from db
                             failed += 1
