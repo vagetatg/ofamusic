@@ -434,6 +434,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         if isinstance(get_msg, types.Error):
             LOGGER.warning(f"Error getting message: {get_msg.message}")
             return
+
         user = await c.getUser(user_id)
         user_name = user.first_name
 
@@ -500,7 +501,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 await call.pause(chat_id)
                 await send_response(
                         f"<b>➻ Stream paused:</b>\n└ Requested by: {user_name}",
-                        markup=PauseButton,
+                        markup=PauseButton if await db.get_buttons_status(chat_id) else None,
                 )
             except Exception as e:
                 LOGGER.error(f"Error pausing stream: {e}")
@@ -514,7 +515,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 await call.resume(chat_id)
                 await send_response(
                         f"<b>➻ Stream resumed:</b>\n└ Requested by: {user_name}",
-                        markup=ResumeButton,
+                        markup=ResumeButton if await db.get_buttons_status(chat_id) else None,
                 )
             except Exception as e:
                 LOGGER.error(f"Error resuming stream: {e}")
@@ -522,44 +523,15 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                         "⚠️ Error resuming the stream. Please try again.",
                         alert=True
                 )
-
-        elif data == "play_timer":
-            curr_song = chat_cache.get_current_song(chat_id)
-            if not curr_song:
-                await message.answer(
-                        "🚫 No song is currently playing in this chat!",
-                        show_alert=True
-                )
-                return
-
-            played_time = await call.played_time(chat_id)
-            remaining_time = curr_song.duration - played_time
-
-            text = (
-                    f"🎵 Now Playing: {curr_song.name} - {curr_song.artist}\n"
-                    f"\n⏳ Played: {sec_to_min(played_time)} min"
-                    f"\n⌛ Remaining: {sec_to_min(remaining_time)} min"
-            )
-            await message.answer(text, show_alert=True)
-
         else:  # Handle play song requests
             try:
                 _, platform, song_id = data.split("_", 2)
-                await message.answer(
-                        f"Playing song for {user_name}",
-                        show_alert=True
-                )
+                await message.answer(text=f"Playing song for {user_name}", show_alert=True)
 
-                reply_message = await message.edit_message_text(
-                        f"🎶 Searching ...\nRequested by: {user_name} 🥀"
-                )
-
+                reply_message = await message.edit_message_text(f"🎶 Searching ...\nRequested by: {user_name} 🥀")
                 url = _get_platform_url(platform, song_id)
                 if not url:
-                    await edit_text(
-                            reply_message,
-                            text=f"⚠️ Error: Invalid Platform {platform}"
-                    )
+                    await edit_text(reply_message, text=f"⚠️ Error: Invalid Platform {platform}")
                     return
 
                 if song := await MusicServiceWrapper(url).get_info():

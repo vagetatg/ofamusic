@@ -160,9 +160,8 @@ Say goodbye to restrictions with our **Premium Music API** – your ultimate sol
 - **DEFAULT_SERVICE** – Default search platform (Options: `youtube`, `spotify`, `jiosaavn`)  
 - **DOWNLOADS_DIR** – Directory for downloads and TDLib database  
 
-### 🖼️ Thumbnails & Cookies
-
-- **IMG_URL** – Fallback thumbnail (if no song thumbnail is found)  
+### 🍪 Cookies
+ 
 - **COOKIES_URL** – URLs for downloading cookies (More info [here](https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md))  
 
 </details>

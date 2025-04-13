@@ -76,6 +76,8 @@ async def help_cmd(c: Client, message: types.Message):
 <b>Chat Owner Commands:</b>
 <b>/auth:</b> Grant auth permissions to a user.
 <b>/unauth:</b> Revoke auth permissions from a user.
+<b>/buttons:</b> Toggle the buttons for the bot.
+<b>/thumb:</b> Toggle the thumbnail for the bot.
 
 <b>Bot Owner Commands:</b>
 <b>/stats:</b> Get the statistics of the bot.
