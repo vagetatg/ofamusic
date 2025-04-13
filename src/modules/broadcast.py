@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import asyncio
 
 from config import OWNER_ID
@@ -13,9 +12,47 @@ from src.modules.utils.play_helpers import extract_argument, del_msg
 
 from pytdbot import types, Client
 
-REQUEST = 5
-semaphore = asyncio.Semaphore(REQUEST)
+REQUEST_LIMIT = 5
+semaphore = asyncio.Semaphore(REQUEST_LIMIT)
 VALID_ARGS = {"all", "users", "chats", "copy"}
+
+
+async def get_broadcast_targets(target: str) -> tuple[list[int], list[int]]:
+    users = await db.get_all_users() if target in {"all", "users"} else []
+    chats = await db.get_all_chats() if target in {"all", "chats"} else []
+    return users, chats
+
+
+async def send_message(target_id: int, message: types.Message, is_copy: bool) -> bool:
+    try:
+        async with semaphore:
+            result = await (message.copy(target_id) if is_copy else message.forward(target_id))
+            if isinstance(result, types.Error):
+                if result.code == 429:
+                    retry_after = int(result.message.split("retry after ")[1]) if "retry after" in result.message else 5
+                    LOGGER.warning(f"Rate limited, retrying in {retry_after} seconds...")
+                    await asyncio.sleep(retry_after)
+                    await (message.copy(target_id) if is_copy else message.forward(target_id))
+                elif result.code == 400:
+                    LOGGER.warning(f"Invalid target {target_id}: {result.message}")
+                    return False
+                return False
+        return True
+    except Exception as e:
+        LOGGER.error(f"Failed to send to {target_id}: {str(e)}")
+        return False
+
+
+async def broadcast_to_targets(targets: list[int], message: types.Message, is_copy: bool) -> tuple[int, int]:
+    sent = failed = 0
+    for target_id in targets:
+        success = await send_message(target_id, message, is_copy)
+        if success:
+            sent += 1
+        else:
+            failed += 1
+    return sent, failed
+
 
 @Client.on_message(filters=Filter.command("broadcast"))
 async def broadcast(_: Client, message: types.Message):
@@ -25,55 +62,41 @@ async def broadcast(_: Client, message: types.Message):
 
     args = extract_argument(message.text)
     if not args or args.lower() not in VALID_ARGS:
-        return await message.reply_text("Usage: /broadcast [all|users|chats|copy]")
+        return await message.reply_text(
+            "Usage: /broadcast [all|users|chats|copy]\n"
+            "• all: Send to all users and chats\n"
+            "• users: Send to users only\n"
+            "• chats: Send to chats only\n"
+            "• copy: Send as copy (no forward info)"
+        )
 
     target = args.lower()
     reply = await message.getRepliedMessage() if message.reply_to_message_id else None
     if not reply or isinstance(reply, types.Error):
-        return await message.reply_text(f"Please reply to the message you want to broadcast.\n\n{str(reply if isinstance(reply, types.Error) else '')}")
+        error_msg = str(reply) if isinstance(reply, types.Error) else ""
+        return await message.reply_text(
+            f"Please reply to the message you want to broadcast.\n\n{error_msg}"
+        )
 
-    all_users: list[int] = await db.get_all_users() if target in ("all", "users") else []
-    all_chats: list[int] = await db.get_all_chats() if target in ("all", "chats") else []
-
-    if not all_users and not all_chats:
+    users, chats = await get_broadcast_targets(target)
+    if not users and not chats:
         return await message.reply_text("No users or chats to broadcast to.")
 
-    async def broadcast_to(targets: list[int]):
-        sent = failed = 0
-        for target_id in targets:
-            try:
-                async with semaphore:
-                    fwd = await (reply.copy(target_id) if target in "copy" else reply.forward(target_id))
-                    if isinstance(fwd, types.Error):
-                        if fwd.code == 429:
-                            retry_after = int(fwd.message.split("retry after ")[1]) if "retry after" in fwd.message else 0
-                            LOGGER.warning(f"Rate limited, retrying in {retry_after} seconds...")
-                            await asyncio.sleep(retry_after)
-                            await (reply.copy(target_id) if target in "copy" else reply.forward(target_id))
-                        elif fwd.code == 400:
-                            # TODO: remove from db
-                            failed += 1
-                            continue
-                        failed += 1
-                        continue
-                sent += 1
-            except Exception as e:
-                LOGGER.error(f"Failed to send to {target_id}: {e}")
-                failed += 1
-        return sent, failed
+    # Broadcast to users and chats concurrently
+    user_task = broadcast_to_targets(users, reply, target in "copy") if users else (0, 0)
+    chat_task = broadcast_to_targets(chats, reply, target in "copy") if chats else (0, 0)
 
-    user_sent = user_failed = chat_sent = chat_failed = 0
-    if all_users:
-        user_sent, user_failed = await broadcast_to(all_users)
-    if all_chats:
-        chat_sent, chat_failed = await broadcast_to(all_chats)
+    user_sent, user_failed = await user_task
+    chat_sent, chat_failed = await chat_task
 
-    await message.reply_text(
+    summary = (
         f"✅ <b>Broadcast Summary</b>\n"
-        f"- Sent: {user_sent + chat_sent}\n"
-        f"  • Users: {user_sent}\n"
-        f"  • Chats: {chat_sent}\n"
-        f"- Failed: {user_failed + chat_failed}\n"
-        f"  • Users: {user_failed}\n"
-        f"  • Chats: {chat_failed}"
+        f"• Total Sent: {user_sent + chat_sent}\n"
+        f"  - Users: {user_sent}\n"
+        f"  - Chats: {chat_sent}\n"
+        f"• Total Failed: {user_failed + chat_failed}\n"
+        f"  - Users: {user_failed}\n"
+        f"  - Chats: {chat_failed}"
     )
+
+    await message.reply_text(summary)
