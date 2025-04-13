@@ -67,9 +67,9 @@ async def _update_msg_with_thumb(c: Client, msg: types.Message, text: str, thumb
             reply_markup=button,
     )
 
-    return reply if not isinstance(reply, types.Error) else await edit_text(
-            msg, text=str(reply), reply_markup=button
-    )
+    return await edit_text(
+                       msg, text=str(reply), reply_markup=button
+               ) if isinstance(reply, types.Error) else reply
 
 
 async def _handle_single_track(c: Client, msg: types.Message, chat_id: int,
