@@ -14,7 +14,7 @@ from pytdbot import types, Client
 
 REQUEST_LIMIT = 5
 semaphore = asyncio.Semaphore(REQUEST_LIMIT)
-VALID_ARGS = {"all", "users", "chats", "copy"}
+VALID_TARGETS = {"all", "users", "chats"}
 
 
 async def get_broadcast_targets(target: str) -> tuple[list[int], list[int]]:
@@ -75,16 +75,24 @@ async def broadcast(_: Client, message: types.Message):
         return
 
     args = extract_argument(message.text)
-    if not args or args.lower() not in VALID_ARGS:
+    if not args:
         return await message.reply_text(
-            "Usage: /broadcast [all|users|chats|copy]\n"
+            "Usage: /broadcast [all|users|chats] [copy]\n"
             "• all: Send to all users and chats\n"
             "• users: Send to users only\n"
             "• chats: Send to chats only\n"
             "• copy: Send as copy (no forward info)"
         )
 
-    target = args.lower()
+    parts = args.lower().split()
+    is_copy = "copy" in parts
+
+    target = next((p for p in parts if p in VALID_TARGETS), None)
+    if not target:
+        return await message.reply_text(
+            "Please specify one of the following targets: all, users, chats."
+        )
+
     reply = await message.getRepliedMessage() if message.reply_to_message_id else None
     if not reply or isinstance(reply, types.Error):
         error_msg = str(reply) if isinstance(reply, types.Error) else ""
@@ -96,12 +104,11 @@ async def broadcast(_: Client, message: types.Message):
     if not users and not chats:
         return await message.reply_text("No users or chats to broadcast to.")
 
-    # Broadcast to users and chats concurrently
     user_task = (
-        broadcast_to_targets(users, reply, "copy" in target) if users else (0, 0)
+        broadcast_to_targets(users, reply, is_copy) if users else (0, 0)
     )
     chat_task = (
-        broadcast_to_targets(chats, reply, "copy" in target) if chats else (0, 0)
+        broadcast_to_targets(chats, reply, is_copy) if chats else (0, 0)
     )
 
     user_sent, user_failed = await user_task
