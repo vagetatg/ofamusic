@@ -1,12 +1,16 @@
-from typing import Tuple, Union, Optional, Dict
+#  Copyright (c) 2025 AshokShau
+#  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
+#  Part of the TgMusicBot project. All rights reserved where applicable.
+
+from typing import Union, Optional
+
 from cachetools import TTLCache
 from pytdbot import types
-from src.logger import LOGGER
 
+from src.logger import LOGGER
 
 class Telegram:
     """Helper class to validate and process playable Telegram media messages."""
-
     MAX_FILE_SIZE = 400 * 1024 * 1024  # 400MB
     UNSUPPORTED_TYPES = (
         types.MessageText,
@@ -14,15 +18,14 @@ class Telegram:
         types.MessageSticker,
         types.MessageAnimation,
     )
-    DownloaderCache = TTLCache(maxsize=5000, ttl=1200)
-
+    DownloaderCache = TTLCache(maxsize=5000, ttl=600)
     def __init__(self, reply: Optional[types.Message]):
         self.msg = reply
         self.content = reply.content if reply else None
-        self._file_info: Optional[Tuple[int, str]] = None
+        self._file_info: Optional[tuple[int, str]] = None
 
     @property
-    def file_info(self) -> Tuple[int, str]:
+    def file_info(self) -> tuple[int, str]:
         """Lazy-loaded property for file info."""
         if self._file_info is None:
             self._file_info = self._extract_file_info()
@@ -39,7 +42,7 @@ class Telegram:
         file_size, _ = self.file_info
         return 0 < file_size <= self.MAX_FILE_SIZE
 
-    def _extract_file_info(self) -> Tuple[int, str]:
+    def _extract_file_info(self) -> tuple[int, str]:
         """Extract file size and filename from supported media types."""
         try:
             if isinstance(self.content, types.MessageVideo):
@@ -71,7 +74,7 @@ class Telegram:
 
     async def dl(
         self, message: types.Message
-    ) -> Tuple[Union[types.Error, types.LocalFile], str]:
+    ) -> tuple[Union[types.Error, types.LocalFile], str]:
         """Download the media file with metadata caching."""
         if not self.is_valid():
             return (
@@ -80,15 +83,8 @@ class Telegram:
             )
 
         unique_id = self.msg.remote_unique_file_id
-        chat_id = self.msg.chat_id
+        chat_id = message.chat_id if message else self.msg.chat_id
         _, file_name = self.file_info
-
-        if not message:
-            message = await self.msg._client.sendTextMessage(
-                chat_id, f"Downloading {file_name}..."
-            )
-            if isinstance(message, types.Error):
-                return message, file_name
 
         if unique_id not in Telegram.DownloaderCache:
             Telegram.DownloaderCache[unique_id] = {
@@ -103,7 +99,7 @@ class Telegram:
     @staticmethod
     def get_cached_metadata(
         unique_id: str,
-    ) -> Optional[Dict[str, Union[int, str, int]]]:
+    ) -> Optional[dict[str, Union[int, str, int]]]:
         return Telegram.DownloaderCache.get(unique_id)
 
     @staticmethod
