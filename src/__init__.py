@@ -52,7 +52,7 @@ class Telegram(Client):
         await call.add_bot(self)
         await call.register_decorators()
         await self.call_manager.start_scheduler()
-        await super().start(login)
+        await super().start()
         self.logger.info("✅ Bot started successfully.")
 
     async def stop(self) -> None:

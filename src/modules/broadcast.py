@@ -104,12 +104,8 @@ async def broadcast(_: Client, message: types.Message):
     if not users and not chats:
         return await message.reply_text("No users or chats to broadcast to.")
 
-    user_task = (
-        broadcast_to_targets(users, reply, is_copy) if users else (0, 0)
-    )
-    chat_task = (
-        broadcast_to_targets(chats, reply, is_copy) if chats else (0, 0)
-    )
+    user_task = broadcast_to_targets(users, reply, is_copy) if users else (0, 0)
+    chat_task = broadcast_to_targets(chats, reply, is_copy) if chats else (0, 0)
 
     user_sent, user_failed = await user_task
     chat_sent, chat_failed = await chat_task
