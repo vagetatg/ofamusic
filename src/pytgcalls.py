@@ -113,6 +113,7 @@ class MusicBot:
     async def register_decorators(self) -> None:
         """Register event handlers for all clients."""
         for call_instance in self.calls.values():
+
             @call_instance.on_update()
             async def general_handler(_, update: Update):
                 try:
@@ -123,7 +124,7 @@ class MusicBot:
                     elif isinstance(update, UpdatedGroupCallParticipant):
                         return
                     elif isinstance(update, ChatUpdate) and (
-                            update.status.KICKED or update.status.LEFT_GROUP
+                        update.status.KICKED or update.status.LEFT_GROUP
                     ):
                         chat_cache.clear_chat(update.chat_id)
                         return

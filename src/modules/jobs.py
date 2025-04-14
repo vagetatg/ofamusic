@@ -75,10 +75,14 @@ class InactiveCallManager:
                 if not chat:
                     continue
                 if chat.id > 0:
-                    self.bot.logger.debug(f"[{client_name}] Skipping private chat: {chat.id}")
+                    self.bot.logger.debug(
+                        f"[{client_name}] Skipping private chat: {chat.id}"
+                    )
                     continue
                 chats_to_leave.append(chat.id)
-            self.bot.logger.debug(f"[{client_name}] Found {len(chats_to_leave)} chats to leave.")
+            self.bot.logger.debug(
+                f"[{client_name}] Found {len(chats_to_leave)} chats to leave."
+            )
             for chat_id in chats_to_leave:
                 is_active = chat_cache.is_active(chat_id)
                 if is_active:
@@ -89,16 +93,24 @@ class InactiveCallManager:
                     await asyncio.sleep(0.5)
                 except errors.FloodWait as e:
                     wait_time = e.value
-                    self.bot.logger.warning(f"[{client_name}] FloodWait for {wait_time}s on chat {chat_id}")
+                    self.bot.logger.warning(
+                        f"[{client_name}] FloodWait for {wait_time}s on chat {chat_id}"
+                    )
                     if wait_time > 100:
-                        self.bot.logger.warning(f"[{client_name}] Skipping due to long wait time.")
+                        self.bot.logger.warning(
+                            f"[{client_name}] Skipping due to long wait time."
+                        )
                         continue
                     await asyncio.sleep(wait_time)
                 except errors.RPCError as e:
-                    self.bot.logger.warning(f"[{client_name}] Failed to leave chat {chat_id}: {e}")
+                    self.bot.logger.warning(
+                        f"[{client_name}] Failed to leave chat {chat_id}: {e}"
+                    )
                     continue
                 except Exception as e:
-                    self.bot.logger.error(f"[{client_name}] Error leaving chat {chat_id}: {e}")
+                    self.bot.logger.error(
+                        f"[{client_name}] Error leaving chat {chat_id}: {e}"
+                    )
                     continue
 
             self.bot.logger.info(f"[{client_name}] Leaving all chats completed.")
