@@ -68,7 +68,7 @@ class Telegram:
         LOGGER.info("Unsupported content type: %s", type(self.content).__name__)
         return 0, "UnknownMedia"
 
-    async def dl(self) -> Tuple[Union[types.Error, types.LocalFile], str]:
+    async def dl(self, message: types.Message) -> Tuple[Union[types.Error, types.LocalFile], str]:
         """Download the media file with metadata caching."""
         if not self.is_valid():
             return types.Error(message="Invalid or unsupported media file."), "InvalidMedia"
@@ -77,10 +77,10 @@ class Telegram:
         chat_id = self.msg.chat_id
         _, file_name = self.file_info
 
-        LOGGER.info("Cache before insert: %s", Telegram.DownloaderCache.get(unique_id))
-        message = await self.msg._client.sendTextMessage(chat_id,f"Downloading {file_name}...")
-        if isinstance(message, types.Error):
-            return message, file_name
+        if not message:
+            message = await self.msg._client.sendTextMessage(chat_id,f"Downloading {file_name}...")
+            if isinstance(message, types.Error):
+                return message, file_name
 
         if unique_id not in Telegram.DownloaderCache:
             Telegram.DownloaderCache[unique_id] = {
@@ -89,7 +89,6 @@ class Telegram:
                 "message_id": message.id,
             }
 
-        LOGGER.info("Cache after insert: %s", Telegram.DownloaderCache.get(unique_id))
         file_obj = await self.msg.download(synchronous=True)
         return file_obj, file_name
 
