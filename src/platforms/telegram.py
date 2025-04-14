@@ -89,6 +89,7 @@ class Telegram:
         if unique_id not in Telegram.DownloaderCache:
             Telegram.DownloaderCache[unique_id] = {
                 "chat_id": chat_id,
+                "remote_file_id": self.msg.remote_file_id,
                 "filename": file_name,
                 "message_id": message.id,
             }
@@ -99,7 +100,7 @@ class Telegram:
     @staticmethod
     def get_cached_metadata(
         unique_id: str,
-    ) -> Optional[dict[str, Union[int, str, int]]]:
+    ) -> Optional[dict[str, Union[int, str, str, int]]]:
         return Telegram.DownloaderCache.get(unique_id)
 
     @staticmethod

@@ -15,6 +15,7 @@ from src.modules.utils.admins import is_admin
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.play_helpers import extract_argument, del_msg, edit_text
 from src.platforms.downloader import MusicServiceWrapper
+from src.platforms.telegram import Telegram
 from src.pytgcalls import call
 
 
@@ -531,17 +532,29 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 )
 
         elif data.startswith("play_c_"):
+            if not await is_admin(chat_id, user_id):
+                await message.answer("⚠️ You must be an admin to use this command.", show_alert=True)
+                return
             _, _, file_id = data.split("_", 2)
-            LOGGER.info(f"Canceling download for file_id: {file_id}")
-            file_info = await c.getRemoteFile(file_id)
-            if isinstance(file_info, types.Error):
-                await message.answer("Error getting file info.", show_alert=True)
-                LOGGER.error(f"Error getting file info: {file_info.message}")
+            meta = Telegram(None).get_cached_metadata(file_id)
+            if not meta:
+                await message.answer("Looks like this file already downloaded.", show_alert=True)
                 return
 
-            await c.cancelDownloadFile(file_info.id)
+            file_info = await c.getRemoteFile(meta["remote_file_id"])
+            if isinstance(file_info, types.Error):
+                await message.answer("Failed to get file info", show_alert=True)
+                LOGGER.error(f"Failed to get file info: {file_info.message}")
+                return
+
+            ok = await c.cancelDownloadFile(file_info.id)
+            if isinstance(ok, types.Error):
+                await message.answer(f"Failed to cancel download. {ok.message}", show_alert=True)
+                return
+
             await message.answer("Download cancelled.", show_alert=True)
-            await c.deleteMessages(message.chat_id, [message.message_id])
+            await message.edit_message_text(f"Download cancelled.\nRequested by: {user_name} 🥀")
+            return
         else:  # Handle play song requests
             try:
                 _, platform, song_id = data.split("_", 2)
