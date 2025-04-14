@@ -288,7 +288,7 @@ async def _handle_telegram_file(
             reply_message,
             text=f"❌ <b>Download Failed</b>\n\n"
             f"🎶 <b>File:</b> <code>{file_name}</code>\n"
-            f"💬 <b>Error:</b> <code>{str(file_path.message)}</code>"
+            f"💬 <b>Error:</b> <code>{str(file_path.message)}</code>",
         )
 
     _song = PlatformTracks(

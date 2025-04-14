@@ -15,6 +15,7 @@ class Telegram:
         types.MessageAnimation,
     )
     DownloaderCache = TTLCache(maxsize=5000, ttl=1200)
+
     def __init__(self, reply: Optional[types.Message]):
         self.msg = reply
         self.content = reply.content if reply else None
@@ -68,17 +69,24 @@ class Telegram:
         LOGGER.info("Unsupported content type: %s", type(self.content).__name__)
         return 0, "UnknownMedia"
 
-    async def dl(self, message: types.Message) -> Tuple[Union[types.Error, types.LocalFile], str]:
+    async def dl(
+        self, message: types.Message
+    ) -> Tuple[Union[types.Error, types.LocalFile], str]:
         """Download the media file with metadata caching."""
         if not self.is_valid():
-            return types.Error(message="Invalid or unsupported media file."), "InvalidMedia"
+            return (
+                types.Error(message="Invalid or unsupported media file."),
+                "InvalidMedia",
+            )
 
         unique_id = self.msg.remote_unique_file_id
         chat_id = self.msg.chat_id
         _, file_name = self.file_info
 
         if not message:
-            message = await self.msg._client.sendTextMessage(chat_id,f"Downloading {file_name}...")
+            message = await self.msg._client.sendTextMessage(
+                chat_id, f"Downloading {file_name}..."
+            )
             if isinstance(message, types.Error):
                 return message, file_name
 
@@ -93,7 +101,9 @@ class Telegram:
         return file_obj, file_name
 
     @staticmethod
-    def get_cached_metadata(unique_id: str) -> Optional[Dict[str, Union[int, str, int]]]:
+    def get_cached_metadata(
+        unique_id: str,
+    ) -> Optional[Dict[str, Union[int, str, int]]]:
         return Telegram.DownloaderCache.get(unique_id)
 
     @staticmethod

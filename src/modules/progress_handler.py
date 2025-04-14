@@ -11,7 +11,7 @@ def _format_bytes(size: int) -> str:
     """Improved byte formatting with more precise thresholds"""
     if size < 1024:
         return f"{size} B"
-    for unit in ['KB', 'MB', 'GB', 'TB']:
+    for unit in ["KB", "MB", "GB", "TB"]:
         size /= 1024
         if size < 1024:
             return f"{size:.1f} {unit}"
@@ -20,7 +20,7 @@ def _format_bytes(size: int) -> str:
 
 def _format_time(seconds: int) -> str:
     """More compact time formatting"""
-    seconds = int(seconds)
+    seconds = seconds
     if seconds < 60:
         return f"{seconds}s"
     minutes, seconds = divmod(seconds, 60)
@@ -34,7 +34,7 @@ def _create_progress_bar(percentage: int, length: int = 10) -> str:
     """More visually distinct progress bar"""
     percentage = min(100, max(0, percentage))
     filled = round(length * percentage / 100)
-    return '⬢' * filled + '⬡' * (length - filled)
+    return "⬢" * filled + "⬡" * (length - filled)
 
 
 def _calculate_update_interval(file_size: int, current_speed: float) -> float:
@@ -86,7 +86,7 @@ async def update_file(c: Client, update: types.UpdateFile):
             "last_update": now,
             "last_size": downloaded,
             "next_update": now + 1.0,  # First update after 1s
-            "last_speed": 0
+            "last_speed": 0,
         }
 
     progress = download_progress[file_id]
@@ -119,10 +119,8 @@ async def update_file(c: Client, update: types.UpdateFile):
 
     parse = await c.parseTextEntities(progress_text, types.TextParseModeHTML())
     edit = await c.editMessageText(
-            chat_id,
-            message_id,
-            input_message_content=types.InputMessageText(parse)
-        )
+        chat_id, message_id, input_message_content=types.InputMessageText(parse)
+    )
     if isinstance(edit, types.Error):
         LOGGER.error(f"Progress update error: {edit}")
 
@@ -139,9 +137,7 @@ async def update_file(c: Client, update: types.UpdateFile):
 
         parse = await c.parseTextEntities(complete_text, types.TextParseModeHTML())
         done = await c.editMessageText(
-            chat_id,
-            message_id,
-            input_message_content=types.InputMessageText(parse)
+            chat_id, message_id, input_message_content=types.InputMessageText(parse)
         )
         if isinstance(done, types.Error):
             LOGGER.error(f"Progress update error: {done}")
