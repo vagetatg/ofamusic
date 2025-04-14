@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-import asyncio
 import inspect
 import io
 import os
@@ -23,8 +22,8 @@ from pyrogram import __version__ as pyrover
 from pytdbot import types, Client, VERSION as pyTdVer
 from pytgcalls import __version__ as pytgver
 
-
-from config import OWNER_ID, LOGGER_ID
+import config
+from config import OWNER_ID
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
@@ -33,7 +32,7 @@ from src.modules.utils.play_helpers import del_msg, extract_argument
 
 
 def format_exception(
-        exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
+    exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
 ) -> str:
     """Formats an exception traceback as a string, similar to the Python interpreter."""
 
@@ -76,22 +75,22 @@ async def exec_eval(c: Client, m: types.Message):
                 return print(*args, **kwargs)
 
         eval_vars = {
-                "loop": c.loop,
-                "client": c,
-                "stdout": out_buf,
-                "c": c,
-                "m": m,
-                "msg": m,
-                "types": types,
-                "send": send,
-                "print": _print,
-                "inspect": inspect,
-                "os": os,
-                "re": re,
-                "sys": sys,
-                "traceback": traceback,
-                "uuid": uuid,
-                "io": io,
+            "loop": c.loop,
+            "client": c,
+            "stdout": out_buf,
+            "c": c,
+            "m": m,
+            "msg": m,
+            "types": types,
+            "send": send,
+            "print": _print,
+            "inspect": inspect,
+            "os": os,
+            "re": re,
+            "sys": sys,
+            "traceback": traceback,
+            "uuid": uuid,
+            "io": io,
         }
 
         try:
@@ -136,82 +135,14 @@ async def exec_eval(c: Client, m: types.Message):
     <pre language="python">{escape(code)}</pre>
     """
         await m.reply_document(
-                document=types.InputFileLocal(filename),
-                caption=caption,
-                disable_notification=True,
-                parse_mode="html",
+            document=types.InputFileLocal(filename),
+            caption=caption,
+            disable_notification=True,
+            parse_mode="html",
         )
         return None
 
     await m.reply_text(str(result), parse_mode="html")
-
-
-REQUEST = 6
-semaphore = asyncio.Semaphore(REQUEST)
-
-
-@Client.on_message(filters=Filter.command("broadcast"))
-async def broadcast(_: Client, message: types.Message):
-    LOGGER.info(f"Broadcast command used by {message.from_id}")
-    if int(message.from_id) != OWNER_ID:
-        await del_msg(message)
-        return None
-
-    all_users: list[int] = await db.get_all_users()
-    all_chats: list[int] = await db.get_all_chats()
-    if reply := message.reply_to_message_id:
-        reply = await message.getRepliedMessage()
-        if isinstance(reply, types.Error):
-            await message.reply_text(f"Failed to get reply message.{str(reply)}")
-            return
-
-    if not reply:
-        await message.reply_text("Reply to a message to broadcast it.")
-        return
-
-    if not all_users and not all_chats:
-        await message.reply_text("No users or chats to broadcast to.")
-        return
-
-    async def broadcast_target(target_list, reply_message: types.Message, _semaphore):
-        sent, failed = 0, 0
-        for target_id in target_list:
-            try:
-                async with _semaphore:
-                    _reply = await reply_message.forward(target_id)
-                    if isinstance(_reply, types.Error):
-                        if _reply.code == 429:
-                            retry_after = _reply.message.split("retry after ")[1]
-                            await asyncio.sleep(int(retry_after))
-                            _reply = await reply_message.forward(target_id)
-                        elif _reply.code == 400:
-                            if target_id < 0:
-                                await db.remove_chat(target_id)
-                            else:
-                                await db.remove_user(target_id)
-                            failed += 1
-                            continue
-                        LOGGER.error(f"Failed to send to {target_id}: {_reply}")
-                        failed += 1
-                        continue
-                sent += 1
-            except Exception as e:
-                LOGGER.error(f"Failed to send to {target_id}: {e}")
-                failed += 1
-        return sent, failed
-
-    user_sent, user_failed = await broadcast_target(all_users, reply, semaphore)
-    await asyncio.sleep(5)
-    chat_sent, chat_failed = await broadcast_target(all_chats, reply, semaphore)
-
-    total_sent = user_sent + chat_sent
-    total_failed = user_failed + chat_failed
-
-    await message.reply_text(
-            f"Broadcast completed:\n"
-            f"- Sent: {total_sent} (Users: {user_sent}, Chats: {chat_sent})\n"
-            f"- Failed: {total_failed} (Users: {user_failed}, Chats: {chat_failed})"
-    )
 
 
 @Client.on_message(filters=Filter.command("stats"))
@@ -221,7 +152,7 @@ async def sys_stats(client: Client, message: types.Message):
         return None
 
     sysroot = await message.reply_text(
-            f"ɢᴇᴛᴛɪɴɢ {client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs, ɪᴛ'ʟʟ ᴛᴀᴋᴇ ᴀ ᴡʜɪʟᴇ..."
+        f"ɢᴇᴛᴛɪɴɢ {client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs, ɪᴛ'ʟʟ ᴛᴀᴋᴇ ᴀ ᴡʜɪʟᴇ..."
     )
 
     hostname = socket.gethostname()
@@ -244,16 +175,16 @@ async def sys_stats(client: Client, message: types.Message):
         cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
 
     hdd = psutil.disk_usage("/")
-    total = hdd.total / (1024.0 ** 3)
-    used = hdd.used / (1024.0 ** 3)
-    free = hdd.free / (1024.0 ** 3)
+    total = hdd.total / (1024.0**3)
+    used = hdd.used / (1024.0**3)
+    free = hdd.free / (1024.0**3)
     platform_release = platform.release()
     platform_version = platform.version()
     chats = len(await db.get_all_chats())
     users = len(await db.get_all_users())
 
     await sysroot.edit_text(
-            f"""
+        f"""
 <b><u>{client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs</u></b>
 
 <b>Chats:</b> {chats}
@@ -302,16 +233,14 @@ async def active_vc(_: Client, message: types.Message):
     for chat_id in active_chats:
         queue_length = chat_cache.count(chat_id)
         if current_song := chat_cache.get_current_song(chat_id):
-            song_info = (
-                    f"🎶 <b>Now Playing:</b> <a href='{current_song.url}'>{current_song.name}</a> - {current_song.artist} ({current_song.duration}s)"
-            )
+            song_info = f"🎶 <b>Now Playing:</b> <a href='{current_song.url}'>{current_song.name}</a> - {current_song.artist} ({current_song.duration}s)"
         else:
             song_info = "🔇 No song playing."
 
         text += (
-                f"➤ <b>Chat ID:</b> <code>{chat_id}</code>\n"
-                f"📌 <b>Queue Size:</b> {queue_length}\n"
-                f"{song_info}\n\n"
+            f"➤ <b>Chat ID:</b> <code>{chat_id}</code>\n"
+            f"📌 <b>Queue Size:</b> {queue_length}\n"
+            f"{song_info}\n\n"
         )
 
     if len(text) > 4096:
@@ -321,20 +250,24 @@ async def active_vc(_: Client, message: types.Message):
     if isinstance(reply, types.Error):
         return await message.reply_text(reply.message)
 
+
 @Client.on_message(filters=Filter.command("logger"))
 async def logger(_: Client, message: types.Message):
     if message.from_id != OWNER_ID:
         await del_msg(message)
         return
 
-    if LOGGER_ID == 0 or not LOGGER_ID:
+    if config.LOGGER_ID == 0 or not config.LOGGER_ID:
         await message.reply_text("Please set LOGGER_ID in .env first.")
         return None
 
     args = extract_argument(message.text)
     enabled = await db.get_logger_status()
     if not args:
-        await message.reply_text("Usage: /logger [enable|disable|on|off]\n\nCurrent status: " + ("enabled" if enabled else "disabled"))
+        await message.reply_text(
+            "Usage: /logger [enable|disable|on|off]\n\nCurrent status: "
+            + ("enabled" if enabled else "disabled")
+        )
         return
 
     if args.lower() in ["on", "enable"]:
@@ -344,4 +277,6 @@ async def logger(_: Client, message: types.Message):
         await db.set_logger_status(False)
         await message.reply_text("Logger disabled.")
     else:
-        await message.reply_text(f"Usage: /logger [enable|disable]\n\nYour argument is {args}")
+        await message.reply_text(
+            f"Usage: /logger [enable|disable]\n\nYour argument is {args}"
+        )

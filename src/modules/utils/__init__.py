@@ -3,14 +3,14 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 __all__ = [
-        "Filter",
-        "sec_to_min",
-        "get_audio_duration",
-        "PlayButton",
-        "PauseButton",
-        "ResumeButton",
-        "SupportButton",
-        "send_logger"
+    "Filter",
+    "sec_to_min",
+    "get_audio_duration",
+    "PlayButton",
+    "PauseButton",
+    "ResumeButton",
+    "SupportButton",
+    "send_logger",
 ]
 
 import asyncio
@@ -48,26 +48,31 @@ async def send_logger(client: Client, chat_id, song: CachedTrack):
         f"• <b>Platform:</b> {song.platform}"
     )
 
-    msg = await client.sendTextMessage(config.LOGGER_ID, text, disable_web_page_preview=True, disable_notification=True)
+    msg = await client.sendTextMessage(
+        config.LOGGER_ID, text, disable_web_page_preview=True, disable_notification=True
+    )
     if isinstance(msg, types.Error):
         LOGGER.error(f"Error sending message: {msg}")
     return
 
+
 async def get_audio_duration(file_path):
     try:
         proc = await asyncio.create_subprocess_exec(
-                'ffprobe',
-                '-v', 'quiet',
-                '-print_format', 'json',
-                '-show_format',
-                '-show_streams',
-                file_path,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+            "ffprobe",
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_format",
+            "-show_streams",
+            file_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
         stdout, _ = await proc.communicate()
         data = json.loads(stdout)
-        duration = float(data['format']['duration'])
+        duration = float(data["format"]["duration"])
         return int(duration)
     except Exception as e:
         LOGGER.warning(f"Failed to get audio duration using ffprobe: {e}")

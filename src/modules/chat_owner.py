@@ -89,7 +89,9 @@ async def auth_list(_: Client, msg: types.Message):
         await msg.reply_text("No users have auth permissions.")
         return
 
-    text = "<b>Authorized Users:</b>\n" + "\n".join([f"- <code>{uid}</code>" for uid in auth_users])
+    text = "<b>Authorized Users:</b>\n" + "\n".join(
+        [f"- <code>{uid}</code>" for uid in auth_users]
+    )
     await msg.reply_text(text)
 
 
@@ -109,7 +111,9 @@ async def _handle_toggle_command(
     args = extract_argument(msg.text)
     if not args:
         status = "enabled ✅" if current else "disabled ❌"
-        await msg.reply_text(f"⚙️ {label} is currently {status}.\n\nUse /{key} [on/off] to change it.")
+        await msg.reply_text(
+            f"⚙️ {label} is currently {status}.\n\nUse /{key} [on/off] to change it."
+        )
         return
 
     arg = args.lower()
@@ -126,14 +130,12 @@ async def _handle_toggle_command(
 @Client.on_message(filters=Filter.command("buttons"))
 async def buttons(_: Client, msg: types.Message):
     await _handle_toggle_command(
-        msg, "buttons", "Button control",
-        db.get_buttons_status, db.set_buttons_status
+        msg, "buttons", "Button control", db.get_buttons_status, db.set_buttons_status
     )
 
 
 @Client.on_message(filters=Filter.command(["thumbnail", "thumb"]))
 async def thumbnail(_: Client, msg: types.Message):
     await _handle_toggle_command(
-        msg, "thumbnail", "Thumbnail",
-        db.get_thumb_status, db.set_thumb_status
+        msg, "thumbnail", "Thumbnail", db.get_thumb_status, db.set_thumb_status
     )

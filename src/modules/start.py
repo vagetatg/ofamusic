@@ -1,7 +1,7 @@
 #  Copyright (c) 2025 AshokShau
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
-
+import time
 from datetime import datetime
 from types import NoneType
 
@@ -42,7 +42,9 @@ Your ultimate music companion for Telegram voice chats!
 <b>📢 Note:</b> This bot works best in groups and requires admin permissions to function.
     """
     bot_username = c.me.usernames.editable_username
-    reply = await message.reply_text(text, parse_mode="html", reply_markup=add_me_button(bot_username))
+    reply = await message.reply_text(
+        text, parse_mode="html", reply_markup=add_me_button(bot_username)
+    )
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending start message: {reply.message}")
 
@@ -56,6 +58,7 @@ async def help_cmd(c: Client, message: types.Message):
 <b>/reload:</b> Reload chat administrator list.
 <b>/authlist:</b> Get the list of authorized users.
 <b>/play:</b> Reply to an audio or provide a song name to play music.
+<b>/vplay:</b> Reply to a video or provide a song name to play video.
 <b>/speed:</b> Change the playback speed of the current song (0.5 - 4.0).
 <b>/skip:</b> Skip the current song.  
 <b>/remove x:</b> Remove x song from the queue.
@@ -159,7 +162,7 @@ async def reload_cmd(c: Client, message: types.Message):
         last_used_time = rate_limit_cache[user_id]
         time_remaining = 180 - (datetime.now() - last_used_time).total_seconds()
         reply = await message.reply_text(
-                f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min."
+            f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min."
         )
         if isinstance(reply, types.Error):
             c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
@@ -174,7 +177,7 @@ async def reload_cmd(c: Client, message: types.Message):
     ub = await call.get_client(chat_id)
     if isinstance(ub, (types.Error, NoneType)):
         return await reply.edit_text(
-                "❌ Something went wrong. Assistant not found for this chat."
+            "❌ Something went wrong. Assistant not found for this chat."
         )
 
     chat_invite_cache.pop(chat_id, None)
@@ -192,9 +195,9 @@ async def reload_cmd(c: Client, message: types.Message):
 
     loaded = "✅" if load_admins else "❌"
     text = (
-            f"<b>Assistant Status:</b> {ub_stats}\n"
-            f"<b>Admins Loaded:</b> {loaded}\n"
-            f"<b>» Reloaded by:</b> {await message.mention()}"
+        f"<b>Assistant Status:</b> {ub_stats}\n"
+        f"<b>Admins Loaded:</b> {loaded}\n"
+        f"<b>» Reloaded by:</b> {await message.mention()}"
     )
 
     reply = await reply.edit_text(text)
@@ -205,12 +208,16 @@ async def reload_cmd(c: Client, message: types.Message):
 
 @Client.on_message(filters=Filter.command("ping"))
 async def ping_cmd(c: Client, message: types.Message):
+    start_time = time.time()
     reply = await message.reply_text("🏓 Pong!")
+    end_time = time.time()
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply}")
+    else:
+        latency_ms = (end_time - start_time) * 1000
+        await reply.edit_text(f"🏓 Pong! - {latency_ms:.2f}ms")
 
     return
-
 
 @Client.on_message(filters=Filter.command("song"))
 async def song_cmd(c: Client, message: types.Message):

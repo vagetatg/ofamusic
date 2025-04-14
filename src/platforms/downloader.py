@@ -32,7 +32,9 @@ class MusicService(ABC):
         pass
 
     @abstractmethod
-    async def download_track(self, track_info: TrackInfo) -> Optional[str]:
+    async def download_track(
+        self, track_info: TrackInfo, video: bool = False
+    ) -> Optional[str]:
         pass
 
 
@@ -45,6 +47,7 @@ class MusicServiceWrapper(MusicService):
         from ._api import ApiData
         from ._jiosaavn import JiosaavnData
         from ._youtube import YouTubeData
+
         query = self.query
         if YouTubeData().is_valid(query):
             return YouTubeData(query)
@@ -59,7 +62,11 @@ class MusicServiceWrapper(MusicService):
         elif config.DEFAULT_SERVICE == "jiosaavn":
             return JiosaavnData(query)
         else:
-            return ApiData(query) if config.API_URL and config.API_KEY else YouTubeData(query)
+            return (
+                ApiData(query)
+                if config.API_URL and config.API_KEY
+                else YouTubeData(query)
+            )
 
     def is_valid(self, url: str) -> bool:
         return self.service.is_valid(url)
@@ -76,5 +83,7 @@ class MusicServiceWrapper(MusicService):
     async def get_track(self) -> Optional[TrackInfo]:
         return await self.service.get_track()
 
-    async def download_track(self, track_info: TrackInfo) -> Optional[str]:
+    async def download_track(
+        self, track_info: TrackInfo, video: bool = False
+    ) -> Optional[str]:
         return await self.service.download_track(track_info)
