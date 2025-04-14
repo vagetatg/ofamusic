@@ -5,6 +5,7 @@
 import asyncio
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from pyrogram import Client as PyroClient, errors
 from pytdbot import Client, types
 
@@ -105,8 +106,8 @@ class InactiveCallManager:
     async def start_scheduler(self):
         # Schedule the job to run every 50 seconds
         self.scheduler.add_job(self.end_inactive_calls, "interval", seconds=50)
-        # Schedule the job to run every 12 hours
-        self.scheduler.add_job(self.leave_all, "interval", hours=12)
+        # Run every day at 12:00 AM
+        self.scheduler.add_job(self.leave_all, CronTrigger(hour=0, minute=0))
         self.scheduler.start()
         self.bot.logger.info("Scheduler started.")
 
