@@ -252,7 +252,7 @@ async def active_vc(_: Client, message: types.Message):
 
 
 @Client.on_message(filters=Filter.command("logger"))
-async def logger(_: Client, message: types.Message):
+async def logger(c: Client, message: types.Message):
     if message.from_id != OWNER_ID:
         await del_msg(message)
         return
@@ -262,7 +262,7 @@ async def logger(_: Client, message: types.Message):
         return None
 
     args = extract_argument(message.text)
-    enabled = await db.get_logger_status()
+    enabled = await db.get_logger_status(c.me.id)
     if not args:
         await message.reply_text(
             "Usage: /logger [enable|disable|on|off]\n\nCurrent status: "
@@ -271,10 +271,10 @@ async def logger(_: Client, message: types.Message):
         return
 
     if args.lower() in ["on", "enable"]:
-        await db.set_logger_status(True)
+        await db.set_logger_status(c.me.id, True)
         await message.reply_text("Logger enabled.")
     elif args.lower() in ["off", "disable"]:
-        await db.set_logger_status(False)
+        await db.set_logger_status(c.me.id, False)
         await message.reply_text("Logger disabled.")
     else:
         await message.reply_text(

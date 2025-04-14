@@ -137,20 +137,20 @@ class Database:
     async def get_all_chats(self) -> list[int]:
         return [chat["_id"] async for chat in self.chat_db.find()]
 
-    async def get_logger_status(self) -> bool:
-        if "logger" in self.bot_cache:
-            return self.bot_cache["logger"]
+    async def get_logger_status(self, bot_id: int) -> bool:
+        if bot_id in self.bot_cache:
+            return self.bot_cache[bot_id]
 
-        bot_data = await self.bot_db.find_one({"_id": "global"})
+        bot_data = await self.bot_db.find_one({"_id": bot_id})
         status = bot_data.get("logger", False) if bot_data else False
-        self.bot_cache["logger"] = status
+        self.bot_cache[bot_id] = status
         return status
 
-    async def set_logger_status(self, status: bool) -> None:
+    async def set_logger_status(self, bot_id: int, status: bool) -> None:
         await self.bot_db.update_one(
-            {"_id": "global"}, {"$set": {"logger": status}}, upsert=True
+            {"_id": bot_id}, {"$set": {"logger": status}}, upsert=True
         )
-        self.bot_cache["logger"] = status
+        self.bot_cache[bot_id] = status
 
     async def close(self) -> None:
         self.mongo_client.close()

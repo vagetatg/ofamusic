@@ -160,7 +160,7 @@ class MusicBot:
 
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].play(chat_id, _stream)
-            if await db.get_logger_status():
+            if await db.get_logger_status(self.bot.me.id):
                 asyncio.create_task(
                     send_logger(self.bot, chat_id, chat_cache.get_current_song(chat_id))
                 )
