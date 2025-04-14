@@ -285,7 +285,6 @@ async def _handle_telegram_file(
     file_path, file_name = await telegram.dl()
     if isinstance(file_path, types.Error):
         return await edit_text(reply_message, text=f"❌ {str(file_path)}")
-
     _song = PlatformTracks(
         tracks=[
             MusicTrack(

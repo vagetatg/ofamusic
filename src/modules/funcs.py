@@ -418,8 +418,19 @@ async def skip_song(_: Client, msg: types.Message) -> None:
         LOGGER.error(f"Error skipping song: {e}")
         await msg.reply_text(f"⚠️ Failed to skip the song.\nError: {e}")
 
+@Client.on_updateNewCallbackQuery(filters=Filter.regex(r"cancel_\w+"))
+async def stop_download(c: Client, m: types.UpdateNewCallbackQuery):
+    file_id = m.text.split("_")[1]
+    file_info = await c.getRemoteFile(file_id)
+    if isinstance(file_info, types.Error):
+        await m.answer("Error getting file info.", show_alert=True)
+        LOGGER.error(f"Error getting file info: {file_info.message}")
+        return
 
-@Client.on_updateNewCallbackQuery(filters=Filter.regex(r"play_\w+"))
+    await c.cancelDownloadFile(file_info.id)
+    await m.answer("Download cancelled.", show_alert=True)
+    await c.deleteMessages(m.chat_id, [m.message_id])
+
 async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> None:
     """Handle all play control callback queries (skip, stop, pause, resume, timer)."""
     try:
