@@ -5,6 +5,7 @@
 import asyncio
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from pyrogram import Client as PyroClient, errors
 from pytdbot import Client, types
 
 from src.modules.utils.cacher import chat_cache
@@ -64,13 +65,45 @@ class InactiveCallManager:
 
         self.bot.logger.debug("Inactive call checks completed.")
 
+    async def leave_all(self):
+        for client_name, call_instance in call.calls.items():
+            ub: PyroClient = call_instance.mtproto_client
+            chats_to_leave = []
+            async for dialog in ub.get_dialogs():
+                chats_to_leave.append(dialog.chat.id)
+
+            self.bot.logger.debug(f"[{client_name}] Found {len(chats_to_leave)} chats to leave.")
+            for chat_id in chats_to_leave:
+                is_active = chat_cache.is_active(chat_id)
+                if is_active:
+                    continue
+                try:
+                    await ub.leave_chat(chat_id)
+                    self.bot.logger.debug(f"[{client_name}] Left chat {chat_id}")
+                    await asyncio.sleep(0.5)
+                except errors.FloodWait as e:
+                    wait_time = e.value
+                    self.bot.logger.warning(f"[{client_name}] FloodWait for {wait_time}s on chat {chat_id}")
+                    if wait_time > 100:
+                        self.bot.logger.warning(f"[{client_name}] Skipping due to long wait time.")
+                        continue
+                    await asyncio.sleep(wait_time)
+                except errors.RPCError as e:
+                    self.bot.logger.warning(f"[{client_name}] Failed to leave chat {chat_id}: {e}")
+                    continue
+                except Exception as e:
+                    self.bot.logger.error(f"[{client_name}] Error leaving chat {chat_id}: {e}")
+                    continue
+
+            self.bot.logger.info(f"[{client_name}] Leaving all chats completed.")
+
     async def start_scheduler(self):
         # Schedule the job to run every 50 seconds
         self.scheduler.add_job(self.end_inactive_calls, "interval", seconds=50)
+        # Schedule the job to run every 12 hours
+        self.scheduler.add_job(self.leave_all, "interval", hours=12)
         self.scheduler.start()
-        self.bot.logger.info(
-            "Scheduler started. Inactive call checks will run every 50 seconds."
-        )
+        self.bot.logger.info("Scheduler started.")
 
     async def stop_scheduler(self):
         self.scheduler.shutdown()
