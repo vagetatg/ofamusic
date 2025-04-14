@@ -70,8 +70,13 @@ class InactiveCallManager:
             ub: PyroClient = call_instance.mtproto_client
             chats_to_leave = []
             async for dialog in ub.get_dialogs():
-                chats_to_leave.append(dialog.chat.id)
-
+                chat = getattr(dialog, "chat", None)
+                if not chat:
+                    continue
+                if chat.id > 0:
+                    self.bot.logger.debug(f"[{client_name}] Skipping private chat: {chat.id}")
+                    continue
+                chats_to_leave.append(chat.id)
             self.bot.logger.debug(f"[{client_name}] Found {len(chats_to_leave)} chats to leave.")
             for chat_id in chats_to_leave:
                 is_active = chat_cache.is_active(chat_id)
