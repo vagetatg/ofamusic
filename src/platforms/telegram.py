@@ -14,12 +14,11 @@ class Telegram:
         types.MessageSticker,
         types.MessageAnimation,
     )
-
+    DownloaderCache = TTLCache(maxsize=5000, ttl=1200)
     def __init__(self, reply: Optional[types.Message]):
         self.msg = reply
         self.content = reply.content if reply else None
-        self._file_info = None  # Cache for file info
-        self.DownloaderCache = TTLCache(maxsize=5000, ttl=1200)
+        self._file_info: Optional[Tuple[int, str]] = None
 
     @property
     def file_info(self) -> Tuple[int, str]:
@@ -72,21 +71,32 @@ class Telegram:
     async def dl(self) -> Tuple[Union[types.Error, types.LocalFile], str]:
         """Download the media file with metadata caching."""
         if not self.is_valid():
-            return types.Error(message="Invalid or unsupported media file."), "InvalidMedia",
+            return types.Error(message="Invalid or unsupported media file."), "InvalidMedia"
 
         unique_id = self.msg.remote_unique_file_id
         chat_id = self.msg.chat_id
         _, file_name = self.file_info
 
-        # Store metadata in cache
-        if unique_id not in self.DownloaderCache:
-            self.DownloaderCache[unique_id] = {
+        LOGGER.info("Cache before insert: %s", Telegram.DownloaderCache.get(unique_id))
+        message = await self.msg._client.sendTextMessage(chat_id,f"Downloading {file_name}...")
+        if isinstance(message, types.Error):
+            return message, file_name
+
+        if unique_id not in Telegram.DownloaderCache:
+            Telegram.DownloaderCache[unique_id] = {
                 "chat_id": chat_id,
-                "filename": file_name
+                "filename": file_name,
+                "message_id": message.id,
             }
 
-        file_obj = await self.msg.download()
+        LOGGER.info("Cache after insert: %s", Telegram.DownloaderCache.get(unique_id))
+        file_obj = await self.msg.download(synchronous=False)
         return file_obj, file_name
 
-    def get_cached_metadata(self, unique_id: str) -> Optional[Dict[str, Union[int, str]]]:
-        return self.DownloaderCache.get(unique_id, None)
+    @staticmethod
+    def get_cached_metadata(unique_id: str) -> Optional[Dict[str, Union[int, str, int]]]:
+        return Telegram.DownloaderCache.get(unique_id)
+
+    @staticmethod
+    def clear_cache(unique_id: str):
+        return Telegram.DownloaderCache.pop(unique_id, None)
