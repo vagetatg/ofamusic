@@ -1,7 +1,7 @@
 #  Copyright (c) 2025 AshokShau
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
-
+import time
 from datetime import datetime
 from types import NoneType
 
@@ -208,12 +208,16 @@ async def reload_cmd(c: Client, message: types.Message):
 
 @Client.on_message(filters=Filter.command("ping"))
 async def ping_cmd(c: Client, message: types.Message):
+    start_time = time.time()
     reply = await message.reply_text("🏓 Pong!")
+    end_time = time.time()
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply}")
+    else:
+        latency_ms = (end_time - start_time) * 1000
+        await reply.edit_text(f"🏓 Pong! - {latency_ms:.2f}ms")
 
     return
-
 
 @Client.on_message(filters=Filter.command("song"))
 async def song_cmd(c: Client, message: types.Message):
