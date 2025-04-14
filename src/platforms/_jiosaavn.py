@@ -21,22 +21,21 @@ class JiosaavnData(MusicService):
 
     # URL patterns
     JIOSAAVN_SONG_PATTERN = re.compile(
-            r"^(https?://)?(www\.)?jiosaavn\.com/song/[\w-]+/[a-zA-Z0-9_-]+",
-            re.IGNORECASE
+        r"^(https?://)?(www\.)?jiosaavn\.com/song/[\w-]+/[a-zA-Z0-9_-]+", re.IGNORECASE
     )
     JIOSAAVN_PLAYLIST_PATTERN = re.compile(
-            r"^(https?://)?(www\.)?jiosaavn\.com/featured/[\w-]+/[a-zA-Z0-9_-]+$",
-            re.IGNORECASE
+        r"^(https?://)?(www\.)?jiosaavn\.com/featured/[\w-]+/[a-zA-Z0-9_-]+$",
+        re.IGNORECASE,
     )
 
     # API endpoints
     API_SEARCH_ENDPOINT = (
-            "https://www.jiosaavn.com/api.php?"
-            "__call=autocomplete.get&"
-            "query={query}&"
-            "_format=json&"
-            "_marker=0&"
-            "ctx=wap6dot0"
+        "https://www.jiosaavn.com/api.php?"
+        "__call=autocomplete.get&"
+        "query={query}&"
+        "_format=json&"
+        "_marker=0&"
+        "ctx=wap6dot0"
     )
 
     # Constants
@@ -54,11 +53,11 @@ class JiosaavnData(MusicService):
         self.query = query
         self.client = HttpxClient(max_redirects=1)
         self._ydl_opts = {
-                "quiet": True,
-                "no_warnings": True,
-                "extract_flat": "in_playlist",
-                "socket_timeout": 10,
-                # "noplaylist": False,
+            "quiet": True,
+            "no_warnings": True,
+            "extract_flat": "in_playlist",
+            "socket_timeout": 10,
+            # "noplaylist": False,
         }
 
     def is_valid(self, url: str) -> bool:
@@ -73,8 +72,8 @@ class JiosaavnData(MusicService):
         if not url:
             return False
         return bool(
-                self.JIOSAAVN_SONG_PATTERN.match(url) or
-                self.JIOSAAVN_PLAYLIST_PATTERN.match(url)
+            self.JIOSAAVN_SONG_PATTERN.match(url)
+            or self.JIOSAAVN_PLAYLIST_PATTERN.match(url)
         )
 
     async def _fetch_data(self, url: str) -> Optional[dict[str, Any]]:
@@ -144,7 +143,11 @@ class JiosaavnData(MusicService):
         if not self.query:
             return None
 
-        url = self.query if self.is_valid(self.query) else self.format_jiosaavn_url(self.query)
+        url = (
+            self.query
+            if self.is_valid(self.query)
+            else self.format_jiosaavn_url(self.query)
+        )
         data = await self.get_track_data(url)
         if not data or not data.get("results"):
             return None
@@ -188,11 +191,9 @@ class JiosaavnData(MusicService):
                     return None
 
                 return {
-                        "results": [
-                                self._format_track(track)
-                                for track in info["entries"]
-                                if track
-                        ]
+                    "results": [
+                        self._format_track(track) for track in info["entries"] if track
+                    ]
                 }
         except yt_dlp.DownloadError as e:
             LOGGER.error(f"YT-DLP error getting playlist {url}: {str(e)}")
@@ -213,7 +214,9 @@ class JiosaavnData(MusicService):
             return None
 
         download_path = Path(config.DOWNLOADS_DIR) / f"{track.tc}.m4a"
-        dl: DownloadResult = await self.client.download_file(track.cdnurl, download_path)
+        dl: DownloadResult = await self.client.download_file(
+            track.cdnurl, download_path
+        )
         return dl.file_path if dl.success else None
 
     @staticmethod
@@ -232,7 +235,7 @@ class JiosaavnData(MusicService):
         try:
             title, song_id = name_and_id.rsplit("/", 1)
             title = re.sub(r'[\(\)"\',]', "", title.lower())
-            title = re.sub(r'\s+', "-", title.strip())
+            title = re.sub(r"\s+", "-", title.strip())
             return f"https://www.jiosaavn.com/song/{title}/{song_id}"
         except ValueError:
             LOGGER.warning(f"Invalid name_and_id format: {name_and_id}")
@@ -253,11 +256,7 @@ class JiosaavnData(MusicService):
 
         # Get best available audio format
         formats = track_data.get("formats", [])
-        best_format = max(
-                formats,
-                key=lambda x: x.get("abr", 0),
-                default={}
-        )
+        best_format = max(formats, key=lambda x: x.get("abr", 0), default={})
 
         # Extract artist information
         artists = track_data.get("artists", [])
@@ -268,17 +267,17 @@ class JiosaavnData(MusicService):
         display_id = f"{title}/{track_data.get('url', '').split('/')[-1]}"
 
         return {
-                "id": track_data.get("display_id", display_id),
-                "tc": track_data.get("display_id", display_id),
-                "name": title,
-                "album": track_data.get("album", cls.DEFAULT_ALBUM),
-                "duration": track_data.get("duration", cls.DEFAULT_DURATION),
-                "artist": artist,
-                "cover": track_data.get("thumbnail", ""),
-                "year": track_data.get("release_year", cls.DEFAULT_YEAR),
-                "platform": "jiosaavn",
-                "url": track_data.get("webpage_url", ""),
-                "cdnurl": best_format.get("url", ""),
+            "id": track_data.get("display_id", display_id),
+            "tc": track_data.get("display_id", display_id),
+            "name": title,
+            "album": track_data.get("album", cls.DEFAULT_ALBUM),
+            "duration": track_data.get("duration", cls.DEFAULT_DURATION),
+            "artist": artist,
+            "cover": track_data.get("thumbnail", ""),
+            "year": track_data.get("release_year", cls.DEFAULT_YEAR),
+            "platform": "jiosaavn",
+            "url": track_data.get("webpage_url", ""),
+            "cdnurl": best_format.get("url", ""),
         }
 
     @classmethod
@@ -292,18 +291,18 @@ class JiosaavnData(MusicService):
             TrackInfo: Track information object
         """
         return TrackInfo(
-                cdnurl=track_data.get("cdnurl", ""),
-                key="nil",
-                name=track_data.get("name", ""),
-                artist=track_data.get("artist", cls.DEFAULT_ARTIST),
-                tc=track_data.get("id", ""),
-                album=track_data.get("album", cls.DEFAULT_ALBUM),
-                cover=track_data.get("cover", ""),
-                lyrics="None",
-                duration=track_data.get("duration", cls.DEFAULT_DURATION),
-                year=track_data.get("year", cls.DEFAULT_YEAR),
-                url=track_data.get("url", ""),
-                platform="jiosaavn",
+            cdnurl=track_data.get("cdnurl", ""),
+            key="nil",
+            name=track_data.get("name", ""),
+            artist=track_data.get("artist", cls.DEFAULT_ARTIST),
+            tc=track_data.get("id", ""),
+            album=track_data.get("album", cls.DEFAULT_ALBUM),
+            cover=track_data.get("cover", ""),
+            lyrics="None",
+            duration=track_data.get("duration", cls.DEFAULT_DURATION),
+            year=track_data.get("year", cls.DEFAULT_YEAR),
+            url=track_data.get("url", ""),
+            platform="jiosaavn",
         )
 
     @staticmethod
@@ -319,9 +318,13 @@ class JiosaavnData(MusicService):
         if not data or not data.get("results"):
             return None
 
-        return PlatformTracks(tracks=[MusicTrack(**track) for track in data["results"] if track])
+        return PlatformTracks(
+            tracks=[MusicTrack(**track) for track in data["results"] if track]
+        )
 
-    def _parse_search_response(self, response: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def _parse_search_response(
+        self, response: dict[str, Any]
+    ) -> Optional[dict[str, Any]]:
         """Parse the search API response into standardized format.
 
         Args:
@@ -333,4 +336,10 @@ class JiosaavnData(MusicService):
         if not response or not response.get("songs", {}).get("data"):
             return None
 
-        return {"results": [self._format_track(track) for track in response["songs"]["data"] if track]}
+        return {
+            "results": [
+                self._format_track(track)
+                for track in response["songs"]["data"]
+                if track
+            ]
+        }

@@ -13,10 +13,10 @@ from src.logger import LOGGER
 from src.platforms.dataclass import CachedTrack
 
 FONTS = {
-        "cfont": ImageFont.truetype("src/modules/utils/cfont.ttf", 15),
-        "dfont": ImageFont.truetype("src/modules/utils/font2.otf", 12),
-        "nfont": ImageFont.truetype("src/modules/utils/font.ttf", 10),
-        "tfont": ImageFont.truetype("src/modules/utils/font.ttf", 20),
+    "cfont": ImageFont.truetype("src/modules/utils/cfont.ttf", 15),
+    "dfont": ImageFont.truetype("src/modules/utils/font2.otf", 12),
+    "nfont": ImageFont.truetype("src/modules/utils/font.ttf", 10),
+    "tfont": ImageFont.truetype("src/modules/utils/font.ttf", 20),
 }
 
 
@@ -69,7 +69,9 @@ async def fetch_image(url: str) -> Image.Image | None:
             img = Image.open(BytesIO(response.content)).convert("RGBA")
             if url.startswith("https://i.ytimg.com"):
                 img = resize_youtube_thumbnail(img)
-            elif url.startswith("http://c.saavncdn.com") or url.startswith("https://i1.sndcdn"):
+            elif url.startswith("http://c.saavncdn.com") or url.startswith(
+                "https://i1.sndcdn"
+            ):
                 img = resize_jiosaavn_thumbnail(img)
             return img
         except Exception as e:
@@ -94,7 +96,7 @@ def add_controls(img: Image.Image) -> Image.Image:
 
     mask = Image.new("L", dark_region.size, 0)
     ImageDraw.Draw(mask).rounded_rectangle(
-            (0, 0, box[2] - box[0], box[3] - box[1]), 40, fill=255
+        (0, 0, box[2] - box[0], box[3] - box[1]), 40, fill=255
     )
 
     img.paste(dark_region, box, mask)
@@ -108,12 +110,12 @@ def make_sq(image: Image.Image, size: int = 125) -> Image.Image:
     width, height = image.size
     side_length = min(width, height)
     crop = image.crop(
-            (
-                    (width - side_length) // 2,
-                    (height - side_length) // 2,
-                    (width + side_length) // 2,
-                    (height + side_length) // 2,
-            )
+        (
+            (width - side_length) // 2,
+            (height - side_length) // 2,
+            (width + side_length) // 2,
+            (height + side_length) // 2,
+        )
     )
     resize = crop.resize((size, size), Image.Resampling.LANCZOS)
 

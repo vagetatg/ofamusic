@@ -69,17 +69,21 @@ SUPPORT_GROUP = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
 
 "If true, allows to skip all updates received while the TDLib instance was not running."
-IGNORE_BACKGROUND_UPDATES = getenv("IGNORE_BACKGROUND_UPDATES", "True").lower() == "true"
+IGNORE_BACKGROUND_UPDATES = (
+    getenv("IGNORE_BACKGROUND_UPDATES", "True").lower() == "true"
+)
+
 
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
     """Parse COOKIES_URL environment variable"""
     if not env_value:
         return []
     urls = []
-    for part in env_value.split(','):
+    for part in env_value.split(","):
         urls.extend(part.split())
 
     return [url.strip() for url in urls if url.strip()]
+
 
 "BatBin urls to download cookies; more info https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md"
 COOKIES_URL: list[str] = process_cookie_urls(getenv("COOKIES_URL", ""))

@@ -88,16 +88,16 @@ class MusicBot:
             return types.Error(code=500, message=str(e))
 
     async def start_client(
-            self, api_id: int, api_hash: str, session_string: str
+        self, api_id: int, api_hash: str, session_string: str
     ) -> None:
         """Start a new Pyrogram client and PyTgCalls instance."""
         client_name = f"client{self.client_counter}"
         try:
             user_bot = PyroClient(
-                    client_name,
-                    api_id=api_id,
-                    api_hash=api_hash,
-                    session_string=session_string,
+                client_name,
+                api_id=api_id,
+                api_hash=api_hash,
+                session_string=session_string,
             )
             calls = PyTgCalls(user_bot, cache_duration=100)
             self.calls[client_name] = calls
@@ -113,6 +113,7 @@ class MusicBot:
     async def register_decorators(self) -> None:
         """Register event handlers for all clients."""
         for call_instance in self.calls.values():
+
             async def _handle_stream_ended(update: Update):
                 await self.play_next(update.chat_id)
 
@@ -121,56 +122,63 @@ class MusicBot:
 
             @call_instance.on_update()
             async def general_handler(_, update: Update):
-
                 try:
                     LOGGER.debug(f"Received update: {update}")
                     if isinstance(update, stream.StreamEnded):
                         return await _handle_stream_ended(update)
                     if isinstance(update, UpdatedGroupCallParticipant):
                         return None
-                    if isinstance(update, ChatUpdate) and (update.status.KICKED or update.status.LEFT_GROUP):
+                    if isinstance(update, ChatUpdate) and (
+                        update.status.KICKED or update.status.LEFT_GROUP
+                    ):
                         return await _handle_chat_update(update)
                 except Exception as e:
                     LOGGER.error(f"Error in general handler: {e}")
 
     async def play_media(
-            self,
-            chat_id: int,
-            file_path: Union[str, Path],
-            video: bool = False,
-            ffmpeg_parameters: Optional[str] = None,
+        self,
+        chat_id: int,
+        file_path: Union[str, Path],
+        video: bool = False,
+        ffmpeg_parameters: Optional[str] = None,
     ) -> None:
         """Play media on a specific client."""
         LOGGER.info(f"Playing media for chat {chat_id}: {file_path}")
         try:
             _stream = MediaStream(
-                    audio_path=file_path,
-                    media_path=file_path,
-                    audio_parameters=AudioQuality.MEDIUM if video else AudioQuality.STUDIO,
-                    video_parameters=VideoQuality.FHD_1080p if video else VideoQuality.SD_360p,
-                    video_flags=(
-                            MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE
-                    ),
-                    ffmpeg_parameters=ffmpeg_parameters,
+                audio_path=file_path,
+                media_path=file_path,
+                audio_parameters=AudioQuality.HIGH if video else AudioQuality.STUDIO,
+                video_parameters=(
+                    VideoQuality.FHD_1080p if video else VideoQuality.SD_360p
+                ),
+                video_flags=(
+                    MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE
+                ),
+                ffmpeg_parameters=ffmpeg_parameters,
             )
 
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].play(chat_id, _stream)
             if await db.get_logger_status():
-                asyncio.create_task(send_logger(self.bot, chat_id, chat_cache.get_current_song(chat_id)))
+                asyncio.create_task(
+                    send_logger(self.bot, chat_id, chat_cache.get_current_song(chat_id))
+                )
         except (errors.ChatAdminRequired, exceptions.NoActiveGroupCall) as e:
             LOGGER.warning(f"Error playing media for chat {chat_id}: {e}")
             chat_cache.clear_chat(chat_id)
             raise CallError(
-                    "No active group call \nPlease start a call and try again"
+                "No active group call \nPlease start a call and try again"
             ) from e
         except TelegramServerError as e:
-            LOGGER.warning(f"Error playing media for chat {chat_id}: TelegramServerError")
+            LOGGER.warning(
+                f"Error playing media for chat {chat_id}: TelegramServerError"
+            )
             raise CallError("TelegramServerError\ntry again after some time") from e
         except exceptions.UnMuteNeeded as e:
             LOGGER.warning(f"Error playing media for chat {chat_id}: {e}")
             raise CallError(
-                    "Needed to unmute the userbot first \nPlease unmute my assistant and try again"
+                "Needed to unmute the userbot first \nPlease unmute my assistant and try again"
             ) from e
         except Exception as e:
             LOGGER.error(f"Error playing media for chat {chat_id}: {e}", exc_info=True)
@@ -214,31 +222,42 @@ class MusicBot:
 
             duration = song.duration or await get_audio_duration(file_path)
             text = (
-                    f"<b>Now playing <a href='{song.thumbnail or 'https://t.me/FallenProjects'}'>:</a></b>\n\n"
-                    f"‣ <b>Title:</b> {song.name}\n"
-                    f"‣ <b>Duration:</b> {sec_to_min(duration)}\n"
-                    f"‣ <b>Requested by:</b> {song.user}"
+                f"<b>Now playing <a href='{song.thumbnail or 'https://t.me/FallenProjects'}'>:</a></b>\n\n"
+                f"‣ <b>Title:</b> {song.name}\n"
+                f"‣ <b>Duration:</b> {sec_to_min(duration)}\n"
+                f"‣ <b>Requested by:</b> {song.user}"
             )
 
-            thumbnail = await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
+            thumbnail = (
+                await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
+            )
             parse = await self.bot.parseTextEntities(text, types.TextParseModeHTML())
             if isinstance(parse, types.Error):
                 LOGGER.error(f"Parse error: {parse}")
                 parse = parse.message
             if thumbnail:
-                input_content = types.InputMessagePhoto(photo=types.InputFileLocal(thumbnail), caption=parse)
+                input_content = types.InputMessagePhoto(
+                    photo=types.InputFileLocal(thumbnail), caption=parse
+                )
                 reply = await self.bot.editMessageMedia(
                     chat_id=chat_id,
                     message_id=reply.id,
                     input_message_content=input_content,
-                    reply_markup=PlayButton if await db.get_buttons_status(chat_id) else None,
+                    reply_markup=(
+                        PlayButton if await db.get_buttons_status(chat_id) else None
+                    ),
                 )
             else:
                 reply = await self.bot.editMessageText(
                     chat_id=chat_id,
                     message_id=reply.id,
-                    input_message_content=types.InputMessageText(text=parse, link_preview_options=types.LinkPreviewOptions(is_disabled=True)),
-                    reply_markup=PlayButton if await db.get_buttons_status(chat_id) else None,
+                    input_message_content=types.InputMessageText(
+                        text=parse,
+                        link_preview_options=types.LinkPreviewOptions(is_disabled=True),
+                    ),
+                    reply_markup=(
+                        PlayButton if await db.get_buttons_status(chat_id) else None
+                    ),
                 )
             if isinstance(reply, types.Error):
                 LOGGER.warning(f"Error editing message: {reply}")
@@ -250,16 +269,16 @@ class MusicBot:
     async def song_download(song: CachedTrack) -> Optional[Path]:
         """Handle song downloading based on platform."""
         platform_handlers = {
-                "youtube": YouTubeData(song.track_id),
-                "jiosaavn": JiosaavnData(song.url),
-                "spotify": ApiData(song.track_id),
-                "apple_music": ApiData(song.url),
-                "soundcloud": ApiData(song.url),
+            "youtube": YouTubeData(song.track_id),
+            "jiosaavn": JiosaavnData(song.url),
+            "spotify": ApiData(song.track_id),
+            "apple_music": ApiData(song.url),
+            "soundcloud": ApiData(song.url),
         }
 
         if handler := platform_handlers.get(song.platform.lower()):
             if track := await handler.get_track():
-                return await handler.download_track(track)
+                return await handler.download_track(track, song.is_video)
 
         LOGGER.warning(f"Unknown platform: {song.platform} for track: {song.track_id}")
         return None
@@ -271,21 +290,21 @@ class MusicBot:
 
             if recommendations := await MusicServiceWrapper().get_recommendations():
                 buttons = [
-                        [
-                                types.InlineKeyboardButton(
-                                        f"{track.name[:18]} - {track.artist}",
-                                        type=types.InlineKeyboardButtonTypeCallback(
-                                                f"play_{track.platform}_{track.id}".encode()
-                                        ),
-                                )
-                        ]
-                        for track in recommendations.tracks
+                    [
+                        types.InlineKeyboardButton(
+                            f"{track.name[:18]} - {track.artist}",
+                            type=types.InlineKeyboardButtonTypeCallback(
+                                f"play_{track.platform}_{track.id}".encode()
+                            ),
+                        )
+                    ]
+                    for track in recommendations.tracks
                 ]
 
                 reply = await self.bot.sendTextMessage(
-                        chat_id,
-                        text="No more songs in queue. Here are some recommendations:\n\n",
-                        reply_markup=types.ReplyMarkupInlineKeyboard(buttons),
+                    chat_id,
+                    text="No more songs in queue. Here are some recommendations:\n\n",
+                    reply_markup=types.ReplyMarkupInlineKeyboard(buttons),
                 )
 
                 if isinstance(reply, types.Error):
@@ -293,7 +312,7 @@ class MusicBot:
                 return
 
             reply = await self.bot.sendTextMessage(
-                    chat_id, text="No more songs in queue. Use /play to add some."
+                chat_id, text="No more songs in queue. Use /play to add some."
             )
 
             if isinstance(reply, types.Error):
@@ -301,7 +320,7 @@ class MusicBot:
 
         except Exception as e:
             LOGGER.error(
-                    f"Error in _handle_no_songs for chat {chat_id}: {e}", exc_info=True
+                f"Error in _handle_no_songs for chat {chat_id}: {e}", exc_info=True
             )
 
     async def end(self, chat_id: int) -> None:
@@ -317,7 +336,7 @@ class MusicBot:
             LOGGER.error(f"Error ending call for chat {chat_id}: {e}")
 
     async def seek_stream(
-            self, chat_id: int, file_path_or_url: str, to_seek: int, duration: int
+        self, chat_id: int, file_path_or_url: str, to_seek: int, duration: int
     ) -> None:
         """Seek to a specific position in the stream."""
         try:
@@ -328,7 +347,7 @@ class MusicBot:
                 ffmpeg_params = f"-ss {to_seek} -to {duration}"
 
             await self.play_media(
-                    chat_id, file_path_or_url, ffmpeg_parameters=ffmpeg_params
+                chat_id, file_path_or_url, ffmpeg_parameters=ffmpeg_params
             )
         except Exception as e:
             LOGGER.error(f"Error in seek_stream: {e}")
@@ -345,9 +364,9 @@ class MusicBot:
 
         try:
             await self.play_media(
-                    chat_id,
-                    curr_song.file_path,
-                    ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}",
+                chat_id,
+                curr_song.file_path,
+                ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}",
             )
         except Exception as e:
             LOGGER.error(f"Error changing speed for chat {chat_id}: {e}")
@@ -429,8 +448,8 @@ class MusicBot:
         try:
             client_name = await self._get_client_name(chat_id)
             return (
-                    self.calls[client_name].ping,
-                    await self.calls[client_name].cpu_usage,
+                self.calls[client_name].ping,
+                await self.calls[client_name].cpu_usage,
             )
         except Exception as e:
             LOGGER.error(f"Error getting stats for chat {chat_id}: {e}")
@@ -446,10 +465,10 @@ async def start_clients() -> None:
 
     try:
         await asyncio.gather(
-                *[
-                        call.start_client(config.API_ID, config.API_HASH, s)
-                        for s in session_strings
-                ]
+            *[
+                call.start_client(config.API_ID, config.API_HASH, s)
+                for s in session_strings
+            ]
         )
         LOGGER.info("✅ Clients started successfully.")
     except Exception as exc:

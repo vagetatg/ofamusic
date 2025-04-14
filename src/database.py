@@ -34,7 +34,7 @@ class Database:
         if chat_id in self.chat_cache:
             return self.chat_cache[chat_id]
         try:
-            if chat :=  await self.chat_db.find_one({"_id": chat_id}):
+            if chat := await self.chat_db.find_one({"_id": chat_id}):
                 self.chat_cache[chat_id] = chat
             return chat
         except Exception as e:
@@ -47,7 +47,9 @@ class Database:
             await self.chat_db.insert_one({"_id": chat_id})
 
     async def _update_chat_field(self, chat_id: int, key: str, value) -> None:
-        await self.chat_db.update_one({"_id": chat_id}, {"$set": {key: value}}, upsert=True)
+        await self.chat_db.update_one(
+            {"_id": chat_id}, {"$set": {key: value}}, upsert=True
+        )
         cached = self.chat_cache.get(chat_id, {})
         cached[key] = value
         self.chat_cache[chat_id] = cached

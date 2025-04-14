@@ -12,9 +12,13 @@ from pytdbot import filters, types
 class Filter:
     @staticmethod
     def _extract_text(event) -> str | None:
-        if isinstance(event, types.Message) and isinstance(event.content, types.MessageText):
+        if isinstance(event, types.Message) and isinstance(
+            event.content, types.MessageText
+        ):
             return event.content.text.text
-        if isinstance(event, types.UpdateNewMessage) and isinstance(event.message, types.MessageText):
+        if isinstance(event, types.UpdateNewMessage) and isinstance(
+            event.message, types.MessageText
+        ):
             return event.message.text.text
         if isinstance(event, types.UpdateNewCallbackQuery) and event.payload:
             return event.payload.data.decode()
@@ -22,7 +26,9 @@ class Filter:
         return None
 
     @staticmethod
-    def command(commands: Union[str, list[str]], prefixes: str = "/!") -> filters.Filter:
+    def command(
+        commands: Union[str, list[str]], prefixes: str = "/!"
+    ) -> filters.Filter:
         """
         Filter for commands. Supports multiple commands and prefixes like / or !.
         Also handles commands with @mentions (e.g., /start@BotName).
@@ -32,8 +38,7 @@ class Filter:
         commands_set = {cmd.lower() for cmd in commands}
 
         pattern = re.compile(
-                fr"^[{re.escape(prefixes)}](\w+)(?:@(\w+))?",
-                re.IGNORECASE
+            rf"^[{re.escape(prefixes)}](\w+)(?:@(\w+))?", re.IGNORECASE
         )
 
         async def filter_func(client, event) -> bool:
