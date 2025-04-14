@@ -3,16 +3,19 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import asyncio
-
 from config import OWNER_ID
 from src import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
 from src.modules.utils.play_helpers import extract_argument, del_msg
-
 from pytdbot import types, Client
 
-REQUEST_LIMIT = 5
+# Broadcast tuning
+REQUEST_LIMIT = 10  # concurrency per batch
+BATCH_SIZE = 100    # targets per batch
+BATCH_DELAY = 5     # seconds between batches
+MAX_RETRIES = 2
+
 semaphore = asyncio.Semaphore(REQUEST_LIMIT)
 VALID_TARGETS = {"all", "users", "chats"}
 
@@ -23,48 +26,55 @@ async def get_broadcast_targets(target: str) -> tuple[list[int], list[int]]:
     return users, chats
 
 
-async def send_message(target_id: int, message: types.Message, is_copy: bool) -> bool:
-    try:
-        async with semaphore:
-            result = await (
-                message.copy(target_id) if is_copy else message.forward(target_id)
-            )
+async def send_message_with_retry(target_id: int, message: types.Message, is_copy: bool) -> int:
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            async with semaphore:
+                result = await (message.copy(target_id) if is_copy else message.forward(target_id))
+
             if isinstance(result, types.Error):
                 if result.code == 429:
                     retry_after = (
                         int(result.message.split("retry after ")[1])
                         if "retry after" in result.message
-                        else 5
+                        else 2
                     )
-                    LOGGER.warning(
-                        f"Rate limited, retrying in {retry_after} seconds..."
-                    )
+                    LOGGER.warning(f"[FloodWait] Retry {attempt}/{MAX_RETRIES} in {retry_after}s for {target_id}")
                     await asyncio.sleep(retry_after)
-                    await (
-                        message.copy(target_id)
-                        if is_copy
-                        else message.forward(target_id)
-                    )
+                    continue
                 elif result.code == 400:
-                    LOGGER.warning(f"Invalid target {target_id}: {result.message}")
-                    return False
-                return False
-        return True
-    except Exception as e:
-        LOGGER.error(f"Failed to send to {target_id}: {str(e)}")
-        return False
+                    LOGGER.warning(f"Bad request for {target_id}: {result.message}")
+                    return 0
+                return 0
+
+            return 1
+
+        except Exception as e:
+            LOGGER.error(f"[Error] {target_id}: {e}")
+            await asyncio.sleep(2)
+
+    return 0
 
 
-async def broadcast_to_targets(
-    targets: list[int], message: types.Message, is_copy: bool
-) -> tuple[int, int]:
+async def broadcast_to_targets(targets: list[int], message: types.Message, is_copy: bool) -> tuple[int, int]:
     sent = failed = 0
-    for target_id in targets:
-        success = await send_message(target_id, message, is_copy)
-        if success:
-            sent += 1
-        else:
-            failed += 1
+
+    for i in range(0, len(targets), BATCH_SIZE):
+        batch = targets[i:i + BATCH_SIZE]
+        LOGGER.info(f"Sending batch {i // BATCH_SIZE + 1}/{(len(targets) + BATCH_SIZE - 1) // BATCH_SIZE}")
+
+        results = await asyncio.gather(*[
+            send_message_with_retry(tid, message, is_copy) for tid in batch
+        ])
+
+        batch_sent = sum(results)
+        batch_failed = len(batch) - batch_sent
+        sent += batch_sent
+        failed += batch_failed
+
+        LOGGER.info(f"Batch sent: {batch_sent}, failed: {batch_failed}")
+        await asyncio.sleep(BATCH_DELAY)
+
     return sent, failed
 
 
@@ -77,47 +87,50 @@ async def broadcast(_: Client, message: types.Message):
     args = extract_argument(message.text)
     if not args:
         return await message.reply_text(
-            "Usage: /broadcast [all|users|chats] [copy]\n"
-            "• all: Send to all users and chats\n"
-            "• users: Send to users only\n"
-            "• chats: Send to chats only\n"
-            "• copy: Send as copy (no forward info)"
+            "Usage: <code>/broadcast [all|users|chats] [copy]</code>\n"
+            "• <b>all</b>: All users and chats\n"
+            "• <b>users</b>: Only users\n"
+            "• <b>chats</b>: Only groups/channels\n"
+            "• <b>copy</b>: Send as copy (no forward tag)"
         )
 
     parts = args.lower().split()
     is_copy = "copy" in parts
-
     target = next((p for p in parts if p in VALID_TARGETS), None)
+
     if not target:
-        return await message.reply_text(
-            "Please specify one of the following targets: all, users, chats."
-        )
+        return await message.reply_text("Please specify a valid target: all, users, or chats.")
 
     reply = await message.getRepliedMessage() if message.reply_to_message_id else None
     if not reply or isinstance(reply, types.Error):
-        error_msg = str(reply) if isinstance(reply, types.Error) else ""
-        return await message.reply_text(
-            f"Please reply to the message you want to broadcast.\n\n{error_msg}"
-        )
+        return await message.reply_text("Please reply to a message to broadcast.")
 
     users, chats = await get_broadcast_targets(target)
     if not users and not chats:
         return await message.reply_text("No users or chats to broadcast to.")
 
-    user_task = broadcast_to_targets(users, reply, is_copy) if users else (0, 0)
-    chat_task = broadcast_to_targets(chats, reply, is_copy) if chats else (0, 0)
+    started = await message.reply_text(
+        text=f"📣 Starting broadcast to {len(users) + len(chats)} target(s)...\n"
+        f"• Users: {len(users)}\n"
+        f"• Chats: {len(chats)}\n"
+        f"• Mode: {'Copy' if is_copy else 'Forward'}",
+        disable_web_page_preview=True,
+    )
 
-    user_sent, user_failed = await user_task
-    chat_sent, chat_failed = await chat_task
+    if isinstance(started, types.Error):
+        LOGGER.warning(f"Error starting broadcast: {started}")
+        return
 
-    summary = (
-        f"✅ <b>Broadcast Summary</b>\n"
+    user_sent, user_failed = await broadcast_to_targets(users, reply, is_copy)
+    chat_sent, chat_failed = await broadcast_to_targets(chats, reply, is_copy)
+
+    await started.edit_text(
+        text=f"✅ <b>Broadcast Summary</b>\n"
         f"• Total Sent: {user_sent + chat_sent}\n"
         f"  - Users: {user_sent}\n"
         f"  - Chats: {chat_sent}\n"
         f"• Total Failed: {user_failed + chat_failed}\n"
         f"  - Users: {user_failed}\n"
-        f"  - Chats: {chat_failed}"
+        f"  - Chats: {chat_failed}",
+        disable_web_page_preview=True,
     )
-
-    await message.reply_text(summary)
