@@ -12,8 +12,8 @@ from pytdbot import types, Client
 
 # Broadcast tuning
 REQUEST_LIMIT = 10  # concurrency per batch
-BATCH_SIZE = 100    # targets per batch
-BATCH_DELAY = 5     # seconds between batches
+BATCH_SIZE = 100  # targets per batch
+BATCH_DELAY = 5  # seconds between batches
 MAX_RETRIES = 2
 
 semaphore = asyncio.Semaphore(REQUEST_LIMIT)
@@ -26,11 +26,15 @@ async def get_broadcast_targets(target: str) -> tuple[list[int], list[int]]:
     return users, chats
 
 
-async def send_message_with_retry(target_id: int, message: types.Message, is_copy: bool) -> int:
+async def send_message_with_retry(
+    target_id: int, message: types.Message, is_copy: bool
+) -> int:
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             async with semaphore:
-                result = await (message.copy(target_id) if is_copy else message.forward(target_id))
+                result = await (
+                    message.copy(target_id) if is_copy else message.forward(target_id)
+                )
 
             if isinstance(result, types.Error):
                 if result.code == 429:
@@ -39,7 +43,9 @@ async def send_message_with_retry(target_id: int, message: types.Message, is_cop
                         if "retry after" in result.message
                         else 2
                     )
-                    LOGGER.warning(f"[FloodWait] Retry {attempt}/{MAX_RETRIES} in {retry_after}s for {target_id}")
+                    LOGGER.warning(
+                        f"[FloodWait] Retry {attempt}/{MAX_RETRIES} in {retry_after}s for {target_id}"
+                    )
                     await asyncio.sleep(retry_after)
                     continue
                 elif result.code == 400:
@@ -56,16 +62,20 @@ async def send_message_with_retry(target_id: int, message: types.Message, is_cop
     return 0
 
 
-async def broadcast_to_targets(targets: list[int], message: types.Message, is_copy: bool) -> tuple[int, int]:
+async def broadcast_to_targets(
+    targets: list[int], message: types.Message, is_copy: bool
+) -> tuple[int, int]:
     sent = failed = 0
 
     for i in range(0, len(targets), BATCH_SIZE):
-        batch = targets[i:i + BATCH_SIZE]
-        LOGGER.info(f"Sending batch {i // BATCH_SIZE + 1}/{(len(targets) + BATCH_SIZE - 1) // BATCH_SIZE}")
+        batch = targets[i : i + BATCH_SIZE]
+        LOGGER.info(
+            f"Sending batch {i // BATCH_SIZE + 1}/{(len(targets) + BATCH_SIZE - 1) // BATCH_SIZE}"
+        )
 
-        results = await asyncio.gather(*[
-            send_message_with_retry(tid, message, is_copy) for tid in batch
-        ])
+        results = await asyncio.gather(
+            *[send_message_with_retry(tid, message, is_copy) for tid in batch]
+        )
 
         batch_sent = sum(results)
         batch_failed = len(batch) - batch_sent
@@ -99,7 +109,9 @@ async def broadcast(_: Client, message: types.Message):
     target = next((p for p in parts if p in VALID_TARGETS), None)
 
     if not target:
-        return await message.reply_text("Please specify a valid target: all, users, or chats.")
+        return await message.reply_text(
+            "Please specify a valid target: all, users, or chats."
+        )
 
     reply = await message.getRepliedMessage() if message.reply_to_message_id else None
     if not reply or isinstance(reply, types.Error):

@@ -46,7 +46,7 @@ class Telegram(Client):
         self.call_manager = InactiveCallManager(self)
         self.db = db
 
-    async def start(self, login: bool = True) -> None:
+    async def start(self) -> None:
         await self.db.ping()
         await start_clients()
         await call.add_bot(self)
