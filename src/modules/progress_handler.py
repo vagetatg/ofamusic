@@ -125,23 +125,25 @@ async def update_file(c: Client, update: types.UpdateFile):
         )
     if isinstance(edit, types.Error):
         LOGGER.error(f"Progress update error: {edit}")
+
     if file.local.is_downloading_completed:
+        elapsed_time = max(now - progress["start_time"], 1e-6)
+        avg_speed = total / elapsed_time
+
         complete_text = (
             f"✅ <b>Download Complete:</b> <code>{filename}</code>\n"
             f"💾 <b>Size:</b> {_format_bytes(total)}\n"
-            f"⏱ <b>Time Taken:</b> {_format_time(now - progress['start_time'])}\n"
-            f"⚡ <b>Avg Speed:</b> {_format_bytes(total / (now - progress['start_time']))}/s"
+            f"⏱ <b>Time Taken:</b> {_format_time(elapsed_time)}\n"
+            f"⚡ <b>Avg Speed:</b> {_format_bytes(avg_speed)}/s"
         )
 
         parse = await c.parseTextEntities(complete_text, types.TextParseModeHTML())
         done = await c.editMessageText(
-                chat_id,
-                message_id,
-                input_message_content=types.InputMessageText(parse)
-            )
+            chat_id,
+            message_id,
+            input_message_content=types.InputMessageText(parse)
+        )
         if isinstance(done, types.Error):
             LOGGER.error(f"Progress update error: {done}")
 
         download_progress.pop(file_id, None)
-
-    return
