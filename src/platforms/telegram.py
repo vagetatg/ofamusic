@@ -84,7 +84,7 @@ class Telegram:
         return 0, "UnknownMedia"
 
     async def dl(self) -> Union[Tuple[Error, str], Tuple[LocalFile, str]]:
-        """Asynchronously download the media file with progress, speed and ETA."""
+        """Download file with proper progress tracking and 1-second sleep."""
         if not self.is_valid():
             return (
                 types.Error(message="Invalid or unsupported media file."),
@@ -92,102 +92,122 @@ class Telegram:
             )
 
         total_size, file_name = self._extract_file_info()
-        file_id = self.msg.remote_unique_file_id
+        file_id = "TODo" # self.msg.remote_file_id
         button = types.ReplyMarkupInlineKeyboard(
             [
                 [
                     types.InlineKeyboardButton(
-                        text="Stop Download",
+                        text="✗ Cancel Download",
                         type=types.InlineKeyboardButtonTypeCallback(f"play_cancel_{file_id}".encode())
                     ),
                 ],
             ]
         )
 
+        # Send initial progress message
         msg = await self.msg._client.sendTextMessage(
-            self.msg.chat_id,
-            f"📥 <b>Downloading:</b> <code>{file_name}</code>\n"
-            f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
-            "📊 <b>Progress:</b> 0% ▱▱▱▱▱▱▱▱▱▱\n"
-            "🚀 <b>Speed:</b> 0B/s\n"
-            "⏳ <b>ETA:</b> Calculating...",
+            chat_id=self.msg.chat_id,
+            text=f"📥 <b>Downloading:</b> <code>{file_name}</code>\n"
+                 f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
+                 "📊 <b>Progress:</b> 0% ▱▱▱▱▱▱▱▱▱▱\n"
+                 "🚀 <b>Speed:</b> 0B/s\n"
+                 "⏳ <b>ETA:</b> Calculating...",
             reply_markup=button,
         )
-
         if isinstance(msg, types.Error):
             LOGGER.error("Error sending download message: %s", msg)
             return msg, "ErrorSendingMessage"
 
-        # Initialize tracking variables
-        self._download_start_time = time.time()
-        self._last_update_time = self._download_start_time
-        self._last_bytes_received = 0
-        last_reported = 0
-        update_threshold = max(total_size // 5, 10 * 1024 * 1024)  # Update every 20% or 10MB
-        progress_updates = 0
-        max_updates = 6
-
         try:
-            local_file = await self.msg.download(synchronous=True)
-            while not local_file.is_downloading_completed:
-                current_size = local_file.downloaded_prefix_size
-                current_time = time.time()
-                progress = (current_size / max(total_size, 1)) * 100
+            # Start download and get file descriptor
+            file_descriptor = await self.msg.download(synchronous=False)
+            if isinstance(file_descriptor, types.Error):
+                LOGGER.error("Error downloading file: %s", file_descriptor)
+                return file_descriptor, "ErrorDownloadingFile"
 
-                time_diff = current_time - self._last_update_time
-                bytes_diff = current_size - self._last_bytes_received
+            start_time = time.time()
+            last_update_time = start_time
+            last_bytes = 0
+            last_message = ""
+            consecutive_zero_updates = 0
+            max_zero_updates = 5
 
-                if time_diff > 0 and bytes_diff > 0:
-                    speed = bytes_diff / time_diff
-                    remaining_bytes = total_size - current_size
-                    eta = remaining_bytes / speed if speed > 0 else 0
-
-                    if (current_size - last_reported) >= update_threshold or progress >= 99:
-                        if progress_updates < max_updates:
-                            progress_bar = self._create_progress_bar(progress)
-                            try:
-                                msg = await msg.edit_text(
-                                    f"📥 <b>Downloading:</b> <code>{file_name}</code>\n"
-                                    f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
-                                    f"📊 <b>Progress:</b> {progress:.1f}% {progress_bar}\n"
-                                    f"📦 <b>Downloaded:</b> {self._format_bytes(current_size)}\n"
-                                    f"🚀 <b>Speed:</b> {self._format_bytes(speed)}/s\n"
-                                    f"⏳ <b>ETA:</b> {self._format_time(eta)}"
-                                )
-                                if isinstance(msg, types.Error):
-                                    LOGGER.error("Error updating download message: %s", msg)
-                                last_reported = current_size
-                                progress_updates += 1
-                                self._last_update_time = current_time
-                                self._last_bytes_received = current_size
-                            except Exception as e:
-                                LOGGER.error("Progress update failed: %s", e)
-
+            while True:
+                LOGGER.info("Downloading file... %s", file_descriptor)
                 await asyncio.sleep(1)
+                current_bytes = file_descriptor.downloaded_prefix_size
+                current_time = time.time()
+                if current_bytes == 0:
+                    consecutive_zero_updates += 1
+                    if consecutive_zero_updates >= max_zero_updates:
+                        return types.Error(code=500, message="Download stalled - no progress made"), "WTF ?"
+                    continue
+                else:
+                    consecutive_zero_updates = 0
+
+                progress = (current_bytes / total_size) * 100 if total_size > 0 else 0
+
+                # Calculate speed and ETA
+                time_diff = current_time - last_update_time
+                bytes_diff = current_bytes - last_bytes
+                speed = bytes_diff / time_diff if time_diff > 0 else 0
+                eta = (total_size - current_bytes) / speed if speed > 0 else 0
+
+                progress_bar = self._create_progress_bar(progress)
+                current_message = (
+                    f"📥 <b>Downloading:</b> <code>{file_name}</code>\n"
+                    f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
+                    f"📊 <b>Progress:</b> {progress:.1f}% {progress_bar}\n"
+                    f"🚀 <b>Speed:</b> {self._format_bytes(speed)}/s\n"
+                    f"⏳ <b>ETA:</b> {self._format_time(eta)}"
+                )
+
+                if current_message != last_message:
+                    try:
+                        new_msg = await msg.edit_text(
+                            text=current_message,
+                            reply_markup=button,
+                        )
+                        if isinstance(new_msg, types.Error):
+                            if new_msg.message == "MESSAGE_NOT_MODIFIED":
+                                LOGGER.debug("Message not modified (no changes)")
+                            else:
+                                LOGGER.error("Error updating message: %s", new_msg)
+                        else:
+                            last_message = current_message
+                    except Exception as e:
+                        return types.Error(code=500, message=str(e)), "DownloadFailed"
+
+                last_update_time = current_time
+                last_bytes = current_bytes
+                if current_bytes >= total_size > 0 or file_descriptor.is_downloading_completed:
+                    break
+
+            if not file_descriptor.is_downloading_completed:
+                raise Exception("Download did not complete successfully")
 
             # Download completed
-            total_time = time.time() - self._download_start_time
+            total_time = time.time() - start_time
             avg_speed = total_size / total_time if total_time > 0 else 0
 
             await msg.edit_text(
-                f"✅ <b>Downloaded Successfully</b>\n"
-                f"🎶 <b>File:</b> <code>{file_name}</code>\n"
-                f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
-                f"⏱️ <b>Time:</b> {self._format_time(total_time)}\n"
-                f"🚀 <b>Avg Speed:</b> {self._format_bytes(avg_speed)}/s\n"
-                f"📈 <b>Progress:</b> 100% [✅ Completed]"
+                f"✅ <b>Download Complete</b>\n"
+                f"📦 <b>File:</b> <code>{file_name}</code>\n"
+                f"📏 <b>Size:</b> {self._format_bytes(total_size)}\n"
+                f"⏱ <b>Time:</b> {self._format_time(total_time)}\n"
+                f"🚀 <b>Avg Speed:</b> {self._format_bytes(avg_speed)}/s"
             )
 
+            # Auto-delete after delay
             async def delete_msg():
-                await asyncio.sleep(1)
+                await asyncio.sleep(5)
                 await msg.delete()
 
             asyncio.create_task(delete_msg())
-            return local_file, file_name
+            return file_descriptor, file_name
 
         except Exception as e:
             LOGGER.error("Download failed: %s", e)
-            asyncio.create_task(msg.delete())
             return types.Error(code=500, message=str(e)), "DownloadFailed"
 
     @staticmethod
