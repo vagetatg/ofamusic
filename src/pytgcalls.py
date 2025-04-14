@@ -113,27 +113,24 @@ class MusicBot:
     async def register_decorators(self) -> None:
         """Register event handlers for all clients."""
         for call_instance in self.calls.values():
-
-            async def _handle_stream_ended(update: Update):
-                await self.play_next(update.chat_id)
-
-            async def _handle_chat_update(update: Update):
-                await chat_cache.clear_chat(update.chat_id)
-
             @call_instance.on_update()
             async def general_handler(_, update: Update):
                 try:
                     LOGGER.debug(f"Received update: {update}")
                     if isinstance(update, stream.StreamEnded):
-                        return await _handle_stream_ended(update)
-                    if isinstance(update, UpdatedGroupCallParticipant):
-                        return None
-                    if isinstance(update, ChatUpdate) and (
-                        update.status.KICKED or update.status.LEFT_GROUP
+                        await self.play_next(update.chat_id)
+                        return
+                    elif isinstance(update, UpdatedGroupCallParticipant):
+                        return
+                    elif isinstance(update, ChatUpdate) and (
+                            update.status.KICKED or update.status.LEFT_GROUP
                     ):
-                        return await _handle_chat_update(update)
+                        chat_cache.clear_chat(update.chat_id)
+                        return
+                    else:
+                        return
                 except Exception as e:
-                    LOGGER.error(f"Error in general handler: {e}")
+                    LOGGER.error(f"Error in general handler: {e}", exc_info=True)
 
     async def play_media(
         self,
