@@ -90,7 +90,7 @@ class Telegram:
             }
 
         LOGGER.info("Cache after insert: %s", Telegram.DownloaderCache.get(unique_id))
-        file_obj = await self.msg.download(synchronous=False)
+        file_obj = await self.msg.download(synchronous=True)
         return file_obj, file_name
 
     @staticmethod

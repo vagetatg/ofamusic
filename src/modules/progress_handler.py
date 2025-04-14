@@ -1,5 +1,4 @@
 import time
-
 from pytdbot import Client, types
 from src.logger import LOGGER
 from src.platforms.telegram import Telegram
@@ -49,7 +48,6 @@ def should_update_progress(file_id: int, percent: int) -> bool:
 
 @Client.on_updateFile()
 async def update_file(c: Client, update: types.UpdateFile):
-    # LOGGER.info("File updated: %s", update.file)
     file = update.file
     unique_id = file.remote.unique_id
 
@@ -72,9 +70,8 @@ async def update_file(c: Client, update: types.UpdateFile):
     if file_id not in download_progress:
         download_progress[file_id] = {
             "start_time": now,
-            "last_update": 0,
-            "last_size": 0,
-            "message_id": None,
+            "last_update": now,
+            "last_size": downloaded,
         }
 
     progress = download_progress[file_id]
@@ -99,24 +96,23 @@ async def update_file(c: Client, update: types.UpdateFile):
         f"⏳ <b>ETA:</b> {_format_time(eta) if eta >= 0 else 'Calculating...'}"
     )
 
+
     parse = await c.parseTextEntities(progress_text, types.TextParseModeHTML())
     edit = await c.editMessageText(chat_id, message_id, input_message_content=types.InputMessageText(parse))
     if isinstance(edit, types.Error):
-        LOGGER.error(f"Edit progress message failed: {edit}")
+        LOGGER.error(f"Progress update error: {edit}")
 
-    # Final completion message
     if file.local.is_downloading_completed:
         complete_text = (
             f"✅ <b>Download Complete:</b> <code>{filename}</code>\n"
             f"💾 <b>Size:</b> {_format_bytes(total)}\n"
             f"⏱ <b>Time Taken:</b> {_format_time(now - progress['start_time'])}"
         )
-        try:
-            parse = await c.parseTextEntities(complete_text, types.TextParseModeHTML())
-            await c.editMessageText(chat_id, message_id, input_message_content=types.InputMessageText(parse))
-        except Exception as e:
-            LOGGER.error(f"Completion message error: {e}")
-        finally:
-            download_progress.pop(file_id, None)
-            last_progress_update.pop(file_id, None)
-            tg.clear_cache(unique_id)
+        parse = await c.parseTextEntities(complete_text, types.TextParseModeHTML())
+        edit = await c.editMessageText(chat_id, message_id, input_message_content=types.InputMessageText(parse))
+        if isinstance(edit, types.Error):
+            LOGGER.error(f"Progress update error: {edit}")
+        download_progress.pop(file_id, None)
+        last_progress_update.pop(file_id, None)
+        tg.clear_cache(unique_id)
+        return
