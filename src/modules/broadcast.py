@@ -98,10 +98,10 @@ async def broadcast(_: Client, message: types.Message):
 
     # Broadcast to users and chats concurrently
     user_task = (
-        broadcast_to_targets(users, reply, target in "copy") if users else (0, 0)
+        broadcast_to_targets(users, reply, "copy" in target) if users else (0, 0)
     )
     chat_task = (
-        broadcast_to_targets(chats, reply, target in "copy") if chats else (0, 0)
+        broadcast_to_targets(chats, reply, "copy" in target) if chats else (0, 0)
     )
 
     user_sent, user_failed = await user_task
