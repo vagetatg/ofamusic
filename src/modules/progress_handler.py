@@ -68,7 +68,16 @@ async def update_file(c: Client, update: types.UpdateFile):
     meta = tg.get_cached_metadata(unique_id)
     if not meta:
         return
-
+    button = types.ReplyMarkupInlineKeyboard(
+        [
+            [
+                types.InlineKeyboardButton(
+                    text="✗ Cancel Download",
+                    type=types.InlineKeyboardButtonTypeCallback(f"play_cancel_{unique_id}".encode())
+                ),
+            ],
+        ]
+    )
     chat_id = meta["chat_id"]
     filename = meta["filename"]
     message_id = meta["message_id"]
@@ -118,9 +127,7 @@ async def update_file(c: Client, update: types.UpdateFile):
     )
 
     parse = await c.parseTextEntities(progress_text, types.TextParseModeHTML())
-    edit = await c.editMessageText(
-        chat_id, message_id, input_message_content=types.InputMessageText(parse)
-    )
+    edit = await c.editMessageText(chat_id, message_id, button, types.InputMessageText(parse))
     if isinstance(edit, types.Error):
         LOGGER.error(f"Progress update error: {edit}")
 
@@ -136,9 +143,7 @@ async def update_file(c: Client, update: types.UpdateFile):
         )
 
         parse = await c.parseTextEntities(complete_text, types.TextParseModeHTML())
-        done = await c.editMessageText(
-            chat_id, message_id, input_message_content=types.InputMessageText(parse)
-        )
+        done = await c.editMessageText(chat_id, message_id, button, types.InputMessageText(parse))
         if isinstance(done, types.Error):
             LOGGER.error(f"Progress update error: {done}")
 

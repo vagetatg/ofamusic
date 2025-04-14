@@ -532,6 +532,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
 
         elif data.startswith("play_cancel_"):
             _, _, file_id = data.split("_", 2)
+            LOGGER.info(f"Canceling download for file_id: {file_id}")
             file_info = await c.getRemoteFile(file_id)
             if isinstance(file_info, types.Error):
                 await message.answer("Error getting file info.", show_alert=True)
