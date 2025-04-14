@@ -61,7 +61,11 @@ class HttpxClient:
             LOGGER.error(f"Error closing HTTP session: {str(e)}")
 
     async def download_file(
-        self, url: str, file_path: Union[str, Path], overwrite: bool = False, **kwargs: Any,
+        self,
+        url: str,
+        file_path: Union[str, Path],
+        overwrite: bool = False,
+        **kwargs: Any,
     ) -> DownloadResult:
         """
         Download a file asynchronously with proper error handling.
