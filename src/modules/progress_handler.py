@@ -63,17 +63,17 @@ def _calculate_update_interval(file_size: int, current_speed: float) -> float:
 async def update_file(c: Client, update: types.UpdateFile):
     file = update.file
     unique_id = file.remote.unique_id
-
     tg = Telegram(None)
     meta = tg.get_cached_metadata(unique_id)
     if not meta:
         return
+
     button = types.ReplyMarkupInlineKeyboard(
         [
             [
                 types.InlineKeyboardButton(
-                    text="✗ Cancel Download",
-                    type=types.InlineKeyboardButtonTypeCallback(f"play_cancel_{unique_id}".encode())
+                    text="✗ Stop Downloading",
+                    type=types.InlineKeyboardButtonTypeCallback(f"play_c_{unique_id}".encode())
                 ),
             ],
         ]

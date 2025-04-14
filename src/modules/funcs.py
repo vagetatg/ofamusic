@@ -530,7 +530,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                     "⚠️ Error resuming the stream. Please try again.", alert=True
                 )
 
-        elif data.startswith("play_cancel_"):
+        elif data.startswith("play_c_"):
             _, _, file_id = data.split("_", 2)
             LOGGER.info(f"Canceling download for file_id: {file_id}")
             file_info = await c.getRemoteFile(file_id)
