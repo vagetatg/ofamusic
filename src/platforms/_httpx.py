@@ -61,7 +61,7 @@ class HttpxClient:
             LOGGER.error(f"Error closing HTTP session: {str(e)}")
 
     async def download_file(
-        self, url: str, file_path: Union[str, Path], overwrite: bool = False
+        self, url: str, file_path: Union[str, Path], overwrite: bool = False, **kwargs: Any,
     ) -> DownloadResult:
         """
         Download a file asynchronously with proper error handling.
@@ -81,9 +81,13 @@ class HttpxClient:
         if path.exists() and not overwrite:
             return DownloadResult(success=True, file_path=path)
 
+        headers = kwargs.pop("headers", {})
+        if config.API_URL and url.startswith(config.API_URL):
+            headers["X-API-Key"] = API_KEY
+
         try:
             async with self._session.stream(
-                "GET", url, timeout=self._download_timeout
+                "GET", url, timeout=self._download_timeout, headers=headers
             ) as response:
                 response.raise_for_status()
                 path.parent.mkdir(parents=True, exist_ok=True)
