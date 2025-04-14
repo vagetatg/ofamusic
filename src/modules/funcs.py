@@ -32,7 +32,7 @@ async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message]:
 
 
 async def handle_playback_action(
-    _: Client, msg: types.Message, action, success_msg: str, fail_msg: str
+        _: Client, msg: types.Message, action, success_msg: str, fail_msg: str
 ) -> None:
     """Handle playback actions like stop, pause, resume, mute, unmute."""
     chat_id = await is_admin_or_reply(msg)
@@ -418,19 +418,8 @@ async def skip_song(_: Client, msg: types.Message) -> None:
         LOGGER.error(f"Error skipping song: {e}")
         await msg.reply_text(f"⚠️ Failed to skip the song.\nError: {e}")
 
-@Client.on_updateNewCallbackQuery(filters=Filter.regex(r"cancel_\w+"))
-async def stop_download(c: Client, m: types.UpdateNewCallbackQuery):
-    file_id = m.text.split("_")[1]
-    file_info = await c.getRemoteFile(file_id)
-    if isinstance(file_info, types.Error):
-        await m.answer("Error getting file info.", show_alert=True)
-        LOGGER.error(f"Error getting file info: {file_info.message}")
-        return
 
-    await c.cancelDownloadFile(file_info.id)
-    await m.answer("Download cancelled.", show_alert=True)
-    await c.deleteMessages(m.chat_id, [m.message_id])
-
+@Client.on_updateNewCallbackQuery(filters=Filter.regex(r"play_\w+"))
 async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> None:
     """Handle all play control callback queries (skip, stop, pause, resume, timer)."""
     try:
@@ -446,7 +435,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         user_name = user.first_name
 
         async def send_response(
-            msg: str, alert: bool = False, delete: bool = False, markup=None
+                msg: str, alert: bool = False, delete: bool = False, markup=None
         ) -> None:
             """Helper function to send responses consistently."""
             if alert:
@@ -540,6 +529,18 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 await send_response(
                     "⚠️ Error resuming the stream. Please try again.", alert=True
                 )
+
+        elif data.startswith("play_cancel_"):
+            _, _, file_id = data.split("_", 2)
+            file_info = await c.getRemoteFile(file_id)
+            if isinstance(file_info, types.Error):
+                await message.answer("Error getting file info.", show_alert=True)
+                LOGGER.error(f"Error getting file info: {file_info.message}")
+                return
+
+            await c.cancelDownloadFile(file_info.id)
+            await message.answer("Download cancelled.", show_alert=True)
+            await c.deleteMessages(message.chat_id, [message.message_id])
         else:  # Handle play song requests
             try:
                 _, platform, song_id = data.split("_", 2)

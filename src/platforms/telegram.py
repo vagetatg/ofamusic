@@ -75,12 +75,6 @@ class Telegram:
                         self.content.document.document.size,
                         self.content.document.file_name or "Document.mp4",
                     )
-                # TODO: remove this , this is just for test
-                else:
-                    return (
-                        self.content.document.document.size,
-                        self.content.document.file_name or "Document.IDK",
-                    )
         except Exception as e:
             LOGGER.error("Error while extracting file info: %s", e)
 
@@ -104,7 +98,7 @@ class Telegram:
                 [
                     types.InlineKeyboardButton(
                         text="Stop Download",
-                        type=types.InlineKeyboardButtonTypeCallback(f"cancel_{file_id}".encode())
+                        type=types.InlineKeyboardButtonTypeCallback(f"play_cancel_{file_id}".encode())
                     ),
                 ],
             ]
@@ -134,30 +128,25 @@ class Telegram:
         max_updates = 6
 
         try:
-            while True:
-                local_file = await self.msg.download()
-                if local_file.is_downloading_completed:
-                    break
-
+            local_file = await self.msg.download(synchronous=True)
+            while not local_file.is_downloading_completed:
                 current_size = local_file.downloaded_prefix_size
                 current_time = time.time()
                 progress = (current_size / max(total_size, 1)) * 100
 
-                # Calculate speed and ETA
                 time_diff = current_time - self._last_update_time
                 bytes_diff = current_size - self._last_bytes_received
 
                 if time_diff > 0 and bytes_diff > 0:
-                    speed = bytes_diff / time_diff  # Bytes per second
+                    speed = bytes_diff / time_diff
                     remaining_bytes = total_size - current_size
                     eta = remaining_bytes / speed if speed > 0 else 0
 
-                    # Update only if significant progress or last update
                     if (current_size - last_reported) >= update_threshold or progress >= 99:
                         if progress_updates < max_updates:
                             progress_bar = self._create_progress_bar(progress)
                             try:
-                                await msg.edit_text(
+                                msg = await msg.edit_text(
                                     f"📥 <b>Downloading:</b> <code>{file_name}</code>\n"
                                     f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
                                     f"📊 <b>Progress:</b> {progress:.1f}% {progress_bar}\n"
@@ -165,12 +154,14 @@ class Telegram:
                                     f"🚀 <b>Speed:</b> {self._format_bytes(speed)}/s\n"
                                     f"⏳ <b>ETA:</b> {self._format_time(eta)}"
                                 )
+                                if isinstance(msg, types.Error):
+                                    LOGGER.error("Error updating download message: %s", msg)
                                 last_reported = current_size
                                 progress_updates += 1
                                 self._last_update_time = current_time
                                 self._last_bytes_received = current_size
                             except Exception as e:
-                                LOGGER.debug("Progress update failed: %s", e)
+                                LOGGER.error("Progress update failed: %s", e)
 
                 await asyncio.sleep(1)
 
