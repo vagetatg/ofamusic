@@ -282,9 +282,14 @@ async def _handle_telegram_file(
     ) and reply.content.mime_type.startswith("video/")
     is_video = isinstance(reply.content, types.MessageVideo) or docs_vid
 
-    file_path, file_name = await telegram.dl()
+    file_path, file_name = await telegram.dl(reply_message)
     if isinstance(file_path, types.Error):
-        return await edit_text(reply_message, text=f"❌ {str(file_path)}")
+        return await edit_text(
+            reply_message,
+            text=f"❌ <b>Download Failed</b>\n\n"
+            f"🎶 <b>File:</b> <code>{file_name}</code>\n"
+            f"💬 <b>Error:</b> <code>{str(file_path.message)}</code>",
+        )
 
     _song = PlatformTracks(
         tracks=[

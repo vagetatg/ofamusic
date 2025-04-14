@@ -4,6 +4,7 @@
 
 from typing import Union, Optional
 
+from cachetools import TTLCache
 from pytdbot import types
 
 from src.logger import LOGGER
@@ -19,10 +20,19 @@ class Telegram:
         types.MessageSticker,
         types.MessageAnimation,
     )
+    DownloaderCache = TTLCache(maxsize=5000, ttl=600)
 
     def __init__(self, reply: Optional[types.Message]):
         self.msg = reply
         self.content = reply.content if reply else None
+        self._file_info: Optional[tuple[int, str]] = None
+
+    @property
+    def file_info(self) -> tuple[int, str]:
+        """Lazy-loaded property for file info."""
+        if self._file_info is None:
+            self._file_info = self._extract_file_info()
+        return self._file_info
 
     def is_valid(self) -> bool:
         """Check if the message contains a supported media type within size limits."""
@@ -32,12 +42,8 @@ class Telegram:
         if isinstance(self.content, self.UNSUPPORTED_TYPES):
             return False
 
-        file_size, _ = self._extract_file_info()
-        if file_size == 0 or file_size > self.MAX_FILE_SIZE:
-            LOGGER.info("Invalid file size: %s", file_size)
-            return False
-
-        return True
+        file_size, _ = self.file_info
+        return 0 < file_size <= self.MAX_FILE_SIZE
 
     def _extract_file_info(self) -> tuple[int, str]:
         """Extract file size and filename from supported media types."""
@@ -47,24 +53,18 @@ class Telegram:
                     self.content.video.video.size,
                     self.content.video.file_name or "Video.mp4",
                 )
-
             elif isinstance(self.content, types.MessageAudio):
                 return (
                     self.content.audio.audio.size,
                     self.content.audio.file_name or "Audio.mp3",
                 )
-
             elif isinstance(self.content, types.MessageVoiceNote):
                 return self.content.voice_note.voice.size, "VoiceNote.ogg"
-
             elif isinstance(self.content, types.MessageVideoNote):
                 return self.content.video_note.video.size, "VideoNote.mp4"
-
             elif isinstance(self.content, types.MessageDocument):
                 mime = (self.content.document.mime_type or "").lower()
-                if (mime and mime.startswith("audio/")) or (
-                    mime and mime.startswith("video/")
-                ):
+                if mime.startswith(("audio/", "video/")):
                     return (
                         self.content.document.document.size,
                         self.content.document.file_name or "Document.mp4",
@@ -72,18 +72,40 @@ class Telegram:
         except Exception as e:
             LOGGER.error("Error while extracting file info: %s", e)
 
-        LOGGER.info(
-            "Unknown or unsupported content type: %s", type(self.content).__name__
-        )
+        LOGGER.info("Unsupported content type: %s", type(self.content).__name__)
         return 0, "UnknownMedia"
 
-    async def dl(self) -> tuple[Union["types.Error", "types.LocalFile"], str]:
-        """Asynchronously download the media file."""
+    async def dl(
+        self, message: types.Message
+    ) -> tuple[Union[types.Error, types.LocalFile], str]:
+        """Download the media file with metadata caching."""
         if not self.is_valid():
             return (
                 types.Error(message="Invalid or unsupported media file."),
                 "InvalidMedia",
             )
 
-        _, file_name = self._extract_file_info()
-        return await self.msg.download(), file_name
+        unique_id = self.msg.remote_unique_file_id
+        chat_id = message.chat_id if message else self.msg.chat_id
+        _, file_name = self.file_info
+
+        if unique_id not in Telegram.DownloaderCache:
+            Telegram.DownloaderCache[unique_id] = {
+                "chat_id": chat_id,
+                "remote_file_id": self.msg.remote_file_id,
+                "filename": file_name,
+                "message_id": message.id,
+            }
+
+        file_obj = await self.msg.download(synchronous=True)
+        return file_obj, file_name
+
+    @staticmethod
+    def get_cached_metadata(
+        unique_id: str,
+    ) -> Optional[dict[str, Union[int, str, str, int]]]:
+        return Telegram.DownloaderCache.get(unique_id)
+
+    @staticmethod
+    def clear_cache(unique_id: str):
+        return Telegram.DownloaderCache.pop(unique_id, None)

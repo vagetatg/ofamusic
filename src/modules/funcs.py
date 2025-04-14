@@ -10,6 +10,7 @@ from pytdbot import types, Client
 from src.database import db
 from src.logger import LOGGER
 from src.modules.play import play_music, _get_platform_url
+from src.modules.progress_handler import _handle_play_c_data
 from src.modules.utils import PauseButton, ResumeButton, sec_to_min, Filter
 from src.modules.utils.admins import is_admin
 from src.modules.utils.cacher import chat_cache
@@ -529,7 +530,11 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 await send_response(
                     "⚠️ Error resuming the stream. Please try again.", alert=True
                 )
-        else:  # Handle play song requests
+
+        elif data.startswith("play_c_"):
+            await _handle_play_c_data(data, message, chat_id, user_id, user_name, c)
+            return
+        else:
             try:
                 _, platform, song_id = data.split("_", 2)
                 await message.answer(
