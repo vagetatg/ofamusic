@@ -3,7 +3,8 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import asyncio
-from typing import Optional
+import time
+from typing import Optional, Tuple, Union
 
 from pytdbot import types
 from pytdbot.types import Error, LocalFile
@@ -25,6 +26,9 @@ class Telegram:
     def __init__(self, reply: Optional[types.Message]):
         self.msg = reply
         self.content = reply.content if reply else None
+        self._download_start_time = 0
+        self._last_update_time = 0
+        self._last_bytes_received = 0
 
     def is_valid(self) -> bool:
         """Check if the message contains a supported media type within size limits."""
@@ -41,7 +45,7 @@ class Telegram:
 
         return True
 
-    def _extract_file_info(self) -> tuple[int, str]:
+    def _extract_file_info(self) -> Tuple[int, str]:
         """Extract file size and filename from supported media types."""
         try:
             if isinstance(self.content, types.MessageVideo):
@@ -65,7 +69,7 @@ class Telegram:
             elif isinstance(self.content, types.MessageDocument):
                 mime = (self.content.document.mime_type or "").lower()
                 if (mime and mime.startswith("audio/")) or (
-                    mime and mime.startswith("video/")
+                        mime and mime.startswith("video/")
                 ):
                     return (
                         self.content.document.document.size,
@@ -85,8 +89,8 @@ class Telegram:
         )
         return 0, "UnknownMedia"
 
-    async def dl(self) -> tuple[Error | LocalFile, str] | tuple[Error, str]:
-        """Asynchronously download the media file with smart progress updates."""
+    async def dl(self) -> Union[Tuple[Error, str], Tuple[LocalFile, str]]:
+        """Asynchronously download the media file with progress, speed and ETA."""
         if not self.is_valid():
             return (
                 types.Error(message="Invalid or unsupported media file."),
@@ -98,16 +102,21 @@ class Telegram:
         button = types.ReplyMarkupInlineKeyboard(
             [
                 [
-                    types.InlineKeyboardButton(text="Stop Download", type=types.InlineKeyboardButtonTypeCallback(f"cancel_{file_id}".encode())),
+                    types.InlineKeyboardButton(
+                        text="Stop Download",
+                        type=types.InlineKeyboardButtonTypeCallback(f"cancel_{file_id}".encode())
+                    ),
                 ],
             ]
         )
 
         msg = await self.msg._client.sendTextMessage(
             self.msg.chat_id,
-            f"📥 Downloading: {file_name}\n"
-            f"Size: {self._format_bytes(total_size)}\n"
-            "Progress: 0%",
+            f"📥 <b>Downloading:</b> <code>{file_name}</code>\n"
+            f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
+            "📊 <b>Progress:</b> 0% ▱▱▱▱▱▱▱▱▱▱\n"
+            "🚀 <b>Speed:</b> 0B/s\n"
+            "⏳ <b>ETA:</b> Calculating...",
             reply_markup=button,
         )
 
@@ -115,11 +124,14 @@ class Telegram:
             LOGGER.error("Error sending download message: %s", msg)
             return msg, "ErrorSendingMessage"
 
-        # Start download and track progress
+        # Initialize tracking variables
+        self._download_start_time = time.time()
+        self._last_update_time = self._download_start_time
+        self._last_bytes_received = 0
         last_reported = 0
         update_threshold = max(total_size // 5, 10 * 1024 * 1024)  # Update every 20% or 10MB
         progress_updates = 0
-        max_updates = 6  # Maximum number of progress updates
+        max_updates = 6
 
         try:
             while True:
@@ -128,56 +140,89 @@ class Telegram:
                     break
 
                 current_size = local_file.downloaded_prefix_size
+                current_time = time.time()
                 progress = (current_size / max(total_size, 1)) * 100
 
-                # Update only if significant progress or last update
-                if (current_size - last_reported) >= update_threshold or progress >= 99:
-                    if progress_updates < max_updates:
-                        progress_bar = self._create_progress_bar(progress)
-                        try:
-                            await msg.edit_text(
-                                f"📥 Downloading: {file_name}\n"
-                                f"Size: {self._format_bytes(total_size)}\n"
-                                f"Progress: {progress:.1f}% {progress_bar}\n"
-                                f"Downloaded: {self._format_bytes(current_size)}"
-                            )
-                            last_reported = current_size
-                            progress_updates += 1
-                        except Exception as e:
-                            LOGGER.debug("Progress update failed: %s", e)
+                # Calculate speed and ETA
+                time_diff = current_time - self._last_update_time
+                bytes_diff = current_size - self._last_bytes_received
 
-                await asyncio.sleep(2)  # Check every 2 seconds
+                if time_diff > 0 and bytes_diff > 0:
+                    speed = bytes_diff / time_diff  # Bytes per second
+                    remaining_bytes = total_size - current_size
+                    eta = remaining_bytes / speed if speed > 0 else 0
 
-            # Final update
+                    # Update only if significant progress or last update
+                    if (current_size - last_reported) >= update_threshold or progress >= 99:
+                        if progress_updates < max_updates:
+                            progress_bar = self._create_progress_bar(progress)
+                            try:
+                                await msg.edit_text(
+                                    f"📥 <b>Downloading:</b> <code>{file_name}</code>\n"
+                                    f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
+                                    f"📊 <b>Progress:</b> {progress:.1f}% {progress_bar}\n"
+                                    f"📦 <b>Downloaded:</b> {self._format_bytes(current_size)}\n"
+                                    f"🚀 <b>Speed:</b> {self._format_bytes(speed)}/s\n"
+                                    f"⏳ <b>ETA:</b> {self._format_time(eta)}"
+                                )
+                                last_reported = current_size
+                                progress_updates += 1
+                                self._last_update_time = current_time
+                                self._last_bytes_received = current_size
+                            except Exception as e:
+                                LOGGER.debug("Progress update failed: %s", e)
+
+                await asyncio.sleep(1)
+
+            # Download completed
+            total_time = time.time() - self._download_start_time
+            avg_speed = total_size / total_time if total_time > 0 else 0
+
             await msg.edit_text(
                 f"✅ <b>Downloaded Successfully</b>\n"
                 f"🎶 <b>File:</b> <code>{file_name}</code>\n"
                 f"💾 <b>Size:</b> {self._format_bytes(total_size)}\n"
+                f"⏱️ <b>Time:</b> {self._format_time(total_time)}\n"
+                f"🚀 <b>Avg Speed:</b> {self._format_bytes(avg_speed)}/s\n"
                 f"📈 <b>Progress:</b> 100% [✅ Completed]"
             )
+
             async def delete_msg():
                 await asyncio.sleep(1)
                 await msg.delete()
+
             asyncio.create_task(delete_msg())
             return local_file, file_name
 
         except Exception as e:
             LOGGER.error("Download failed: %s", e)
-            await msg.edit_text(f"❌ Download failed: {file_name}\nError: {str(e)}")
-            asyncio.create_task(self.msg.delete())
-            return types.Error(message=str(e)), "DownloadFailed"
+            asyncio.create_task(msg.delete())
+            return types.Error(code=500, message=str(e)), "DownloadFailed"
 
     @staticmethod
     def _create_progress_bar(progress: float, length: int = 10) -> str:
+        """Create a text progress bar with smooth animation."""
         blocks = ['▱', '▰']
         filled_length = int(progress / (100 / length))
         return '[' + blocks[1] * filled_length + blocks[0] * (length - filled_length) + ']'
 
     @staticmethod
-    def _format_bytes(size: int) -> str:
+    def _format_bytes(size: float) -> str:
         """Convert bytes to human-readable format."""
         for unit in ['B', 'KB', 'MB', 'GB']:
             if abs(size) < 1024.0:
                 return f"{size:.1f}{unit}"
             size /= 1024.0
         return f"{size:.1f}TB"
+
+    @staticmethod
+    def _format_time(seconds: float) -> str:
+        """Convert seconds to human-readable time format."""
+        if seconds < 60:
+            return f"{int(seconds)}s"
+        elif seconds < 3600:
+            return f"{int(seconds // 60)}m {int(seconds % 60)}s"
+        else:
+            hours = seconds // 3600
+            minutes = (seconds % 3600) // 60
+            return f"{int(hours)}h {int(minutes)}m"

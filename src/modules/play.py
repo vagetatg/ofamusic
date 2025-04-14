@@ -284,7 +284,12 @@ async def _handle_telegram_file(
 
     file_path, file_name = await telegram.dl()
     if isinstance(file_path, types.Error):
-        return await edit_text(reply_message, text=f"❌ {str(file_path)}")
+        return await edit_text(
+            reply_message,
+            text=f"❌ <b>Download Failed</b>\n\n"
+            f"🎶 <b>File:</b> <code>{file_name}</code>\n"
+            f"💬 <b>Error:</b> <code>{str(file_path.message)}</code>"
+        )
     _song = PlatformTracks(
         tracks=[
             MusicTrack(
@@ -448,6 +453,10 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
 
 @Client.on_message(filters=Filter.command("play"))
 async def play_audio(c: Client, msg: types.Message) -> None:
+    ok = await c.getMessageLinkInfo("https://t.me/DC_Speed_Test/65")
+    tg = Telegram(ok.message)
+    await tg.dl()
+
     await handle_play_command(c, msg, is_video=False)
 
 
