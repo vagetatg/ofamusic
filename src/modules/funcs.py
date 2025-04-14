@@ -10,12 +10,12 @@ from pytdbot import types, Client
 from src.database import db
 from src.logger import LOGGER
 from src.modules.play import play_music, _get_platform_url
+from src.modules.progress_handler import _handle_play_c_data
 from src.modules.utils import PauseButton, ResumeButton, sec_to_min, Filter
 from src.modules.utils.admins import is_admin
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.play_helpers import extract_argument, del_msg, edit_text
 from src.platforms.downloader import MusicServiceWrapper
-from src.platforms.telegram import Telegram
 from src.pytgcalls import call
 
 
@@ -532,30 +532,9 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 )
 
         elif data.startswith("play_c_"):
-            if not await is_admin(chat_id, user_id):
-                await message.answer("⚠️ You must be an admin to use this command.", show_alert=True)
-                return
-            _, _, file_id = data.split("_", 2)
-            meta = Telegram(None).get_cached_metadata(file_id)
-            if not meta:
-                await message.answer("Looks like this file already downloaded.", show_alert=True)
-                return
-
-            file_info = await c.getRemoteFile(meta["remote_file_id"])
-            if isinstance(file_info, types.Error):
-                await message.answer("Failed to get file info", show_alert=True)
-                LOGGER.error(f"Failed to get file info: {file_info.message}")
-                return
-
-            ok = await c.cancelDownloadFile(file_info.id)
-            if isinstance(ok, types.Error):
-                await message.answer(f"Failed to cancel download. {ok.message}", show_alert=True)
-                return
-
-            await message.answer("Download cancelled.", show_alert=True)
-            await message.edit_message_text(f"Download cancelled.\nRequested by: {user_name} 🥀")
+            await _handle_play_c_data(data, message, chat_id, user_id, user_name, c)
             return
-        else:  # Handle play song requests
+        else:
             try:
                 _, platform, song_id = data.split("_", 2)
                 await message.answer(
