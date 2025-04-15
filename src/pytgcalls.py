@@ -16,12 +16,18 @@ from pytdbot import Client, types
 
 import config
 from pytgcalls import PyTgCalls, exceptions
-from pytgcalls.types import (AudioQuality, ChatUpdate, MediaStream, Update,
-                             UpdatedGroupCallParticipant, VideoQuality, stream)
+from pytgcalls.types import (
+    AudioQuality,
+    ChatUpdate,
+    MediaStream,
+    Update,
+    UpdatedGroupCallParticipant,
+    VideoQuality,
+    stream,
+)
 from src.database import db
 from src.logger import LOGGER
-from src.modules.utils import (PlayButton, get_audio_duration, sec_to_min,
-                               send_logger)
+from src.modules.utils import PlayButton, get_audio_duration, sec_to_min, send_logger
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.thumbnails import gen_thumb
 from src.platforms import ApiData, JiosaavnData, YouTubeData

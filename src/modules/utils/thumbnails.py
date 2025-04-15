@@ -7,8 +7,7 @@ from io import BytesIO
 
 import httpx
 from aiofiles.os import path as aiopath
-from PIL import (Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont,
-                 ImageOps)
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
 from src.logger import LOGGER
 from src.platforms.dataclass import CachedTrack
