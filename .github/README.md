@@ -142,6 +142,7 @@ Say goodbye to restrictions with our **Premium Music API** – your ultimate sol
 ### 🔗 String Sessions
 
 - **STRING** - Pyrogram String Session, STRING2 ... STRING10
+> Get from [@StringFatherBot](https://t.me/StringFatherBot)
 
 ### 🛠️ Additional Configuration
 
