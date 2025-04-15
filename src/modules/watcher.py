@@ -48,7 +48,7 @@ async def handle_bot_join(client: Client, chat_id: int) -> None:
         LOGGER.warning(f"Failed to get supergroup info for {chat_id}")
         return
 
-    if chat_info.member_count < 50:
+    if chat_info.member_count < 0:
         text = (
             f"⚠️ This group has too few members ({chat_info.member_count}).\n\n"
             "To prevent spam and ensure proper functionality, "
