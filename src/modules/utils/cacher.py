@@ -3,7 +3,7 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 from collections import deque
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 
 class ChatCacher:

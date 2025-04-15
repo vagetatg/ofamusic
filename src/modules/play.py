@@ -9,26 +9,26 @@ from pytdbot import Client, types
 
 from src.database import db
 from src.logger import LOGGER
-from src.modules.utils import SupportButton, get_audio_duration, sec_to_min, Filter
-from src.modules.utils.admins import load_admin_cache, is_admin
+from src.modules.utils import Filter, SupportButton, get_audio_duration, sec_to_min
+from src.modules.utils.admins import is_admin, load_admin_cache
 from src.modules.utils.buttons import PlayButton
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.play_helpers import (
-    get_url,
-    edit_text,
-    user_status_cache,
-    unban_ub,
-    join_ub,
-    extract_argument,
     check_user_status,
     del_msg,
+    edit_text,
+    extract_argument,
+    get_url,
+    join_ub,
+    unban_ub,
+    user_status_cache,
 )
 from src.modules.utils.thumbnails import gen_thumb
 from src.platforms import YouTubeData
 from src.platforms.dataclass import CachedTrack, MusicTrack, PlatformTracks
 from src.platforms.downloader import MusicServiceWrapper
 from src.platforms.telegram import Telegram
-from src.pytgcalls import call, CallError
+from src.pytgcalls import CallError, call
 
 
 def _get_jiosaavn_url(track_id: str) -> str:
@@ -203,7 +203,7 @@ async def _handle_multiple_tracks(
                 user=user_by,
                 file_path="",
                 platform=track.platform,
-                is_video=False,  # TODO: get from args ? maybe
+                is_video=False,
                 url=track.url,
             ),
         )

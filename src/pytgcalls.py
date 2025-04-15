@@ -10,26 +10,27 @@ from pathlib import Path
 from typing import Optional, Union
 
 from ntgcalls import TelegramServerError
-from pyrogram import Client as PyroClient, errors
+from pyrogram import Client as PyroClient
+from pyrogram import errors
 from pytdbot import Client, types
-from pytgcalls import PyTgCalls, exceptions
-from pytgcalls.types import (
-    MediaStream,
-    Update,
-    stream,
-    VideoQuality,
-    AudioQuality,
-    ChatUpdate,
-    UpdatedGroupCallParticipant,
-)
 
 import config
+from pytgcalls import PyTgCalls, exceptions
+from pytgcalls.types import (
+    AudioQuality,
+    ChatUpdate,
+    MediaStream,
+    Update,
+    UpdatedGroupCallParticipant,
+    VideoQuality,
+    stream,
+)
 from src.database import db
 from src.logger import LOGGER
-from src.modules.utils import sec_to_min, get_audio_duration, PlayButton, send_logger
+from src.modules.utils import PlayButton, get_audio_duration, sec_to_min, send_logger
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.thumbnails import gen_thumb
-from src.platforms import ApiData, YouTubeData, JiosaavnData
+from src.platforms import ApiData, JiosaavnData, YouTubeData
 from src.platforms.dataclass import CachedTrack
 from src.platforms.downloader import MusicServiceWrapper
 
@@ -216,7 +217,7 @@ class MusicBot:
                 await self.play_next(chat_id)
                 return
 
-            await self.play_media(chat_id, file_path)
+            await self.play_media(chat_id, file_path, video=song.is_video)
 
             duration = song.duration or await get_audio_duration(file_path)
             text = (
@@ -334,7 +335,12 @@ class MusicBot:
             LOGGER.error(f"Error ending call for chat {chat_id}: {e}")
 
     async def seek_stream(
-        self, chat_id: int, file_path_or_url: str, to_seek: int, duration: int
+        self,
+        chat_id: int,
+        file_path_or_url: str,
+        to_seek: int,
+        duration: int,
+        is_video: bool,
     ) -> None:
         """Seek to a specific position in the stream."""
         try:
@@ -345,7 +351,7 @@ class MusicBot:
                 ffmpeg_params = f"-ss {to_seek} -to {duration}"
 
             await self.play_media(
-                chat_id, file_path_or_url, ffmpeg_parameters=ffmpeg_params
+                chat_id, file_path_or_url, is_video, ffmpeg_parameters=ffmpeg_params
             )
         except Exception as e:
             LOGGER.error(f"Error in seek_stream: {e}")
@@ -364,6 +370,7 @@ class MusicBot:
             await self.play_media(
                 chat_id,
                 curr_song.file_path,
+                video=curr_song.is_video,
                 ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}",
             )
         except Exception as e:

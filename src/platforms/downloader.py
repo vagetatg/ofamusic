@@ -2,11 +2,11 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 from abc import ABC, abstractmethod
 from typing import Optional
 
 import config
+
 from .dataclass import PlatformTracks, TrackInfo
 
 

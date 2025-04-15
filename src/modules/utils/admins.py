@@ -5,7 +5,7 @@
 from typing import Optional, Tuple
 
 from cachetools import TTLCache
-from pytdbot import types, Client
+from pytdbot import Client, types
 
 from src import db
 from src.logger import LOGGER

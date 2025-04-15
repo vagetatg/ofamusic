@@ -2,15 +2,14 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import contextlib
 from types import NoneType
-from typing import Optional, Any, Union, Literal
+from typing import Any, Literal, Optional, Union
 
 import pyrogram
 from cachetools import TTLCache
 from pyrogram import errors
-from pytdbot import types, Client
+from pytdbot import Client, types
 
 from src.logger import LOGGER
 
@@ -101,6 +100,10 @@ async def join_ub(chat_id: int, c: Client, ub: pyrogram.Client):
     try:
         await ub.join_chat(invite_link)
         user_status_cache[user_key] = "chatMemberStatusMember"
+    except errors.InviteHashExpired:
+        return types.Error(
+            message=f"looks like my assistant ({ub.me.id}) is banned from chat {chat_id}\nor I don't have rights to unban\n\nPlease use /reload to check status"
+        )
     except errors.InviteRequestSent:
         with contextlib.suppress(Exception):
             await c.processChatJoinRequest(
@@ -120,7 +123,9 @@ async def unban_ub(c: Client, chat_id: int, user_id: int):
     )
 
 
-async def check_user_status(c: Client, chat_id: int, user_id: int) -> (
+async def check_user_status(
+    c: Client, chat_id: int, user_id: int
+) -> (
     Literal[
         "chatMemberStatusLeft",
         "chatMemberStatusCreator",

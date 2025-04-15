@@ -19,11 +19,12 @@ import psutil
 from meval import meval
 from ntgcalls import __version__ as ntgver
 from pyrogram import __version__ as pyrover
-from pytdbot import types, Client, VERSION as pyTdVer
-from pytgcalls import __version__ as pytgver
+from pytdbot import VERSION as pyTdVer
+from pytdbot import Client, types
 
 import config
 from config import OWNER_ID
+from pytgcalls import __version__ as pytgver
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils import Filter

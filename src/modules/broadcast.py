@@ -3,18 +3,20 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import asyncio
+import time
+
+from pytdbot import Client, types
+
 from config import OWNER_ID
 from src import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
-from src.modules.utils.play_helpers import extract_argument, del_msg
-from pytdbot import types, Client
+from src.modules.utils.play_helpers import del_msg, extract_argument
 
-# Broadcast tuning
-REQUEST_LIMIT = 10  # concurrency per batch
-BATCH_SIZE = 100  # targets per batch
-BATCH_DELAY = 5  # seconds between batches
-MAX_RETRIES = 2
+REQUEST_LIMIT = 50
+BATCH_SIZE = 500
+BATCH_DELAY = 2
+MAX_RETRIES = 3
 
 semaphore = asyncio.Semaphore(REQUEST_LIMIT)
 VALID_TARGETS = {"all", "users", "chats"}
@@ -67,22 +69,21 @@ async def broadcast_to_targets(
 ) -> tuple[int, int]:
     sent = failed = 0
 
-    for i in range(0, len(targets), BATCH_SIZE):
-        batch = targets[i : i + BATCH_SIZE]
-        LOGGER.info(
-            f"Sending batch {i // BATCH_SIZE + 1}/{(len(targets) + BATCH_SIZE - 1) // BATCH_SIZE}"
-        )
-
+    async def process_batch(_batch: list[int], index: int):
         results = await asyncio.gather(
-            *[send_message_with_retry(tid, message, is_copy) for tid in batch]
+            *[send_message_with_retry(tid, message, is_copy) for tid in _batch]
         )
+        _batch_sent = sum(results)
+        _batch_failed = len(_batch) - _batch_sent
+        LOGGER.info(f"Batch {index + 1} sent: {_batch_sent}, failed: {_batch_failed}")
+        return _batch_sent, _batch_failed
 
-        batch_sent = sum(results)
-        batch_failed = len(batch) - batch_sent
+    batches = [targets[i : i + BATCH_SIZE] for i in range(0, len(targets), BATCH_SIZE)]
+    for idx, batch in enumerate(batches):
+        LOGGER.info(f"Sending batch {idx + 1}/{len(batches)} (targets: {len(batch)})")
+        batch_sent, batch_failed = await process_batch(batch, idx)
         sent += batch_sent
         failed += batch_failed
-
-        LOGGER.info(f"Batch sent: {batch_sent}, failed: {batch_failed}")
         await asyncio.sleep(BATCH_DELAY)
 
     return sent, failed
@@ -118,11 +119,13 @@ async def broadcast(_: Client, message: types.Message):
         return await message.reply_text("Please reply to a message to broadcast.")
 
     users, chats = await get_broadcast_targets(target)
-    if not users and not chats:
+    total_targets = len(users) + len(chats)
+
+    if total_targets == 0:
         return await message.reply_text("No users or chats to broadcast to.")
 
     started = await message.reply_text(
-        text=f"📣 Starting broadcast to {len(users) + len(chats)} target(s)...\n"
+        text=f"📣 Starting broadcast to {total_targets} target(s)...\n"
         f"• Users: {len(users)}\n"
         f"• Chats: {len(chats)}\n"
         f"• Mode: {'Copy' if is_copy else 'Forward'}",
@@ -133,8 +136,12 @@ async def broadcast(_: Client, message: types.Message):
         LOGGER.warning(f"Error starting broadcast: {started}")
         return
 
+    start_time = time.monotonic()
+
     user_sent, user_failed = await broadcast_to_targets(users, reply, is_copy)
     chat_sent, chat_failed = await broadcast_to_targets(chats, reply, is_copy)
+
+    end_time = time.monotonic()
 
     await started.edit_text(
         text=f"✅ <b>Broadcast Summary</b>\n"
@@ -143,6 +150,7 @@ async def broadcast(_: Client, message: types.Message):
         f"  - Chats: {chat_sent}\n"
         f"• Total Failed: {user_failed + chat_failed}\n"
         f"  - Users: {user_failed}\n"
-        f"  - Chats: {chat_failed}",
+        f"  - Chats: {chat_failed}\n"
+        f"🕒 Time Taken: <code>{end_time - start_time:.2f} sec</code>",
         disable_web_page_preview=True,
     )

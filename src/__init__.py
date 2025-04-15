@@ -2,11 +2,10 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import asyncio
 import os
-import sys
 import shutil
+import sys
 
 from pytdbot import Client, types
 
@@ -16,7 +15,6 @@ from src.modules.jobs import InactiveCallManager
 from src.pytgcalls import call, start_clients
 
 __version__ = "1.1.7"
-
 
 # Enforce minimum Python version
 if sys.version_info < (3, 10):

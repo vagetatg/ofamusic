@@ -2,16 +2,16 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import re
-from typing import Optional, Any
+from typing import Any, Optional
 
-from py_yt import VideosSearch, Playlist
+from py_yt import Playlist, VideosSearch
 
 from src.logger import LOGGER
+
 from ._dl_helper import YouTubeDownload
 from ._httpx import HttpxClient
-from .dataclass import PlatformTracks, TrackInfo, MusicTrack
+from .dataclass import MusicTrack, PlatformTracks, TrackInfo
 from .downloader import MusicService
 
 
@@ -30,7 +30,9 @@ class YouTubeData(MusicService):
         self.query = (
             None
             if not query
-            else query.split("&")[0] if query and "&" in query else query
+            else query.split("&")[0]
+            if query and "&" in query
+            else query
         )
 
     def is_valid(self, url: str) -> bool:

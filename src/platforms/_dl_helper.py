@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import asyncio
 import os
 import random
@@ -13,13 +12,12 @@ from typing import Optional
 import aiofiles
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from yt_dlp import YoutubeDL
-from yt_dlp.compat import shutil
 
 import config
+
+from ..logger import LOGGER
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
-from ..logger import LOGGER
 
 
 class YouTubeDownload:
@@ -69,59 +67,57 @@ class YouTubeDownload:
         return dl.file_path if dl.success else None
 
     async def _download_with_yt_dlp(self, video: bool) -> Optional[str]:
-        ydl_opts = {
-            "format": (
-                "(bestvideo[height<=?720][width<=?1280][ext=mp4])+(bestaudio[ext=m4a])"
-                if video
-                else "bestaudio[ext=webm]/bestaudio/best"
-            ),
-            "outtmpl": f"{config.DOWNLOADS_DIR}/%(id)s.%(ext)s",
-            "geo_bypass": True,
-            "nocheckcertificate": True,
-            "quiet": True,
-            "no_warnings": True,
-            "extract_flat": True,
-            "concurrent_fragment_downloads": 8,
-            "http_chunk_size": 2097152,  # 2MB chunks
-            "retries": 1,
-            "noprogress": True,
-            "progress_hooks": [],
-            "extractor_args": {"youtube": {"skip": ["dash", "hls"]}},
-        }
+        output_template = f"{config.DOWNLOADS_DIR}/%(id)s.%(ext)s"
+        cmd = [
+            "yt-dlp",
+            "--no-warnings",
+            "--quiet",
+            "--geo-bypass",
+            "--retries",
+            "2",
+            "-o",
+            output_template,
+            "--force-keyframes-at-cuts",
+        ]
 
-        if shutil.which("aria2c"):
-            ydl_opts |= {
-                "external_downloader": "aria2c",
-                "external_downloader_args": ["-x16", "-s16", "-k2M"],
-            }
+        if video:
+            cmd.extend(
+                [
+                    "-f",
+                    "bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]",
+                ]
+            )
+        else:
+            cmd.extend(["-f", "bestaudio[ext=m4a]/bestaudio/best"])
 
         if config.PROXY_URL:
-            ydl_opts["proxy"] = config.PROXY_URL
+            cmd.extend(["--proxy", config.PROXY_URL])
+        elif cookie_file := await self.get_cookie_file():
+            cmd.extend(["--cookies", cookie_file])
 
-        if cookie_file := await self.get_cookie_file():
-            ydl_opts["cookiefile"] = cookie_file
+        cmd.append(self.video_url)
 
         try:
-            with YoutubeDL({**ydl_opts, "extract_flat": True}) as ydl:
-                info = await asyncio.to_thread(
-                    ydl.extract_info, self.video_url, download=False
-                )
-                file_name = ydl.prepare_filename(info)
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await proc.communicate()
 
-                if os.path.exists(file_name):
-                    return file_name
-
-            with YoutubeDL(ydl_opts) as ydl:
-                await asyncio.to_thread(ydl.download, [self.video_url])
-
-            if not os.path.exists(file_name):
-                LOGGER.warning(f"⚠️ File not found after download: {file_name}")
+            if proc.returncode != 0:
+                LOGGER.error(f"❌ Error downloading: {stderr.decode().strip()}")
                 return None
-
-            LOGGER.info(f"Downloaded: {file_name}")
-            return file_name
+            possible_exts = ["mp4", "mkv"] if video else ["mp4", "m4a", "webm"]
+            for ext in possible_exts:
+                downloaded_path = f"{config.DOWNLOADS_DIR}/{self.video_id}.{ext}"
+                if os.path.exists(downloaded_path):
+                    LOGGER.info(f"✅ Downloaded: {downloaded_path}")
+                    return downloaded_path
+            LOGGER.warning(f"⚠️ No file found for video ID: {self.video_id}")
+            return None
         except Exception as e:
-            LOGGER.error(f"an error occurred while downloading {self.video_url}: {e}")
+            LOGGER.error(f"❌ Failed to download: {e}")
             return None
 
 
