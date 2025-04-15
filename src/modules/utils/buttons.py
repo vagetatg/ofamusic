@@ -2,110 +2,81 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 from pytdbot import types
-
 import config
+
+# ─────────────────────
+# Reusable Button Definitions
+# ─────────────────────
+
+SKIP_BUTTON = types.InlineKeyboardButton(
+    text="⏭️", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
+)
+
+STOP_BUTTON = types.InlineKeyboardButton(
+    text="⏹️", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
+)
+
+PAUSE_BUTTON = types.InlineKeyboardButton(
+    text="⏸️", type=types.InlineKeyboardButtonTypeCallback(b"play_pause")
+)
+
+RESUME_BUTTON = types.InlineKeyboardButton(
+    text="🔁", type=types.InlineKeyboardButtonTypeCallback(b"play_resume")
+)
+
+CLOSE_BUTTON = types.InlineKeyboardButton(
+    text="❌ Close", type=types.InlineKeyboardButtonTypeCallback(b"play_close")
+)
+
+CHANNEL_BUTTON = types.InlineKeyboardButton(
+    text="❄ Channel", type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL)
+)
+
+GROUP_BUTTON = types.InlineKeyboardButton(
+    text="✨ Group", type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP)
+)
+
+
+# ─────────────────────
+# Inline Keyboard Markups
+# ─────────────────────
 
 PlayButton = types.ReplyMarkupInlineKeyboard(
     [
-        [
-            types.InlineKeyboardButton(
-                text="⏭️", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
-            ),
-            types.InlineKeyboardButton(
-                text="⏹️", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
-            ),
-            types.InlineKeyboardButton(
-                text="⏸️", type=types.InlineKeyboardButtonTypeCallback(b"play_pause")
-            ),
-            types.InlineKeyboardButton(
-                text="🔁", type=types.InlineKeyboardButtonTypeCallback(b"play_resume")
-            ),
-        ],
-        [
-            types.InlineKeyboardButton(
-                text="❌ Close",
-                type=types.InlineKeyboardButtonTypeCallback(b"play_close"),
-            )
-        ],
+        [SKIP_BUTTON, STOP_BUTTON, PAUSE_BUTTON, RESUME_BUTTON],
+        [CLOSE_BUTTON],
     ]
 )
 
 PauseButton = types.ReplyMarkupInlineKeyboard(
     [
-        [
-            types.InlineKeyboardButton(
-                text="⏭️", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
-            ),
-            types.InlineKeyboardButton(
-                text="⏹️", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
-            ),
-            types.InlineKeyboardButton(
-                text="🔁", type=types.InlineKeyboardButtonTypeCallback(b"play_resume")
-            ),
-        ],
-        [
-            types.InlineKeyboardButton(
-                text="❌ Close",
-                type=types.InlineKeyboardButtonTypeCallback(b"play_close"),
-            )
-        ],
+        [SKIP_BUTTON, STOP_BUTTON, RESUME_BUTTON],
+        [CLOSE_BUTTON],
     ]
 )
 
 ResumeButton = types.ReplyMarkupInlineKeyboard(
     [
-        [
-            types.InlineKeyboardButton(
-                text="⏭️", type=types.InlineKeyboardButtonTypeCallback(b"play_skip")
-            ),
-            types.InlineKeyboardButton(
-                text="⏹️", type=types.InlineKeyboardButtonTypeCallback(b"play_stop")
-            ),
-            types.InlineKeyboardButton(
-                text="⏸️", type=types.InlineKeyboardButtonTypeCallback(b"play_pause")
-            ),
-        ],
-        [
-            types.InlineKeyboardButton(
-                text="❌ Close",
-                type=types.InlineKeyboardButtonTypeCallback(b"play_close"),
-            )
-        ],
+        [SKIP_BUTTON, STOP_BUTTON, PAUSE_BUTTON],
+        [CLOSE_BUTTON],
     ]
 )
 
 SupportButton = types.ReplyMarkupInlineKeyboard(
     [
-        [
-            types.InlineKeyboardButton(
-                text="❄ Channel",
-                type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
-            ),
-            types.InlineKeyboardButton(
-                text="✨ Group",
-                type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
-            ),
-        ],
-        [
-            types.InlineKeyboardButton(
-                text="❌ Close",
-                type=types.InlineKeyboardButtonTypeCallback(b"play_close"),
-            )
-        ],
+        [CHANNEL_BUTTON, GROUP_BUTTON],
+        [CLOSE_BUTTON],
     ]
 )
 
 
-def add_me_button(username: str) -> types.ReplyMarkupInlineKeyboard:
-    """Create an inline keyboard with 'Add me' button using the specified username.
-    Args:
-        username: The bot's username (without @)
+# ─────────────────────
+# Dynamic Keyboard Function
+# ─────────────────────
 
-    Returns:
-        types.ReplyMarkupInlineKeyboard: Configured inline keyboard markup
-    """
+def add_me_button(username: str) -> types.ReplyMarkupInlineKeyboard:
+    """Create an inline keyboard with 'Add me to your group' button."""
     return types.ReplyMarkupInlineKeyboard(
         [
             [
@@ -116,15 +87,6 @@ def add_me_button(username: str) -> types.ReplyMarkupInlineKeyboard:
                     ),
                 ),
             ],
-            [
-                types.InlineKeyboardButton(
-                    text="❄ Channel",
-                    type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
-                ),
-                types.InlineKeyboardButton(
-                    text="✨ Group",
-                    type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
-                ),
-            ],
+            [CHANNEL_BUTTON, GROUP_BUTTON],
         ]
     )

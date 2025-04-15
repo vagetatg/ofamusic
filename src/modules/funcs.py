@@ -543,7 +543,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                     f"Failed to close {_delete.message}", show_alert=True
                 )
                 return
-            await message.answer(f"Closed !", show_alert=True)
+            await message.answer("Closed !", show_alert=True)
             return
         elif data.startswith("play_c_"):
             await _handle_play_c_data(data, message, chat_id, user_id, user_name, c)
