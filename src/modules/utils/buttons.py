@@ -94,11 +94,11 @@ def add_me_button(username: str) -> types.ReplyMarkupInlineKeyboard:
             ],
             [
                 types.InlineKeyboardButton(
-                    text="❄ Channel",
+                    text="Updates 📢",
                     type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_CHANNEL),
                 ),
                 types.InlineKeyboardButton(
-                    text="✨ Group",
+                    text="Support 💬",
                     type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
                 ),
             ],
