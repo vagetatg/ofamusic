@@ -5,16 +5,16 @@
 import re
 from typing import Union
 
-from pytdbot import types, Client
+from pytdbot import Client, types
 
 from src.database import db
 from src.logger import LOGGER
-from src.modules.play import play_music, _get_platform_url
+from src.modules.play import _get_platform_url, play_music
 from src.modules.progress_handler import _handle_play_c_data
-from src.modules.utils import PauseButton, ResumeButton, sec_to_min, Filter
+from src.modules.utils import Filter, PauseButton, ResumeButton, sec_to_min
 from src.modules.utils.admins import is_admin
 from src.modules.utils.cacher import chat_cache
-from src.modules.utils.play_helpers import extract_argument, del_msg, edit_text
+from src.modules.utils.play_helpers import del_msg, edit_text, extract_argument
 from src.platforms.downloader import MusicServiceWrapper
 from src.pytgcalls import call
 
@@ -200,7 +200,7 @@ async def seek_song(_: Client, msg: types.Message) -> None:
 
     try:
         await call.seek_stream(
-            chat_id, curr_song.file_path, seek_to, curr_song.duration
+            chat_id, curr_song.file_path, seek_to, curr_song.duration, curr_song.video
         )
         await msg.reply_text(
             f"⏩ Seeked to {seek_to} seconds\n│ \n└ Action by: {await msg.mention()}"

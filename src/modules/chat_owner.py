@@ -2,11 +2,13 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-from pytdbot import Client, types
 from typing import Optional
+
+from pytdbot import Client, types
+
 from src import db
 from src.modules.utils import Filter
-from src.modules.utils.admins import is_owner, is_admin
+from src.modules.utils.admins import is_admin, is_owner
 from src.modules.utils.play_helpers import extract_argument
 
 
