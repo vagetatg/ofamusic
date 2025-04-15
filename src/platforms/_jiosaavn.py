@@ -92,9 +92,9 @@ class JiosaavnData(MusicService):
                 return await self.get_track_data(url)
             return await self.get_playlist_data(url)
         except yt_dlp.DownloadError as e:
-            LOGGER.error(f"YT-DLP error fetching {url}: {str(e)}")
+            LOGGER.error("YT-DLP error fetching %s: %s", url, str(e))
         except Exception as e:
-            LOGGER.error(f"Unexpected error fetching {url}: {str(e)}")
+            LOGGER.error("Unexpected error fetching %s: %s", url, str(e))
         return None
 
     async def search(self) -> Optional[PlatformTracks]:
@@ -114,7 +114,7 @@ class JiosaavnData(MusicService):
             response = await self.client.make_request(url)
             data = self._parse_search_response(response)
         except Exception as e:
-            LOGGER.error(f"Search failed for '{self.query}': {str(e)}")
+            LOGGER.error("Search failed for '%s': %s", self.query, str(e))
             data = None
 
         return self._create_platform_tracks(data) if data else None
@@ -170,9 +170,9 @@ class JiosaavnData(MusicService):
                 info = await asyncio.to_thread(ydl.extract_info, url, download=False)
                 return {"results": [self._format_track(info)]} if info else None
         except yt_dlp.DownloadError as e:
-            LOGGER.error(f"YT-DLP error getting track {url}: {str(e)}")
+            LOGGER.error("YT-DLP error getting track %s: %s", url, str(e))
         except Exception as e:
-            LOGGER.error(f"Unexpected error getting track {url}: {str(e)}")
+            LOGGER.error("Unexpected error getting track %s: %s", url, str(e))
         return None
 
     async def get_playlist_data(self, url: str) -> Optional[dict[str, Any]]:
@@ -189,7 +189,7 @@ class JiosaavnData(MusicService):
                 info = await asyncio.to_thread(ydl.extract_info, url, download=False)
 
                 if not info or not info.get("entries"):
-                    LOGGER.warning(f"No entries found in playlist: {url}")
+                    LOGGER.warning("No entries found in playlist: %s", url)
                     return None
 
                 return {
@@ -198,9 +198,9 @@ class JiosaavnData(MusicService):
                     ]
                 }
         except yt_dlp.DownloadError as e:
-            LOGGER.error(f"YT-DLP error getting playlist {url}: {str(e)}")
+            LOGGER.error("YT-DLP error getting playlist %s: %s", url, str(e))
         except Exception as e:
-            LOGGER.error(f"Unexpected error getting playlist {url}: {str(e)}")
+            LOGGER.error("Unexpected error getting playlist %s: %s", url, str(e))
         return None
 
     async def download_track(
@@ -243,7 +243,7 @@ class JiosaavnData(MusicService):
             title = re.sub(r"\s+", "-", title.strip())
             return f"https://www.jiosaavn.com/song/{title}/{song_id}"
         except ValueError:
-            LOGGER.warning(f"Invalid name_and_id format: {name_and_id}")
+            LOGGER.warning("Invalid name_and_id format: %s", name_and_id)
             return ""
 
     @classmethod

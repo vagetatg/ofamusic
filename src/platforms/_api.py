@@ -53,7 +53,7 @@ class ApiData(MusicService):
         try:
             return await self.client.make_request(f"{self.API_URL}/{endpoint}")
         except Exception as e:
-            LOGGER.error(f"Error fetching data from {endpoint}: {str(e)}")
+            LOGGER.error("Error fetching data from %s: %s", endpoint, str(e))
             return None
 
     async def get_recommendations(self, limit: int = 4) -> Optional[PlatformTracks]:
@@ -105,7 +105,9 @@ class ApiData(MusicService):
 
         except Exception as e:
             LOGGER.error(
-                f"Error downloading track {getattr(track, 'tc', 'unknown')}: {str(e)}"
+                "Error downloading track %s: %s",
+                getattr(track, "tc", "unknown"),
+                str(e),
             )
             return None
 
@@ -119,5 +121,5 @@ class ApiData(MusicService):
             tracks = [MusicTrack(**track) for track in data["results"]]
             return PlatformTracks(tracks=tracks)
         except (TypeError, ValueError) as e:
-            LOGGER.error(f"Error creating PlatformTracks: {str(e)}")
+            LOGGER.error("Error creating PlatformTracks: %s", str(e))
             return None

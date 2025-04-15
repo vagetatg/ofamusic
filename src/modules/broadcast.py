@@ -46,19 +46,23 @@ async def send_message_with_retry(
                         else 2
                     )
                     LOGGER.warning(
-                        f"[FloodWait] Retry {attempt}/{MAX_RETRIES} in {retry_after}s for {target_id}"
+                        "[FloodWait] Retry %s/%s in %ss for %s",
+                        attempt,
+                        MAX_RETRIES,
+                        retry_after,
+                        target_id,
                     )
                     await asyncio.sleep(retry_after)
                     continue
                 elif result.code == 400:
-                    LOGGER.warning(f"Bad request for {target_id}: {result.message}")
+                    LOGGER.warning("Bad request for %s: %s", target_id, result.message)
                     return 0
                 return 0
 
             return 1
 
         except Exception as e:
-            LOGGER.error(f"[Error] {target_id}: {e}")
+            LOGGER.error("[Error] %s: %s", target_id, e)
             await asyncio.sleep(2)
 
     return 0
@@ -75,12 +79,16 @@ async def broadcast_to_targets(
         )
         _batch_sent = sum(results)
         _batch_failed = len(_batch) - _batch_sent
-        LOGGER.info(f"Batch {index + 1} sent: {_batch_sent}, failed: {_batch_failed}")
+        LOGGER.info(
+            "Batch %s sent: %s, failed: %s", index + 1, _batch_sent, _batch_failed
+        )
         return _batch_sent, _batch_failed
 
     batches = [targets[i : i + BATCH_SIZE] for i in range(0, len(targets), BATCH_SIZE)]
     for idx, batch in enumerate(batches):
-        LOGGER.info(f"Sending batch {idx + 1}/{len(batches)} (targets: {len(batch)})")
+        LOGGER.info(
+            "Sending batch %s/%s (targets: %s)", idx + 1, len(batches), len(batch)
+        )
         batch_sent, batch_failed = await process_batch(batch, idx)
         sent += batch_sent
         failed += batch_failed
@@ -133,7 +141,7 @@ async def broadcast(_: Client, message: types.Message):
     )
 
     if isinstance(started, types.Error):
-        LOGGER.warning(f"Error starting broadcast: {started}")
+        LOGGER.warning("Error starting broadcast: %s", started)
         return
 
     start_time = time.monotonic()

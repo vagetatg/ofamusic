@@ -46,7 +46,7 @@ async def handle_playback_action(
             f"{success_msg}\n│ \n└ Requested by: {await msg.mention()} 🥀"
         )
     except Exception as e:
-        LOGGER.error(f"Error in {action.__name__}: {e}")
+        LOGGER.error("Error in %s: %s", action.__name__, e)
         await msg.reply_text(f"⚠️ {fail_msg}\nError: {e}")
 
 
@@ -76,7 +76,7 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
         await db.set_play_type(chat_id, play_type)
         await msg.reply_text(f"✅ Play type set to {play_type}")
     except Exception as e:
-        LOGGER.error(f"Error setting play type: {e}")
+        LOGGER.error("Error setting play type: %s", e)
         await msg.reply_text("⚠️ Failed to set play type. Please try again.")
 
 
@@ -158,7 +158,7 @@ async def modify_loop(_: Client, msg: types.Message) -> None:
         action = "disabled" if loop == 0 else f"changed to {loop} times"
         await msg.reply_text(f"🔄 Loop {action}\n│ \n└ Action by: {msg.mention()}")
     except Exception as e:
-        LOGGER.error(f"Error setting loop: {e}")
+        LOGGER.error("Error setting loop: %s", e)
         await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {str(e)}")
 
 
@@ -206,7 +206,7 @@ async def seek_song(_: Client, msg: types.Message) -> None:
             f"⏩ Seeked to {seek_to} seconds\n│ \n└ Action by: {await msg.mention()}"
         )
     except Exception as e:
-        LOGGER.error(f"Error seeking song: {e}")
+        LOGGER.error("Error seeking song: %s", e)
         await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {str(e)}")
 
 
@@ -247,7 +247,7 @@ async def change_speed(_: Client, msg: types.Message) -> None:
             f"🚀 Speed changed to {speed}\n│ \n└ Action by: {await msg.mention()}"
         )
     except Exception as e:
-        LOGGER.error(f"Error changing speed: {e}")
+        LOGGER.error("Error changing speed: %s", e)
         await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {str(e)}")
 
 
@@ -289,7 +289,7 @@ async def remove_song(_: Client, msg: types.Message) -> None:
             f"✔️ Track removed from queue\n│ \n└ Removed by: {await msg.mention()}"
         )
     except Exception as e:
-        LOGGER.error(f"Error removing track: {e}")
+        LOGGER.error("Error removing track: %s", e)
         await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {str(e)}")
 
 
@@ -315,7 +315,7 @@ async def clear_queue(_: Client, msg: types.Message) -> None:
         chat_cache.clear_chat(chat_id)
         await msg.reply_text(f"🗑️ Queue cleared\n│ \n└ Action by: {await msg.mention()}")
     except Exception as e:
-        LOGGER.error(f"Error clearing queue: {e}")
+        LOGGER.error("Error clearing queue: %s", e)
         await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {str(e)}")
 
 
@@ -335,7 +335,7 @@ async def stop_song(_: Client, msg: types.Message) -> None:
             f"🎵 <b>Stream Ended</b> ❄️\n│ \n└ Requested by: {await msg.mention()} 🥀"
         )
     except Exception as e:
-        LOGGER.error(f"Error stopping song: {e}")
+        LOGGER.error("Error stopping song: %s", e)
         await msg.reply_text(f"⚠️ Failed to stop the song.\nError: {str(e)}")
 
 
@@ -399,7 +399,7 @@ async def volume(_: Client, msg: types.Message) -> None:
             f"🔊 <b>Stream volume set to {vol_int}</b>\n│ \n└ Requested by: {await msg.mention()} 🥀"
         )
     except Exception as e:
-        LOGGER.error(f"Error changing volume: {e}")
+        LOGGER.error("Error changing volume: %s", e)
         await msg.reply_text(f"⚠️ Failed to change volume.\nError: {e}")
 
 
@@ -416,7 +416,7 @@ async def skip_song(_: Client, msg: types.Message) -> None:
             f"⏭️ Song skipped\n│ \n└ Requested by: {await msg.mention()} 🥀"
         )
     except Exception as e:
-        LOGGER.error(f"Error skipping song: {e}")
+        LOGGER.error("Error skipping song: %s", e)
         await msg.reply_text(f"⚠️ Failed to skip the song.\nError: {e}")
 
 
@@ -430,7 +430,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         user_id = message.sender_user_id
         get_msg = await message.getMessage()
         if isinstance(get_msg, types.Error):
-            LOGGER.warning(f"Error getting message: {get_msg.message}")
+            LOGGER.warning("Error getting message: %s", get_msg.message)
             return
 
         user = await c.getUser(user_id)
@@ -452,7 +452,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                     chat_id, [message.message_id], revoke=True
                 )
                 if isinstance(_delete, types.Error):
-                    LOGGER.warning(f"Error deleting message: {_delete.message}")
+                    LOGGER.warning("Error deleting message: %s", _delete.message)
 
         # Check admin permissions for control actions
         def requires_admin(cb_data: str) -> bool:
@@ -492,7 +492,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 await call.play_next(chat_id)
                 await send_response("⏭️ Song skipped", delete=True)
             except Exception as e:
-                LOGGER.error(f"Could not skip song: {e}")
+                LOGGER.error("Could not skip song: %s", e)
                 await send_response("⚠️ Error: Next song not found to play.", alert=True)
 
         elif data == "play_stop":
@@ -503,7 +503,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                     f"<b>➻ Stream stopped:</b>\n└ Requested by: {user_name}"
                 )
             except Exception as e:
-                LOGGER.error(f"Error stopping stream: {e}")
+                LOGGER.error("Error stopping stream: %s", e)
                 await send_response(
                     "⚠️ Error stopping the stream. Please try again.", alert=True
                 )
@@ -518,7 +518,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                     ),
                 )
             except Exception as e:
-                LOGGER.error(f"Error pausing stream: {e}")
+                LOGGER.error("Error pausing stream: %s", e)
                 await send_response(
                     "⚠️ Error pausing the stream. Please try again.", alert=True
                 )
@@ -533,7 +533,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                     ),
                 )
             except Exception as e:
-                LOGGER.error(f"Error resuming stream: {e}")
+                LOGGER.error("Error resuming stream: %s", e)
                 await send_response(
                     "⚠️ Error resuming the stream. Please try again.", alert=True
                 )
@@ -571,13 +571,13 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
 
                 await edit_text(reply_message, text="⚠️ Error: Song not found.")
             except ValueError:
-                LOGGER.error(f"Invalid callback data format: {data}")
+                LOGGER.error("Invalid callback data format: %s", data)
                 await send_response("⚠️ Error: Invalid request format.", alert=True)
             except Exception as e:
-                LOGGER.error(f"Error handling play request: {e}")
+                LOGGER.error("Error handling play request: %s", e)
                 await send_response("⚠️ Error processing your request.", alert=True)
     except Exception as e:
-        LOGGER.critical(f"Unhandled exception in callback_query: {e}")
+        LOGGER.critical("Unhandled exception in callback_query: %s", e)
         await message.answer(
             "⚠️ An error occurred while processing your request.", show_alert=True
         )

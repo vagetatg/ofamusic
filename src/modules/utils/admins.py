@@ -37,7 +37,9 @@ async def load_admin_cache(
         chat_id, filter=types.ChatMembersFilterAdministrators()
     )
     if isinstance(admin_list, types.Error):
-        LOGGER.warning(f"Error loading admin cache for chat_id {chat_id}: {admin_list}")
+        LOGGER.warning(
+            "Error loading admin cache for chat_id %s: %s", chat_id, admin_list
+        )
         return False, AdminCache(chat_id, [], cached=False)
 
     admin_cache[chat_id] = AdminCache(chat_id, admin_list["members"])

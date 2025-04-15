@@ -32,7 +32,7 @@ async def get_url(
             offset = entity.offset
             length = entity.length
             url = text_content[offset : offset + length]
-            LOGGER.info(f"Extracted URL: {url}")
+            LOGGER.info("Extracted URL: %s", url)
             return url
     return None
 
@@ -61,19 +61,19 @@ async def del_msg(msg: types.Message):
     if isinstance(delete, types.Error):
         if delete.code == 400:
             return
-        LOGGER.warning(f"Error deleting message: {delete}")
+        LOGGER.warning("Error deleting message: %s", delete)
 
 
 async def edit_text(
     reply_message: types.Message, *args: Any, **kwargs: Any
 ) -> Union["types.Error", "types.Message"]:
     if isinstance(reply_message, types.Error):
-        LOGGER.warning(f"Error getting message: {reply_message}")
+        LOGGER.warning("Error getting message: %s", reply_message)
         return reply_message
     try:
         return await reply_message.edit_text(*args, **kwargs)
     except Exception as e:
-        LOGGER.warning(f"Error editing message: {e}")
+        LOGGER.warning("Error editing message: %s", e)
         return reply_message
 
 

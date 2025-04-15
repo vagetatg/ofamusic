@@ -160,7 +160,7 @@ async def sys_stats(client: Client, message: types.Message):
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(socket.gethostname())
     architecture = platform.machine()
-    mac_address = ":".join(re.findall("..", "%012x" % uuid.getnode()))
+    mac_address = ":".join(re.findall("..", f"{uuid.getnode():012x}"))
     sp = platform.system()
     ram = f"{str(round(psutil.virtual_memory().total / 1024.0 ** 3))} ɢʙ"
     p_core = psutil.cpu_count(logical=False)
@@ -173,7 +173,7 @@ async def sys_stats(client: Client, message: types.Message):
         else:
             cpu_freq = f"{round(cpu_freq, 2)}ᴍʜᴢ"
     except Exception as e:
-        LOGGER.warning(f"Error getting CPU frequency: {e}")
+        LOGGER.warning("Error getting CPU frequency: %s", e)
         cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
 
     hdd = psutil.disk_usage("/")

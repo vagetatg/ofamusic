@@ -33,20 +33,20 @@ class YouTubeDownload:
         cookie_dir = "cookies"
         try:
             if not os.path.exists(cookie_dir):
-                LOGGER.warning(f"Cookie directory '{cookie_dir}' does not exist.")
+                LOGGER.warning("Cookie directory '%s' does not exist.", cookie_dir)
                 return None
 
             files = await asyncio.to_thread(os.listdir, cookie_dir)
             cookies_files = [f for f in files if f.endswith(".txt")]
 
             if not cookies_files:
-                LOGGER.warning(f"No cookie files found in '{cookie_dir}'.")
+                LOGGER.warning("No cookie files found in '%s'.", cookie_dir)
                 return None
 
             random_file = random.choice(cookies_files)
             return os.path.join(cookie_dir, random_file)
         except Exception as e:
-            LOGGER.warning(f"Error accessing cookie directory: {e}")
+            LOGGER.warning("Error accessing cookie directory: %s", e)
             return None
 
     async def process(self, video: bool = False) -> Optional[str]:
@@ -105,25 +105,25 @@ class YouTubeDownload:
             stdout, stderr = await proc.communicate()
 
             if proc.returncode != 0:
-                LOGGER.error(f"❌ Error downloading: {stderr.decode().strip()}")
+                LOGGER.error("❌ Error downloading: %s", stderr.decode().strip())
                 return None
             possible_exts = ["mp4", "mkv"] if video else ["mp4", "m4a", "webm"]
             for ext in possible_exts:
                 downloaded_path = f"{config.DOWNLOADS_DIR}/{self.video_id}.{ext}"
                 if os.path.exists(downloaded_path):
-                    LOGGER.info(f"✅ Downloaded: {downloaded_path}")
+                    LOGGER.info("✅ Downloaded: %s", downloaded_path)
                     return downloaded_path
-            LOGGER.warning(f"⚠️ No file found for video ID: {self.video_id}")
+            LOGGER.warning("⚠️ No file found for video ID: %s", self.video_id)
             return None
         except Exception as e:
-            LOGGER.error(f"❌ Failed to download: {e}")
+            LOGGER.error("❌ Failed to download: %s", e)
             return None
 
 
 async def rebuild_ogg(filename: str) -> None:
     """Fixes broken OGG headers."""
     if not os.path.exists(filename):
-        LOGGER.error(f"❌ Error: {filename} not found.")
+        LOGGER.error("❌ Error: %s not found.", filename)
         return
 
     try:
@@ -155,7 +155,7 @@ async def rebuild_ogg(filename: str) -> None:
             await ogg_file.seek(62)
             await ogg_file.write(zeroes)
     except Exception as e:
-        LOGGER.error(f"Error rebuilding OGG file {filename}: {e}")
+        LOGGER.error("Error rebuilding OGG file %s: %s", filename, e)
 
 
 class SpotifyDownload:
@@ -188,7 +188,7 @@ class SpotifyDownload:
                     decrypted_chunk = cipher.decrypt(chunk)
                     await fout.write(decrypted_chunk)
         except Exception as e:
-            LOGGER.error(f"Error decrypting audio file: {e}")
+            LOGGER.error("Error decrypting audio file: %s", e)
             raise
 
     async def fix_audio(self) -> None:
@@ -206,10 +206,10 @@ class SpotifyDownload:
             )
             stdout, stderr = await process.communicate()
             if process.returncode != 0:
-                LOGGER.error(f"FFmpeg error: {stderr.decode().strip()}")
+                LOGGER.error("FFmpeg error: %s", stderr.decode().strip())
                 raise subprocess.CalledProcessError(process.returncode, "ffmpeg")
         except Exception as e:
-            LOGGER.error(f"Error fixing audio file: {e}")
+            LOGGER.error("Error fixing audio file: %s", e)
             raise
 
     async def _cleanup(self) -> None:
@@ -219,17 +219,17 @@ class SpotifyDownload:
                 if os.path.exists(file):
                     os.remove(file)
             except Exception as e:
-                LOGGER.warning(f"Error removing {file}: {e}")
+                LOGGER.warning("Error removing %s: %s", file, e)
 
     async def process(self) -> Optional[str]:
         """Main function to download, decrypt, and fix audio."""
         if os.path.exists(self.output_file):
-            LOGGER.info(f"✅ Found existing file: {self.output_file}")
+            LOGGER.info("✅ Found existing file: %s", self.output_file)
             return self.output_file
 
         _track_id = self.track.tc
         if not self.track.cdnurl or not self.track.key:
-            LOGGER.warning(f"Missing CDN URL or key for track: {_track_id}")
+            LOGGER.warning("Missing CDN URL or key for track: %s", _track_id)
             return None
 
         try:
@@ -238,9 +238,9 @@ class SpotifyDownload:
             await rebuild_ogg(self.decrypted_file)
             await self.fix_audio()
             await self._cleanup()
-            LOGGER.info(f"✅ Successfully processed track: {self.output_file}")
+            LOGGER.info("✅ Successfully processed track: %s", self.output_file)
             return self.output_file
         except Exception as e:
-            LOGGER.error(f"Error processing track {_track_id}: {e}")
+            LOGGER.error("Error processing track %s: %s", _track_id, e)
             await self._cleanup()
             return None

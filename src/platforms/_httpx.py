@@ -56,7 +56,7 @@ class HttpxClient:
         try:
             await self._session.aclose()
         except Exception as e:
-            LOGGER.error(f"Error closing HTTP session: {str(e)}")
+            LOGGER.error("Error closing HTTP session: %s", str(e))
 
     async def download_file(
         self,
@@ -95,7 +95,7 @@ class HttpxClient:
                 async with aiofiles.open(path, "wb") as f:
                     async for chunk in response.aiter_bytes(self.CHUNK_SIZE):
                         await f.write(chunk)
-            LOGGER.debug(f"Successfully downloaded file to {path}")
+            LOGGER.debug("Successfully downloaded file to %s", path)
             return DownloadResult(success=True, file_path=path)
         except Exception as e:
             error_msg = self._handle_http_error(e, url)
@@ -167,11 +167,11 @@ class HttpxClient:
                 LOGGER.warning(error_msg)
 
             except ValueError as e:
-                LOGGER.error(f"Invalid JSON response from {url}: {str(e)}")
+                LOGGER.error("Invalid JSON response from %s: %s", url, str(e))
                 return None
 
             except Exception as e:
-                LOGGER.error(f"Unexpected error for {url}: {str(e)}")
+                LOGGER.error("Unexpected error for %s: %s", url, str(e))
                 return None
 
             # Exponential backoff
