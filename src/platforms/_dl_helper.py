@@ -14,9 +14,10 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 
 import config
+
+from ..logger import LOGGER
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
-from ..logger import LOGGER
 
 
 class YouTubeDownload:
@@ -72,13 +73,20 @@ class YouTubeDownload:
             "--no-warnings",
             "--quiet",
             "--geo-bypass",
-            "--retries", "2",
-            "-o", output_template,
+            "--retries",
+            "2",
+            "-o",
+            output_template,
             "--force-keyframes-at-cuts",
         ]
 
         if video:
-            cmd.extend(["-f", "bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]"])
+            cmd.extend(
+                [
+                    "-f",
+                    "bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]",
+                ]
+            )
         else:
             cmd.extend(["-f", "bestaudio[ext=m4a]/bestaudio/best"])
 

@@ -101,7 +101,9 @@ async def join_ub(chat_id: int, c: Client, ub: pyrogram.Client):
         await ub.join_chat(invite_link)
         user_status_cache[user_key] = "chatMemberStatusMember"
     except errors.InviteHashExpired:
-        return types.Error(message=f"looks like my assistant ({ub.me.id}) is banned from chat {chat_id}\nor I don't have rights to unban\n\nPlease use /reload to check status")
+        return types.Error(
+            message=f"looks like my assistant ({ub.me.id}) is banned from chat {chat_id}\nor I don't have rights to unban\n\nPlease use /reload to check status"
+        )
     except errors.InviteRequestSent:
         with contextlib.suppress(Exception):
             await c.processChatJoinRequest(

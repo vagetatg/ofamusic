@@ -335,7 +335,12 @@ class MusicBot:
             LOGGER.error(f"Error ending call for chat {chat_id}: {e}")
 
     async def seek_stream(
-        self, chat_id: int, file_path_or_url: str, to_seek: int, duration: int, is_video: bool
+        self,
+        chat_id: int,
+        file_path_or_url: str,
+        to_seek: int,
+        duration: int,
+        is_video: bool,
     ) -> None:
         """Seek to a specific position in the stream."""
         try:

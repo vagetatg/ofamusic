@@ -2,15 +2,16 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import asyncio
 import time
+
+from pytdbot import Client, types
+
 from config import OWNER_ID
 from src import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
-from src.modules.utils.play_helpers import extract_argument, del_msg
-from pytdbot import types, Client
+from src.modules.utils.play_helpers import del_msg, extract_argument
 
 REQUEST_LIMIT = 50
 BATCH_SIZE = 500
@@ -79,9 +80,7 @@ async def broadcast_to_targets(
 
     batches = [targets[i : i + BATCH_SIZE] for i in range(0, len(targets), BATCH_SIZE)]
     for idx, batch in enumerate(batches):
-        LOGGER.info(
-            f"Sending batch {idx + 1}/{len(batches)} (targets: {len(batch)})"
-        )
+        LOGGER.info(f"Sending batch {idx + 1}/{len(batches)} (targets: {len(batch)})")
         batch_sent, batch_failed = await process_batch(batch, idx)
         sent += batch_sent
         failed += batch_failed

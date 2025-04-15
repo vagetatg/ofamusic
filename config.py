@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 API_ID = int(getenv("API_ID", None))
 API_HASH = getenv("API_HASH", None)
 TOKEN = getenv("TOKEN", None)
@@ -49,7 +48,9 @@ DEFAULT_SERVICE = getenv("DEFAULT_SERVICE", "youtube").lower()
 DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")
 SUPPORT_GROUP = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
-IGNORE_BACKGROUND_UPDATES = getenv("IGNORE_BACKGROUND_UPDATES", "True").lower() == "true"
+IGNORE_BACKGROUND_UPDATES = (
+    getenv("IGNORE_BACKGROUND_UPDATES", "True").lower() == "true"
+)
 
 
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
