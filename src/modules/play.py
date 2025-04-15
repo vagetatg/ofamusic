@@ -203,7 +203,7 @@ async def _handle_multiple_tracks(
                 user=user_by,
                 file_path="",
                 platform=track.platform,
-                is_video=False,  # TODO: get from args ? maybe
+                is_video=False,
                 url=track.url,
             ),
         )

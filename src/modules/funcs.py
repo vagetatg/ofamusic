@@ -200,7 +200,7 @@ async def seek_song(_: Client, msg: types.Message) -> None:
 
     try:
         await call.seek_stream(
-            chat_id, curr_song.file_path, seek_to, curr_song.duration
+            chat_id, curr_song.file_path, seek_to, curr_song.duration, curr_song.video
         )
         await msg.reply_text(
             f"⏩ Seeked to {seek_to} seconds\n│ \n└ Action by: {await msg.mention()}"

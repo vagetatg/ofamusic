@@ -217,7 +217,7 @@ class MusicBot:
                 await self.play_next(chat_id)
                 return
 
-            await self.play_media(chat_id, file_path)
+            await self.play_media(chat_id, file_path, video=song.is_video)
 
             duration = song.duration or await get_audio_duration(file_path)
             text = (
@@ -335,7 +335,7 @@ class MusicBot:
             LOGGER.error(f"Error ending call for chat {chat_id}: {e}")
 
     async def seek_stream(
-        self, chat_id: int, file_path_or_url: str, to_seek: int, duration: int
+        self, chat_id: int, file_path_or_url: str, to_seek: int, duration: int, is_video: bool
     ) -> None:
         """Seek to a specific position in the stream."""
         try:
@@ -346,7 +346,7 @@ class MusicBot:
                 ffmpeg_params = f"-ss {to_seek} -to {duration}"
 
             await self.play_media(
-                chat_id, file_path_or_url, ffmpeg_parameters=ffmpeg_params
+                chat_id, file_path_or_url, is_video, ffmpeg_parameters=ffmpeg_params
             )
         except Exception as e:
             LOGGER.error(f"Error in seek_stream: {e}")
@@ -365,6 +365,7 @@ class MusicBot:
             await self.play_media(
                 chat_id,
                 curr_song.file_path,
+                video=curr_song.is_video,
                 ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}",
             )
         except Exception as e:
