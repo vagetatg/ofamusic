@@ -77,7 +77,7 @@ Say goodbye to restrictions with our **Premium Music API** – your ultimate sol
 
 2. Install required packages:
    ```sh
-   sudo apt-get install git python3-pip ffmpeg -y
+   sudo apt-get install git python3-pip ffmpeg aria2 -y
    ```
 
 3. Clone the repository:  
@@ -142,6 +142,7 @@ Say goodbye to restrictions with our **Premium Music API** – your ultimate sol
 ### 🔗 String Sessions
 
 - **STRING** - Pyrogram String Session, STRING2 ... STRING10
+> Get from [@StringFatherBot](https://t.me/StringFatherBot)
 
 ### 🛠️ Additional Configuration
 

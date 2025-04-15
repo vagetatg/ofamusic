@@ -13,10 +13,10 @@ from typing import Optional
 import aiofiles
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
-from yt_dlp import YoutubeDL, utils
+from yt_dlp import YoutubeDL
+from yt_dlp.compat import shutil
 
 import config
-from config import DOWNLOADS_DIR, PROXY_URL
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
 from ..logger import LOGGER
@@ -69,47 +69,59 @@ class YouTubeDownload:
         return dl.file_path if dl.success else None
 
     async def _download_with_yt_dlp(self, video: bool) -> Optional[str]:
-        """Download audio/video using yt-dlp."""
         ydl_opts = {
             "format": (
                 "(bestvideo[height<=?720][width<=?1280][ext=mp4])+(bestaudio[ext=m4a])"
                 if video
-                else "bestaudio/best"
+                else "bestaudio[ext=webm]/bestaudio/best"
             ),
             "outtmpl": f"{config.DOWNLOADS_DIR}/%(id)s.%(ext)s",
             "geo_bypass": True,
             "nocheckcertificate": True,
             "quiet": True,
             "no_warnings": True,
+            "extract_flat": True,
+            "concurrent_fragment_downloads": 8,
+            "http_chunk_size": 2097152,  # 2MB chunks
+            "retries": 1,
+            "noprogress": True,
+            "progress_hooks": [],
+            "extractor_args": {"youtube": {"skip": ["dash", "hls"]}},
         }
 
-        if PROXY_URL:
-            ydl_opts["proxy"] = PROXY_URL
-        else:
-            if cookie_file := await self.get_cookie_file():
-                ydl_opts["cookiefile"] = cookie_file
+        if shutil.which("aria2c"):
+            ydl_opts |= {
+                "external_downloader": "aria2c",
+                "external_downloader_args": ["-x16", "-s16", "-k2M"],
+            }
+
+        if config.PROXY_URL:
+            ydl_opts["proxy"] = config.PROXY_URL
+
+        if cookie_file := await self.get_cookie_file():
+            ydl_opts["cookiefile"] = cookie_file
 
         try:
+            with YoutubeDL({**ydl_opts, "extract_flat": True}) as ydl:
+                info = await asyncio.to_thread(
+                    ydl.extract_info, self.video_url, download=False
+                )
+                file_name = ydl.prepare_filename(info)
 
-            def run_yt_dlp():
-                with YoutubeDL(ydl_opts) as ydl:
-                    song_info = ydl.extract_info(self.video_url, download=False)
-                    file_name = ydl.prepare_filename(song_info)
-                    if not os.path.exists(file_name):
-                        ydl.download([self.video_url])
-                    return file_name, song_info
+                if os.path.exists(file_name):
+                    return file_name
 
-            filename, info = await asyncio.to_thread(run_yt_dlp)
-            if not os.path.exists(filename):
-                LOGGER.warning(f"⚠️ File not found after download: {filename}")
+            with YoutubeDL(ydl_opts) as ydl:
+                await asyncio.to_thread(ydl.download, [self.video_url])
+
+            if not os.path.exists(file_name):
+                LOGGER.warning(f"⚠️ File not found after download: {file_name}")
                 return None
-            LOGGER.info(f"Downloaded: {filename}")
-            return filename
-        except utils.DownloadError as e:
-            LOGGER.error(f"❌ Download error for {self.video_url}: {e}")
-            return None
+
+            LOGGER.info(f"Downloaded: {file_name}")
+            return file_name
         except Exception as e:
-            LOGGER.error(f"❌ Unexpected error downloading {self.video_url}: {e}")
+            LOGGER.error(f"an error occurred while downloading {self.video_url}: {e}")
             return None
 
 
@@ -155,9 +167,13 @@ class SpotifyDownload:
     def __init__(self, track: TrackInfo):
         self.track = track
         self.client = HttpxClient()
-        self.encrypted_file = os.path.join(DOWNLOADS_DIR, f"{track.tc}.encrypted.ogg")
-        self.decrypted_file = os.path.join(DOWNLOADS_DIR, f"{track.tc}.decrypted.ogg")
-        self.output_file = os.path.join(DOWNLOADS_DIR, f"{track.tc}.ogg")
+        self.encrypted_file = os.path.join(
+            config.DOWNLOADS_DIR, f"{track.tc}.encrypted.ogg"
+        )
+        self.decrypted_file = os.path.join(
+            config.DOWNLOADS_DIR, f"{track.tc}.decrypted.ogg"
+        )
+        self.output_file = os.path.join(config.DOWNLOADS_DIR, f"{track.tc}.ogg")
 
     async def decrypt_audio(self) -> None:
         """Decrypt the downloaded audio file using a stream-based approach."""
