@@ -22,9 +22,7 @@ from .dataclass import TrackInfo
 
 class YouTubeDownload:
     def __init__(self, track: TrackInfo):
-        """
-        Initialize the YouTubeDownload class with a video ID.
-        """
+        """Initialize the YouTubeDownload class with a video ID."""
         self.track = track
         self.video_id = track.tc
         self.video_url = f"https://www.youtube.com/watch?v={self.video_id}"
@@ -52,7 +50,8 @@ class YouTubeDownload:
             return None
 
     async def process(self, video: bool = False) -> Optional[str]:
-        """Download the audio/video from YouTube and return the path to the downloaded file."""
+        """Download the audio/video from YouTube and return the path to the
+        downloaded file."""
         if config.API_URL and config.API_KEY and not video:
             if file_path := await self._download_with_api():
                 return file_path

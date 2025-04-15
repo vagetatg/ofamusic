@@ -422,7 +422,8 @@ async def skip_song(_: Client, msg: types.Message) -> None:
 
 @Client.on_updateNewCallbackQuery(filters=Filter.regex(r"play_\w+"))
 async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> None:
-    """Handle all play control callback queries (skip, stop, pause, resume, timer)."""
+    """Handle all play control callback queries (skip, stop, pause, resume,
+    timer)."""
     try:
         data = message.payload.data.decode()
         chat_id = message.chat_id

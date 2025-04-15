@@ -11,7 +11,8 @@ from src.logger import LOGGER
 
 
 class Telegram:
-    """Helper class to validate and process playable Telegram media messages."""
+    """Helper class to validate and process playable Telegram media
+    messages."""
 
     MAX_FILE_SIZE = 400 * 1024 * 1024  # 400MB
     UNSUPPORTED_TYPES = (
@@ -35,7 +36,8 @@ class Telegram:
         return self._file_info
 
     def is_valid(self) -> bool:
-        """Check if the message contains a supported media type within size limits."""
+        """Check if the message contains a supported media type within size
+        limits."""
         if not self.msg or isinstance(self.msg, types.Error):
             return False
 
