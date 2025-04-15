@@ -64,7 +64,8 @@ async def handle_bot_join(client: Client, chat_id: int) -> None:
 
 @Client.on_updateChatMember()
 async def chat_member(client: Client, update: types.UpdateChatMember) -> None:
-    """Handles member updates in the chat (joins, leaves, promotions, demotions, bans, and unbans)."""
+    """Handles member updates in the chat (joins, leaves, promotions,
+    demotions, bans, and unbans)."""
     chat_id = update.chat_id
     if chat_id > 0:
         return  # Skip private chats

@@ -18,7 +18,8 @@ from .downloader import MusicService
 
 
 class JiosaavnData(MusicService):
-    """JioSaavn music service handler for searching, parsing and downloading tracks."""
+    """JioSaavn music service handler for searching, parsing and downloading
+    tracks."""
 
     # URL patterns
     JIOSAAVN_SONG_PATTERN = re.compile(

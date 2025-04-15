@@ -21,8 +21,8 @@ FONTS = {
 
 
 def resize_youtube_thumbnail(img: Image.Image) -> Image.Image:
-    """
-    Resize a YouTube thumbnail to 640x640 while keeping important content.
+    """Resize a YouTube thumbnail to 640x640 while keeping important content.
+
     It crops the center of the image after resizing.
     """
     target_size = 640
@@ -47,8 +47,8 @@ def resize_youtube_thumbnail(img: Image.Image) -> Image.Image:
 
 
 def resize_jiosaavn_thumbnail(img: Image.Image) -> Image.Image:
-    """
-    Resize a JioSaavn thumbnail from 500x500 to 600x600.
+    """Resize a JioSaavn thumbnail from 500x500 to 600x600.
+
     It upscales the image while preserving quality.
     """
     target_size = 600

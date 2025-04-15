@@ -35,7 +35,8 @@ from src.modules.utils.play_helpers import del_msg, extract_argument
 def format_exception(
     exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
 ) -> str:
-    """Formats an exception traceback as a string, similar to the Python interpreter."""
+    """Formats an exception traceback as a string, similar to the Python
+    interpreter."""
 
     if tb is None:
         tb = traceback.extract_tb(exp.__traceback__)

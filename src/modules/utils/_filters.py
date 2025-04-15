@@ -28,9 +28,10 @@ class Filter:
     def command(
         commands: Union[str, list[str]], prefixes: str = "/!"
     ) -> filters.Filter:
-        """
-        Filter for commands. Supports multiple commands and prefixes like / or !.
-        Also handles commands with @mentions (e.g., /start@BotName).
+        """Filter for commands.
+
+        Supports multiple commands and prefixes like / or !. Also
+        handles commands with @mentions (e.g., /start@BotName).
         """
         if isinstance(commands, str):
             commands = [commands]
@@ -63,9 +64,7 @@ class Filter:
 
     @staticmethod
     def regex(pattern: str) -> filters.Filter:
-        """
-        Filter for messages or callback queries matching a regex pattern.
-        """
+        """Filter for messages or callback queries matching a regex pattern."""
 
         compiled = re.compile(pattern)
 
@@ -77,9 +76,7 @@ class Filter:
 
     @staticmethod
     def user(user_ids: Union[int, list[int]]) -> filters.Filter:
-        """
-        Filter for specific user IDs.
-        """
+        """Filter for specific user IDs."""
         user_ids = {user_ids} if isinstance(user_ids, int) else set(user_ids)
 
         async def filter_func(_, event) -> bool:
@@ -96,9 +93,7 @@ class Filter:
 
     @staticmethod
     def chat(chat_ids: Union[int, list[int]]) -> filters.Filter:
-        """
-        Filter for specific chat IDs.
-        """
+        """Filter for specific chat IDs."""
         chat_ids = {chat_ids} if isinstance(chat_ids, int) else set(chat_ids)
 
         async def filter_func(_, event) -> bool:
