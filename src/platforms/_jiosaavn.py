@@ -203,7 +203,7 @@ class JiosaavnData(MusicService):
         return None
 
     async def download_track(
-            self, track: TrackInfo, video: bool = False
+        self, track: TrackInfo, video: bool = False
     ) -> Optional[Path]:
         """Download a track to local storage.
 
