@@ -78,7 +78,7 @@ def _build_progress_text(
         f"📥 <b>Downloading:</b> <code>{filename}</code>\n"
         f"💾 <b>Size:</b> {_format_bytes(total)}\n"
         f"📊 <b>Progress:</b> {percentage}% {_create_progress_bar(percentage)}\n"
-        f"🚀 <b>Speed:</b> {_format_bytes(speed)}/s\n"
+        f"🚀 <b>Speed:</b> {_format_bytes(int(speed))}/s\n"
         f"⏳ <b>ETA:</b> {_format_time(eta) if eta >= 0 else 'Calculating...'}"
     )
 
@@ -89,7 +89,7 @@ def _build_complete_text(filename: str, total: int, duration: float) -> str:
         f"✅ <b>Download Complete:</b> <code>{filename}</code>\n"
         f"💾 <b>Size:</b> {_format_bytes(total)}\n"
         f"⏱ <b>Time Taken:</b> {_format_time(duration)}\n"
-        f"⚡ <b>Average Speed:</b> {_format_bytes(avg_speed)}/s"
+        f"⚡ <b>Average Speed:</b> {_format_bytes(int(avg_speed))}/s"
     )
 
 
