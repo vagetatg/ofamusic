@@ -23,6 +23,12 @@ PlayButton = types.ReplyMarkupInlineKeyboard(
                 text="🔁", type=types.InlineKeyboardButtonTypeCallback(b"play_resume")
             ),
         ],
+        [
+            types.InlineKeyboardButton(
+                text="❌ Close",
+                type=types.InlineKeyboardButtonTypeCallback(b"play_close"),
+            )
+        ],
     ]
 )
 
@@ -38,6 +44,12 @@ PauseButton = types.ReplyMarkupInlineKeyboard(
             types.InlineKeyboardButton(
                 text="🔁", type=types.InlineKeyboardButtonTypeCallback(b"play_resume")
             ),
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="❌ Close",
+                type=types.InlineKeyboardButtonTypeCallback(b"play_close"),
+            )
         ],
     ]
 )
@@ -55,6 +67,12 @@ ResumeButton = types.ReplyMarkupInlineKeyboard(
                 text="⏸️", type=types.InlineKeyboardButtonTypeCallback(b"play_pause")
             ),
         ],
+        [
+            types.InlineKeyboardButton(
+                text="❌ Close",
+                type=types.InlineKeyboardButtonTypeCallback(b"play_close"),
+            )
+        ],
     ]
 )
 
@@ -69,7 +87,13 @@ SupportButton = types.ReplyMarkupInlineKeyboard(
                 text="✨ Group",
                 type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP),
             ),
-        ]
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="❌ Close",
+                type=types.InlineKeyboardButtonTypeCallback(b"play_close"),
+            )
+        ],
     ]
 )
 
