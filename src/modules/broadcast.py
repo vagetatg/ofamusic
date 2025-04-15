@@ -46,7 +46,12 @@ async def send_message_with_retry(
                         else 2
                     )
                     LOGGER.warning(
-                        "[FloodWait] Retry %s/%s in %ss for %s", attempt, MAX_RETRIES, retry_after, target_id)
+                        "[FloodWait] Retry %s/%s in %ss for %s",
+                        attempt,
+                        MAX_RETRIES,
+                        retry_after,
+                        target_id,
+                    )
                     await asyncio.sleep(retry_after)
                     continue
                 elif result.code == 400:
@@ -74,12 +79,16 @@ async def broadcast_to_targets(
         )
         _batch_sent = sum(results)
         _batch_failed = len(_batch) - _batch_sent
-        LOGGER.info("Batch %s sent: %s, failed: %s", index + 1, _batch_sent, _batch_failed)
+        LOGGER.info(
+            "Batch %s sent: %s, failed: %s", index + 1, _batch_sent, _batch_failed
+        )
         return _batch_sent, _batch_failed
 
     batches = [targets[i : i + BATCH_SIZE] for i in range(0, len(targets), BATCH_SIZE)]
     for idx, batch in enumerate(batches):
-        LOGGER.info("Sending batch %s/%s (targets: %s)", idx + 1, len(batches), len(batch))
+        LOGGER.info(
+            "Sending batch %s/%s (targets: %s)", idx + 1, len(batches), len(batch)
+        )
         batch_sent, batch_failed = await process_batch(batch, idx)
         sent += batch_sent
         failed += batch_failed

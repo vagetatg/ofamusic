@@ -23,7 +23,9 @@ async def fetch_content(session: aiohttp.ClientSession, url: str) -> str | None:
                 content_type = response.headers.get("Content-Type", "")
                 if "text/plain" in content_type:
                     return await response.text()
-                LOGGER.error("Unexpected Content-Type (%s) from %s", content_type, raw_url)
+                LOGGER.error(
+                    "Unexpected Content-Type (%s) from %s", content_type, raw_url
+                )
             else:
                 LOGGER.error("Failed to download %s: %s", raw_url, response.status)
     except Exception as e:

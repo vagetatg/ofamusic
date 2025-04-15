@@ -171,7 +171,8 @@ class MusicBot:
             ) from e
         except TelegramServerError as e:
             LOGGER.warning(
-                "Error playing media for chat %s: TelegramServerError", chat_id)
+                "Error playing media for chat %s: TelegramServerError", chat_id
+            )
             raise CallError("TelegramServerError\ntry again after some time") from e
         except exceptions.UnMuteNeeded as e:
             LOGGER.warning("Error playing media for chat %s: %s", chat_id, e)
@@ -278,7 +279,9 @@ class MusicBot:
             if track := await handler.get_track():
                 return await handler.download_track(track, song.is_video)
 
-        LOGGER.warning("Unknown platform: %s for track: %s", song.platform, song.track_id)
+        LOGGER.warning(
+            "Unknown platform: %s for track: %s", song.platform, song.track_id
+        )
         return None
 
     async def _handle_no_songs(self, chat_id: int) -> None:
@@ -317,8 +320,7 @@ class MusicBot:
                 LOGGER.warning("Error sending empty queue message: %s", reply)
 
         except Exception as e:
-            LOGGER.error(
-                "Error in _handle_no_songs for chat %s: %s", chat_id, e)
+            LOGGER.error("Error in _handle_no_songs for chat %s: %s", chat_id, e)
 
     async def end(self, chat_id: int) -> None:
         """End the current call."""

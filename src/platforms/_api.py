@@ -105,7 +105,10 @@ class ApiData(MusicService):
 
         except Exception as e:
             LOGGER.error(
-                "Error downloading track %s: %s", getattr(track, 'tc', 'unknown'), str(e))
+                "Error downloading track %s: %s",
+                getattr(track, "tc", "unknown"),
+                str(e),
+            )
             return None
 
     @staticmethod
