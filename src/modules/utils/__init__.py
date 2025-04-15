@@ -33,7 +33,7 @@ def sec_to_min(seconds):
         remaining_seconds = int(seconds % 60)
         return f"{minutes}:{remaining_seconds:02}"
     except Exception as e:
-        LOGGER.warning(f"Failed to convert seconds to minutes:seconds format: {e}")
+        LOGGER.warning("Failed to convert seconds to minutes:seconds format: %s", e)
         return None
 
 
@@ -53,7 +53,7 @@ async def send_logger(client: Client, chat_id, song: CachedTrack):
         config.LOGGER_ID, text, disable_web_page_preview=True, disable_notification=True
     )
     if isinstance(msg, types.Error):
-        LOGGER.error(f"Error sending message: {msg}")
+        LOGGER.error("Error sending message: %s", msg)
     return
 
 
@@ -76,5 +76,5 @@ async def get_audio_duration(file_path):
         duration = float(data["format"]["duration"])
         return int(duration)
     except Exception as e:
-        LOGGER.warning(f"Failed to get audio duration using ffprobe: {e}")
+        LOGGER.warning("Failed to get audio duration using ffprobe: %s", e)
         return 0

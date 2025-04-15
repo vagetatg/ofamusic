@@ -173,7 +173,7 @@ async def sys_stats(client: Client, message: types.Message):
         else:
             cpu_freq = f"{round(cpu_freq, 2)}ᴍʜᴢ"
     except Exception as e:
-        LOGGER.warning(f"Error getting CPU frequency: {e}")
+        LOGGER.warning("Error getting CPU frequency: %s", e)
         cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
 
     hdd = psutil.disk_usage("/")

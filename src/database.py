@@ -27,7 +27,7 @@ class Database:
             await self.mongo_client.admin.command("ping")
             LOGGER.info("Database connection completed.")
         except Exception as e:
-            LOGGER.error(f"Database connection failed: {e}")
+            LOGGER.error("Database connection failed: %s", e)
             raise
 
     async def get_chat(self, chat_id: int) -> Optional[dict]:
@@ -38,12 +38,12 @@ class Database:
                 self.chat_cache[chat_id] = chat
             return chat
         except Exception as e:
-            LOGGER.warning(f"Error getting chat: {e}")
+            LOGGER.warning("Error getting chat: %s", e)
             return None
 
     async def add_chat(self, chat_id: int) -> None:
         if await self.get_chat(chat_id) is None:
-            LOGGER.info(f"Added chat: {chat_id}")
+            LOGGER.info("Added chat: %s", chat_id)
             await self.chat_db.insert_one({"_id": chat_id})
 
     async def _update_chat_field(self, chat_id: int, key: str, value) -> None:
@@ -122,7 +122,7 @@ class Database:
     async def add_user(self, user_id: int) -> None:
         if await self.is_user_exist(user_id):
             return
-        LOGGER.info(f"Added user: {user_id}")
+        LOGGER.info("Added user: %s", user_id)
         await self.users_db.insert_one({"_id": user_id})
 
     async def remove_user(self, user_id: int) -> None:

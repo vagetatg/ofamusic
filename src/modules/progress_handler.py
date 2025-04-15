@@ -152,7 +152,7 @@ async def update_file(client: Client, update: types.UpdateFile):
             chat_id, message_id, button_markup, types.InputMessageText(parsed)
         )
         if isinstance(edit, types.Error):
-            LOGGER.error(f"Progress update error: {edit}")
+            LOGGER.error("Progress update error: %s", edit)
         return
 
     # Completed download
@@ -163,7 +163,7 @@ async def update_file(client: Client, update: types.UpdateFile):
         chat_id, message_id, button_markup, types.InputMessageText(parsed)
     )
     if isinstance(done, types.Error):
-        LOGGER.error(f"Download complete update error: {done}")
+        LOGGER.error("Download complete update error: %s", done)
 
     download_progress.pop(file_id, None)
 
@@ -186,7 +186,7 @@ async def _handle_play_c_data(data, message, chat_id, user_id, user_name, c):
     file_info = await c.getRemoteFile(meta["remote_file_id"])
     if isinstance(file_info, types.Error):
         await message.answer("Failed to get file info", show_alert=True)
-        LOGGER.error(f"Failed to get file info: {file_info.message}")
+        LOGGER.error("Failed to get file info: %s", file_info.message)
         return
 
     ok = await c.cancelDownloadFile(file_info.id)

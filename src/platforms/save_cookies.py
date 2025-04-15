@@ -23,11 +23,11 @@ async def fetch_content(session: aiohttp.ClientSession, url: str) -> str | None:
                 content_type = response.headers.get("Content-Type", "")
                 if "text/plain" in content_type:
                     return await response.text()
-                LOGGER.error(f"Unexpected Content-Type ({content_type}) from {raw_url}")
+                LOGGER.error("Unexpected Content-Type (%s) from %s", content_type, raw_url)
             else:
-                LOGGER.error(f"Failed to download {raw_url}: {response.status}")
+                LOGGER.error("Failed to download %s: %s", raw_url, response.status)
     except Exception as e:
-        LOGGER.error(f"Error fetching {raw_url}: {e}")
+        LOGGER.error("Error fetching %s: %s", raw_url, e)
 
     return None
 
@@ -51,7 +51,7 @@ async def save_bin_content(session: aiohttp.ClientSession, url: str) -> str | No
                 await f.write(content)
             return filepath
         except Exception as e:
-            LOGGER.error(f"Error saving file {filepath}: {e}")
+            LOGGER.error("Error saving file %s: %s", filepath, e)
 
     return None
 
