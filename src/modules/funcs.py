@@ -456,7 +456,13 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         # Check admin permissions for control actions
         def requires_admin(cb_data: str) -> bool:
             """Check if the action requires admin privileges."""
-            return cb_data in {"play_skip", "play_stop", "play_pause", "play_resume"}
+            return cb_data in {
+                "play_skip",
+                "play_stop",
+                "play_pause",
+                "play_resume",
+                "play_close",
+            }
 
         if requires_admin(data) and not await is_admin(chat_id, user_id):
             await message.answer(
@@ -530,7 +536,15 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 await send_response(
                     "⚠️ Error resuming the stream. Please try again.", alert=True
                 )
-
+        elif data == "play_close":
+            _delete = await c.deleteMessages(chat_id, [message.message_id], revoke=True)
+            if isinstance(_delete, types.Error):
+                await message.answer(
+                    f"Failed to close {_delete.message}", show_alert=True
+                )
+                return
+            await message.answer(f"Closed !", show_alert=True)
+            return
         elif data.startswith("play_c_"):
             await _handle_play_c_data(data, message, chat_id, user_id, user_name, c)
             return
