@@ -11,14 +11,11 @@ from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv()
-
 "You can get these variables from my.telegram.org"
 API_ID = int(getenv("API_ID", None))
 API_HASH = getenv("API_HASH", None)
-
 "You can get this variable from @BotFather"
 TOKEN = getenv("TOKEN", None)
-
 "Pyrogram (Forks) String Session, min. add one string session"
 STRING = getenv("STRING", None)
 STRING2 = getenv("STRING2", None)
@@ -43,33 +40,24 @@ SESSION_STRINGS = [
     STRING9,
     STRING10,
 ]
-
 "Your Telegram User ID"
 OWNER_ID = int(getenv("OWNER_ID", 5938660179))
-
 "Channel/Group ID for logging; where logs will be sent"
 LOGGER_ID = int(getenv("LOGGER_ID", 0))
-
 "Your MongoDB URI; get it from https://cloud.mongodb.com"
 MONGO_URI = getenv("MONGO_URI", None)
-
 "Spotify dl get from @AshokShau"
 API_URL = getenv("API_URL", None)
 API_KEY = getenv("API_KEY", None)
-
 "Proxy URL for yt-dlp"
 PROXY_URL = getenv("PROXY_URL", None)
-
 "Default platform to search for songs; options: youtube, spotify, jiosaavn"
 DEFAULT_SERVICE = getenv("DEFAULT_SERVICE", "youtube").lower()
-
 "Directory for downloads and TDLib db"
 DOWNLOADS_DIR = getenv("DOWNLOADS_DIR", "database/music")
-
 "Support group and channel"
 SUPPORT_GROUP = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
-
 "If true, allows to skip all updates received while the TDLib instance was not running."
 IGNORE_BACKGROUND_UPDATES = (
     getenv("IGNORE_BACKGROUND_UPDATES", "True").lower() == "true"

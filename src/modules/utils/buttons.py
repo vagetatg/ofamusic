@@ -3,6 +3,7 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 from pytdbot import types
+
 import config
 
 # ─────────────────────
@@ -37,7 +38,6 @@ GROUP_BUTTON = types.InlineKeyboardButton(
     text="✨ Group", type=types.InlineKeyboardButtonTypeUrl(config.SUPPORT_GROUP)
 )
 
-
 # ─────────────────────
 # Inline Keyboard Markups
 # ─────────────────────
@@ -69,7 +69,6 @@ SupportButton = types.ReplyMarkupInlineKeyboard(
         [CLOSE_BUTTON],
     ]
 )
-
 
 # ─────────────────────
 # Dynamic Keyboard Function

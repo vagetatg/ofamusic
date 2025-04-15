@@ -5,14 +5,15 @@
 import asyncio
 import re
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any, Optional
 
 import yt_dlp
 
 import config
 from src.logger import LOGGER
-from ._httpx import HttpxClient, DownloadResult
-from .dataclass import PlatformTracks, TrackInfo, MusicTrack
+
+from ._httpx import DownloadResult, HttpxClient
+from .dataclass import MusicTrack, PlatformTracks, TrackInfo
 from .downloader import MusicService
 
 

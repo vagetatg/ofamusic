@@ -2,9 +2,11 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-import time
 import math
+import time
+
 from pytdbot import Client, types
+
 from src.logger import LOGGER
 from src.modules.utils.admins import is_admin
 from src.platforms.telegram import Telegram

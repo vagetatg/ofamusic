@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import asyncio
 import os
 import random
@@ -17,9 +16,10 @@ from yt_dlp import YoutubeDL
 from yt_dlp.compat import shutil
 
 import config
+
+from ..logger import LOGGER
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
-from ..logger import LOGGER
 
 
 class YouTubeDownload:

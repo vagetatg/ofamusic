@@ -2,15 +2,14 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-
 import contextlib
 from types import NoneType
-from typing import Optional, Any, Union, Literal
+from typing import Any, Literal, Optional, Union
 
 import pyrogram
 from cachetools import TTLCache
 from pyrogram import errors
-from pytdbot import types, Client
+from pytdbot import Client, types
 
 from src.logger import LOGGER
 
@@ -120,7 +119,9 @@ async def unban_ub(c: Client, chat_id: int, user_id: int):
     )
 
 
-async def check_user_status(c: Client, chat_id: int, user_id: int) -> (
+async def check_user_status(
+    c: Client, chat_id: int, user_id: int
+) -> (
     Literal[
         "chatMemberStatusLeft",
         "chatMemberStatusCreator",
