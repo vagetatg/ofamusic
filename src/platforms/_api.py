@@ -88,8 +88,8 @@ class ApiData(MusicService):
     async def download_track(
         self, track: TrackInfo, video: bool = False
     ) -> Optional[Union[str, Path]]:
-        """
-        Download a track based on its platform.
+        """Download a track based on its platform.
+
         Returns the path to the downloaded file if successful.
         """
         if not track:
