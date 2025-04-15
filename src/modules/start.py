@@ -220,9 +220,9 @@ async def ping_cmd(c: Client, message: types.Message):
     return
 
 
-@Client.on_message(filters=Filter.command("song"))
+@Client.on_message(filters=Filter.command("clone"))
 async def song_cmd(c: Client, message: types.Message):
-    reply = await message.reply_text("🎶 USE: @SpTubeBot")
+    reply = await message.reply_text("🎶 USE: @HarryXRobot")
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply}")
 
