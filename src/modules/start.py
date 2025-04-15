@@ -8,6 +8,7 @@ from types import NoneType
 from cachetools import TTLCache
 from pytdbot import Client, types
 
+from src import __version__
 from src.database import db
 from src.modules.utils import Filter, sec_to_min
 from src.modules.utils.admins import load_admin_cache
@@ -33,7 +34,7 @@ async def start_cmd(c: Client, message: types.Message):
     text = f"""
     нєу {await message.mention(parse_mode='html')} 👋
 
-<b>Welcome to {me.first_name} </b>
+<b>Welcome to {me.first_name} v{__version__} </b>
 
 Your ultimate music companion for Telegram voice chats! 
 
