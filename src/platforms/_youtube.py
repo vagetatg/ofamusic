@@ -45,7 +45,7 @@ class YouTubeData(MusicService):
 
     async def _fetch_data(self, url: str) -> Optional[dict[str, Any]]:
         if self.YOUTUBE_PLAYLIST_PATTERN.match(url):
-            LOGGER.info(f"Fetching data for YouTube playlist: {url}")
+            LOGGER.info("Fetching data for YouTube playlist: %s", url)
             return await self._get_playlist(url)
         return await self._get_youtube_url(url)
 
@@ -70,7 +70,7 @@ class YouTubeData(MusicService):
                 else None
             )
         except Exception as e:
-            LOGGER.error(f"Error searching: {e}")
+            LOGGER.error("Error searching: %s", e)
             data = None
 
         return self._create_platform_tracks(data) if data else None
@@ -97,7 +97,7 @@ class YouTubeData(MusicService):
                 year=0,
             )
         except Exception as e:
-            LOGGER.error(f"Error fetching track: {e}")
+            LOGGER.error("Error fetching track: %s", e)
             return None
 
     async def download_track(
@@ -106,7 +106,7 @@ class YouTubeData(MusicService):
         try:
             return await YouTubeDownload(track).process(video)
         except Exception as e:
-            LOGGER.error(f"Error downloading track: {e}")
+            LOGGER.error("Error downloading track: %s", e)
             return None
 
     async def _get_youtube_url(self, url: str) -> Optional[dict[str, Any]]:
@@ -137,7 +137,7 @@ class YouTubeData(MusicService):
             search = VideosSearch(url, limit=1)
             results = await search.next()
         except Exception as e:
-            LOGGER.error(f"Error searching: {e}")
+            LOGGER.error("Error searching: %s", e)
             return None
         return (
             {"results": [self._format_track(video) for video in results["result"]]}
@@ -160,7 +160,7 @@ class YouTubeData(MusicService):
                 else None
             )
         except Exception as e:
-            LOGGER.error(f"Error getting playlist: {e}")
+            LOGGER.error("Error getting playlist: %s", e)
             return None
 
     async def get_recommendations(self) -> Optional[PlatformTracks]:

@@ -85,7 +85,7 @@ class MusicBot:
 
             return ub
         except Exception as e:
-            LOGGER.error(f"Error getting client for chat {chat_id}: {e}")
+            LOGGER.error("Error getting client for chat %s: %s", chat_id, e)
             return types.Error(code=500, message=str(e))
 
     async def start_client(
@@ -106,9 +106,9 @@ class MusicBot:
             self.client_counter += 1
 
             await calls.start()
-            LOGGER.info(f"Client {client_name} started successfully")
+            LOGGER.info("Client %s started successfully", client_name)
         except Exception as e:
-            LOGGER.error(f"Error starting client {client_name}: {e}")
+            LOGGER.error("Error starting client %s: %s", client_name, e)
             raise
 
     async def register_decorators(self) -> None:
@@ -118,7 +118,7 @@ class MusicBot:
             @call_instance.on_update()
             async def general_handler(_, update: Update):
                 try:
-                    LOGGER.debug(f"Received update: {update}")
+                    LOGGER.debug("Received update: %s", update)
                     if isinstance(update, stream.StreamEnded):
                         await self.play_next(update.chat_id)
                         return
@@ -132,7 +132,7 @@ class MusicBot:
                     else:
                         return
                 except Exception as e:
-                    LOGGER.error(f"Error in general handler: {e}", exc_info=True)
+                    LOGGER.error("Error in general handler: %s", e)
 
     async def play_media(
         self,
@@ -142,7 +142,7 @@ class MusicBot:
         ffmpeg_parameters: Optional[str] = None,
     ) -> None:
         """Play media on a specific client."""
-        LOGGER.info(f"Playing media for chat {chat_id}: {file_path}")
+        LOGGER.info("Playing media for chat %s: %s", chat_id, file_path)
         try:
             _stream = MediaStream(
                 audio_path=file_path,
@@ -164,28 +164,28 @@ class MusicBot:
                     send_logger(self.bot, chat_id, chat_cache.get_current_song(chat_id))
                 )
         except (errors.ChatAdminRequired, exceptions.NoActiveGroupCall) as e:
-            LOGGER.warning(f"Error playing media for chat {chat_id}: {e}")
+            LOGGER.warning("Error playing media for chat %s: %s", chat_id, e)
             chat_cache.clear_chat(chat_id)
             raise CallError(
                 "No active group call \nPlease start a call and try again"
             ) from e
         except TelegramServerError as e:
             LOGGER.warning(
-                f"Error playing media for chat {chat_id}: TelegramServerError"
+                "Error playing media for chat %s: TelegramServerError", chat_id
             )
             raise CallError("TelegramServerError\ntry again after some time") from e
         except exceptions.UnMuteNeeded as e:
-            LOGGER.warning(f"Error playing media for chat {chat_id}: {e}")
+            LOGGER.warning("Error playing media for chat %s: %s", chat_id, e)
             raise CallError(
                 "Needed to unmute the userbot first \nPlease unmute my assistant and try again"
             ) from e
         except Exception as e:
-            LOGGER.error(f"Error playing media for chat {chat_id}: {e}", exc_info=True)
+            LOGGER.error("Error playing media for chat %s: %s", chat_id, e)
             raise CallError(f"Error playing media: {e}") from e
 
     async def play_next(self, chat_id: int) -> None:
         """Handle song queue logic."""
-        LOGGER.info(f"Playing next song for chat {chat_id}")
+        LOGGER.info("Playing next song for chat %s", chat_id)
         try:
             loop = chat_cache.get_loop_count(chat_id)
             if loop > 0:
@@ -200,15 +200,15 @@ class MusicBot:
             else:
                 await self._handle_no_songs(chat_id)
         except Exception as e:
-            LOGGER.error(f"Error in play_next for chat {chat_id}: {e}", exc_info=True)
+            LOGGER.error("Error in play_next for chat %s: %s", chat_id, e)
 
     async def _play_song(self, chat_id: int, song: CachedTrack) -> None:
         """Download and play a song."""
-        LOGGER.info(f"Playing song for chat {chat_id}")
+        LOGGER.info("Playing song for chat %s", chat_id)
         try:
             reply = await self.bot.sendTextMessage(chat_id, "⏹️ Loading... Please wait.")
             if isinstance(reply, types.Error):
-                LOGGER.error(f"Error sending message: {reply}")
+                LOGGER.error("Error sending message: %s", reply)
                 return
 
             file_path = song.file_path or await self.song_download(song)
@@ -232,7 +232,7 @@ class MusicBot:
             )
             parse = await self.bot.parseTextEntities(text, types.TextParseModeHTML())
             if isinstance(parse, types.Error):
-                LOGGER.error(f"Parse error: {parse}")
+                LOGGER.error("Parse error: %s", parse)
                 parse = parse.message
             if thumbnail:
                 input_content = types.InputMessagePhoto(
@@ -259,10 +259,10 @@ class MusicBot:
                     ),
                 )
             if isinstance(reply, types.Error):
-                LOGGER.warning(f"Error editing message: {reply}")
+                LOGGER.warning("Error editing message: %s", reply)
                 return
         except Exception as e:
-            LOGGER.error(f"Error in _play_song for chat {chat_id}: {e}", exc_info=True)
+            LOGGER.error("Error in _play_song for chat %s: %s", chat_id, e)
 
     @staticmethod
     async def song_download(song: CachedTrack) -> Optional[Path]:
@@ -279,7 +279,9 @@ class MusicBot:
             if track := await handler.get_track():
                 return await handler.download_track(track, song.is_video)
 
-        LOGGER.warning(f"Unknown platform: {song.platform} for track: {song.track_id}")
+        LOGGER.warning(
+            "Unknown platform: %s for track: %s", song.platform, song.track_id
+        )
         return None
 
     async def _handle_no_songs(self, chat_id: int) -> None:
@@ -307,7 +309,7 @@ class MusicBot:
                 )
 
                 if isinstance(reply, types.Error):
-                    LOGGER.warning(f"Error sending recommendations: {reply}")
+                    LOGGER.warning("Error sending recommendations: %s", reply)
                 return
 
             reply = await self.bot.sendTextMessage(
@@ -315,16 +317,14 @@ class MusicBot:
             )
 
             if isinstance(reply, types.Error):
-                LOGGER.warning(f"Error sending empty queue message: {reply}")
+                LOGGER.warning("Error sending empty queue message: %s", reply)
 
         except Exception as e:
-            LOGGER.error(
-                f"Error in _handle_no_songs for chat {chat_id}: {e}", exc_info=True
-            )
+            LOGGER.error("Error in _handle_no_songs for chat %s: %s", chat_id, e)
 
     async def end(self, chat_id: int) -> None:
         """End the current call."""
-        LOGGER.info(f"Ending call for chat {chat_id}")
+        LOGGER.info("Ending call for chat %s", chat_id)
         try:
             chat_cache.clear_chat(chat_id)
             client_name = await self._get_client_name(chat_id)
@@ -332,7 +332,7 @@ class MusicBot:
         except errors.GroupCallInvalid:
             pass
         except Exception as e:
-            LOGGER.error(f"Error ending call for chat {chat_id}: {e}")
+            LOGGER.error("Error ending call for chat %s: %s", chat_id, e)
 
     async def seek_stream(
         self,
@@ -354,7 +354,7 @@ class MusicBot:
                 chat_id, file_path_or_url, is_video, ffmpeg_parameters=ffmpeg_params
             )
         except Exception as e:
-            LOGGER.error(f"Error in seek_stream: {e}")
+            LOGGER.error("Error in seek_stream: %s", e)
             raise CallError(f"Error seeking stream: {e}") from e
 
     async def speed_change(self, chat_id: int, speed: float = 1.0) -> None:
@@ -374,7 +374,7 @@ class MusicBot:
                 ffmpeg_parameters=f"-atend -filter:v setpts=0.5*PTS -filter:a atempo={speed}",
             )
         except Exception as e:
-            LOGGER.error(f"Error changing speed for chat {chat_id}: {e}")
+            LOGGER.error("Error changing speed for chat %s: %s", chat_id, e)
             raise CallError(f"Error changing speed: {e}") from e
 
     async def change_volume(self, chat_id: int, volume: int) -> None:
@@ -383,7 +383,7 @@ class MusicBot:
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].change_volume_call(chat_id, volume)
         except Exception as e:
-            LOGGER.error(f"Error changing volume for chat {chat_id}: {e}")
+            LOGGER.error("Error changing volume for chat %s: %s", chat_id, e)
             raise CallError(f"Error changing volume: {e}") from e
 
     async def mute(self, chat_id: int) -> None:
@@ -392,42 +392,42 @@ class MusicBot:
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].mute(chat_id)
         except Exception as e:
-            LOGGER.error(f"Error muting chat {chat_id}: {e}")
+            LOGGER.error("Error muting chat %s: %s", chat_id, e)
             raise CallError(f"Error muting call: {e}") from e
 
     async def unmute(self, chat_id: int) -> None:
         """Unmute the current call."""
-        LOGGER.info(f"Unmuting stream for chat {chat_id}")
+        LOGGER.info("Unmuting stream for chat %s", chat_id)
         try:
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].unmute(chat_id)
         except Exception as e:
-            LOGGER.error(f"Error unmuting chat {chat_id}: {e}")
+            LOGGER.error("Error unmuting chat %s: %s", chat_id, e)
             raise CallError(f"Error unmuting call: {e}") from e
 
     async def resume(self, chat_id: int) -> None:
         """Resume the current call."""
-        LOGGER.info(f"Resuming stream for chat {chat_id}")
+        LOGGER.info("Resuming stream for chat %s", chat_id)
         try:
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].resume(chat_id)
         except Exception as e:
-            LOGGER.error(f"Error resuming chat {chat_id}: {e}")
+            LOGGER.error("Error resuming chat %s: %s", chat_id, e)
             raise CallError(f"Error resuming call: {e}") from e
 
     async def pause(self, chat_id: int) -> None:
         """Pause the current call."""
-        LOGGER.info(f"Pausing stream for chat {chat_id}")
+        LOGGER.info("Pausing stream for chat %s", chat_id)
         try:
             client_name = await self._get_client_name(chat_id)
             await self.calls[client_name].pause(chat_id)
         except Exception as e:
-            LOGGER.error(f"Error pausing chat {chat_id}: {e}")
+            LOGGER.error("Error pausing chat %s: %s", chat_id, e)
             raise CallError(f"Error pausing call: {e}") from e
 
     async def played_time(self, chat_id: int) -> int:
         """Get the played time of the current call."""
-        LOGGER.info(f"Getting played time for chat {chat_id}")
+        LOGGER.info("Getting played time for chat %s", chat_id)
         try:
             client_name = await self._get_client_name(chat_id)
             return await self.calls[client_name].time(chat_id)
@@ -435,17 +435,17 @@ class MusicBot:
             chat_cache.clear_chat(chat_id)
             return 0
         except Exception as e:
-            LOGGER.error(f"Error getting played time for chat {chat_id}: {e}")
+            LOGGER.error("Error getting played time for chat %s: %s", chat_id, e)
             raise CallError(f"Error getting played time: {e}") from e
 
     async def vc_users(self, chat_id: int) -> list:
         """Get the list of participants in the current call."""
-        LOGGER.info(f"Getting VC users for chat {chat_id}")
+        LOGGER.info("Getting VC users for chat %s", chat_id)
         try:
             client_name = await self._get_client_name(chat_id)
             return await self.calls[client_name].get_participants(chat_id)
         except Exception as e:
-            LOGGER.error(f"Error getting participants for chat {chat_id}: {e}")
+            LOGGER.error("Error getting participants for chat %s: %s", chat_id, e)
             raise CallError(f"Error getting participants: {e}") from e
 
     async def stats_call(self, chat_id: int) -> tuple[float, float]:
@@ -457,7 +457,7 @@ class MusicBot:
                 await self.calls[client_name].cpu_usage,
             )
         except Exception as e:
-            LOGGER.error(f"Error getting stats for chat {chat_id}: {e}")
+            LOGGER.error("Error getting stats for chat %s: %s", chat_id, e)
             raise CallError(f"Error getting call stats: {e}") from e
 
 
@@ -477,7 +477,7 @@ async def start_clients() -> None:
         )
         LOGGER.info("✅ Clients started successfully.")
     except Exception as exc:
-        LOGGER.error(f"Error starting clients: {exc}", exc_info=True)
+        LOGGER.error("Error starting clients: %s", exc)
         raise SystemExit(1) from exc
 
 

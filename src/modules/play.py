@@ -178,7 +178,7 @@ async def _handle_single_track(
         PlayButton if await db.get_buttons_status(chat_id) else None,
     )
     if isinstance(reply, types.Error):
-        LOGGER.info(f"sending reply: {reply}")
+        LOGGER.info("sending reply: %s", reply)
         return None
 
 
@@ -369,7 +369,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
 
     reply_message = await msg.reply_text("🔎 Searching...")
     if isinstance(reply_message, types.Error):
-        LOGGER.warning(f"Error sending reply: {reply_message}")
+        LOGGER.warning("Error sending reply: %s", reply_message)
         return
 
     # Assistant checks

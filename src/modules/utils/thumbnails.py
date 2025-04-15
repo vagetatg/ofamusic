@@ -75,7 +75,7 @@ async def fetch_image(url: str) -> Image.Image | None:
                 img = resize_jiosaavn_thumbnail(img)
             return img
         except Exception as e:
-            LOGGER.error(f"Image loading error: {e}")
+            LOGGER.error("Image loading error: %s", e)
             return None
 
 
@@ -136,7 +136,7 @@ def get_duration(duration: int, time: str = "0:24") -> str:
         _min, sec = divmod(sec, 60)
         return f"{_min}:{sec:02d}"
     except Exception as e:
-        LOGGER.error(f"Duration calculation error: {e}")
+        LOGGER.error("Duration calculation error: %s", e)
         return "0:00"
 
 
