@@ -11,15 +11,3 @@ name = "docker"
 
 [[transformers]]
 name = "black"
-
-[[transformers]]
-name = "ruff"
-
-[[transformers]]
-name = "autopep8"
-
-[[transformers]]
-name = "isort"
-
-[[transformers]]
-name = "yapf"
