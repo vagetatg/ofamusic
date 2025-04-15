@@ -108,7 +108,7 @@ class YouTubeDownload:
             if proc.returncode != 0:
                 LOGGER.error(f"❌ Error downloading: {stderr.decode().strip()}")
                 return None
-            possible_exts = ["mp4", "m4a", "webm"] if not video else ["mp4", "mkv"]
+            possible_exts = ["mp4", "mkv"] if video else ["mp4", "m4a", "webm"]
             for ext in possible_exts:
                 downloaded_path = f"{config.DOWNLOADS_DIR}/{self.video_id}.{ext}"
                 if os.path.exists(downloaded_path):
