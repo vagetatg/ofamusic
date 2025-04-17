@@ -13,6 +13,8 @@ from ntgcalls import TelegramServerError
 from pyrogram import Client as PyroClient
 from pyrogram import errors
 from pytdbot import Client, types
+
+import config
 from pytgcalls import PyTgCalls, exceptions
 from pytgcalls.types import (
     AudioQuality,
@@ -23,8 +25,6 @@ from pytgcalls.types import (
     VideoQuality,
     stream,
 )
-
-import config
 from src.database import db
 from src.logger import LOGGER
 from src.modules.utils import PlayButton, get_audio_duration, sec_to_min, send_logger

@@ -14,9 +14,10 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 
 import config
+
+from ..logger import LOGGER
 from ._httpx import HttpxClient
 from .dataclass import TrackInfo
-from ..logger import LOGGER
 
 
 class YouTubeDownload:
