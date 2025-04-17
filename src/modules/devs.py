@@ -284,12 +284,11 @@ async def logger(c: Client, message: types.Message):
         await db.set_logger_status(c.me.id, True)
         await message.reply_text("Logger enabled.")
         return None
-    elif args.lower() in ["off", "disable"]:
+    if args.lower() in ["off", "disable"]:
         await db.set_logger_status(c.me.id, False)
         await message.reply_text("Logger disabled.")
         return None
-    else:
-        await message.reply_text(
-            f"Usage: /logger [enable|disable]\n\nYour argument is {args}"
-        )
-        return None
+    await message.reply_text(
+        f"Usage: /logger [enable|disable]\n\nYour argument is {args}"
+    )
+    return None
