@@ -13,13 +13,13 @@ from src.modules.utils.play_helpers import extract_argument
 
 
 async def _validate_auth_command(msg: types.Message) -> Optional[types.Message]:
-    """
-    Validate a message for the auth commands.
+    """Validate a message for the auth commands.
 
-    This function should be called as the first step of the auth commands.
-    It checks if the message is from a private chat, if the sender is the
-    owner of the chat, if the message is a reply to another message, and
-    if the replied message is from a user or a channel.
+    This function should be called as the first step of the auth
+    commands. It checks if the message is from a private chat, if the
+    sender is the owner of the chat, if the message is a reply to
+    another message, and if the replied message is from a user or a
+    channel.
 
     Returns the replied message if all checks pass, otherwise None.
     """
@@ -110,8 +110,7 @@ async def auth_list(_: Client, msg: types.Message):
 async def _handle_toggle_command(
     msg: types.Message, key: str, label: str, get_func, set_func
 ):
-    """
-    Generic handler for toggle commands.
+    """Generic handler for toggle commands.
 
     This function will check if the command can be used in the current chat,
     if the user is the owner of the chat, and if the argument is valid.

@@ -57,8 +57,7 @@ def _get_platform_url(platform: str, track_id: str) -> str:
 def build_song_selection_message(
     user_by: str, tracks: list[MusicTrack]
 ) -> tuple[str, types.ReplyMarkupInlineKeyboard]:
-    """
-    Build a message and inline keyboard for song selection.
+    """Build a message and inline keyboard for song selection.
 
     Args:
         user_by: The username of the person requesting the song selection.
@@ -483,8 +482,7 @@ async def play_audio(c: Client, msg: types.Message) -> None:
 
 @Client.on_message(filters=Filter.command("vplay"))
 async def play_video(c: Client, msg: types.Message) -> None:
-    """
-    Handle the /vplay command to play videos.
+    """Handle the /vplay command to play videos.
 
     This function listens for the /vplay command and invokes the
     handle_play_command function with the is_video flag set to True,

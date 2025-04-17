@@ -24,8 +24,7 @@ class Telegram:
     DownloaderCache = TTLCache(maxsize=5000, ttl=600)
 
     def __init__(self, reply: Optional[types.Message]):
-        """
-        Initialize Telegram helper with a message.
+        """Initialize Telegram helper with a message.
 
         Args:
         reply (types.Message or None): A Telegram message, or None if there is no message.
@@ -47,8 +46,7 @@ class Telegram:
         return self._file_info
 
     def is_valid(self) -> bool:
-        """
-        Check if the Telegram message is valid for music playback.
+        """Check if the Telegram message is valid for music playback.
 
         A valid Telegram message for music playback is a message that:
 
@@ -69,8 +67,8 @@ class Telegram:
         return 0 < file_size <= self.MAX_FILE_SIZE
 
     def _extract_file_info(self) -> tuple[int, str]:
-        """
-        Extract the file size and filename from the Telegram message content.
+        """Extract the file size and filename from the Telegram message
+        content.
 
         This method inspects the content of the Telegram message to determine
         the size and name of the file if the content type is supported.
@@ -113,8 +111,7 @@ class Telegram:
     async def dl(
         self, message: types.Message
     ) -> tuple[Union[types.Error, types.LocalFile], str]:
-        """
-        Download a media file from a Telegram message.
+        """Download a media file from a Telegram message.
 
         This asynchronous method checks if the media file contained in the
         given message is valid and supported for download. If valid, it
@@ -157,8 +154,7 @@ class Telegram:
     def get_cached_metadata(
         unique_id: str,
     ) -> Optional[dict[str, Union[int, str, str, int]]]:
-        """
-        Retrieve cached metadata for a Telegram media file.
+        """Retrieve cached metadata for a Telegram media file.
 
         This method retrieves the cached metadata for a Telegram media file
         identified by its unique ID. The metadata includes the chat ID,
@@ -175,8 +171,7 @@ class Telegram:
 
     @staticmethod
     def clear_cache(unique_id: str):
-        """
-        Clear cached metadata for a Telegram media file.
+        """Clear cached metadata for a Telegram media file.
 
         This method removes the cached metadata for a Telegram media file
         identified by its unique ID.

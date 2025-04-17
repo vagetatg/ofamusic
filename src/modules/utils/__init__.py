@@ -38,8 +38,7 @@ def sec_to_min(seconds):
 
 
 async def send_logger(client: Client, chat_id, song: CachedTrack):
-    """
-    Send a message to the logger channel when a song is played.
+    """Send a message to the logger channel when a song is played.
 
     Args:
         client (Client): The client to send the message with.

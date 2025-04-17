@@ -19,8 +19,7 @@ chat_invite_cache = TTLCache(maxsize=1000, ttl=1000)
 async def get_url(
     msg: types.Message, reply: Union[types.Message, None]
 ) -> Optional[str]:
-    """
-    Extracts a URL from the given message or its reply.
+    """Extracts a URL from the given message or its reply.
 
     Args:
     msg: The message object to extract the URL from.
@@ -66,8 +65,7 @@ def extract_argument(text: str, enforce_digit: bool = False) -> str | None:
 
 
 async def del_msg(msg: types.Message):
-    """
-    Deletes the given message.
+    """Deletes the given message.
 
     Args:
         msg (types.Message): The message to delete.
@@ -85,8 +83,7 @@ async def del_msg(msg: types.Message):
 async def edit_text(
     reply_message: types.Message, *args: Any, **kwargs: Any
 ) -> Union["types.Error", "types.Message"]:
-    """
-    Edits the given message and returns the result.
+    """Edits the given message and returns the result.
 
     If the given message is an Error, logs the error and returns it.
     If an exception occurs while editing the message, logs the exception and
@@ -143,9 +140,7 @@ async def join_ub(chat_id: int, c: Client, ub: pyrogram.Client):
         ok = await c.processChatJoinRequest(
             chat_id=chat_id, user_id=ub.me.id, approve=True
         )
-        if isinstance(ok, types.Error):
-            return ok
-        return None
+        return ok if isinstance(ok, types.Error) else None
     except errors.UserAlreadyParticipant:
         user_status_cache[user_key] = "chatMemberStatusMember"
         return None
@@ -162,9 +157,7 @@ async def unban_ub(c: Client, chat_id: int, user_id: int):
     )
 
 
-async def check_user_status(
-    c: Client, chat_id: int, user_id: int
-) -> (
+async def check_user_status(c: Client, chat_id: int, user_id: int) -> (
     Literal[
         "chatMemberStatusLeft",
         "chatMemberStatusCreator",

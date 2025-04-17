@@ -52,8 +52,7 @@ async def handle_playback_action(
 
 @Client.on_message(filters=Filter.command("setPlayType"))
 async def set_play_type(_: Client, msg: types.Message) -> None:
-    """
-    Set the play type for a given chat.
+    """Set the play type for a given chat.
 
     The play type is a preference for a given chat that determines how the
     bot should handle song requests. If the preference is 0, the bot will

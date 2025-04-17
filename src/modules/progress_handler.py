@@ -15,8 +15,7 @@ download_progress = {}
 
 
 def _format_bytes(size: int) -> str:
-    """
-    Format a size in bytes into a human-readable format.
+    """Format a size in bytes into a human-readable format.
 
     Args:
         size: The size in bytes.
@@ -34,8 +33,7 @@ def _format_bytes(size: int) -> str:
 
 
 def _format_time(seconds: float) -> str:
-    """
-    Format a time in seconds into a human-readable format.
+    """Format a time in seconds into a human-readable format.
 
     Args:
         seconds: The time in seconds.
@@ -53,8 +51,7 @@ def _format_time(seconds: float) -> str:
 
 
 def _create_progress_bar(percentage: int, length: int = 10) -> str:
-    """
-    Generate a textual progress bar representation.
+    """Generate a textual progress bar representation.
 
     Args:
         percentage: The completion percentage of the task.
@@ -69,8 +66,7 @@ def _create_progress_bar(percentage: int, length: int = 10) -> str:
 
 
 def _calculate_update_interval(file_size: int, speed: float) -> float:
-    """
-    Calculates the interval between progress updates in seconds.
+    """Calculates the interval between progress updates in seconds.
 
     The interval is determined by the file size and download speed. For smaller
     files (less than 5MB), the interval is fixed at 1 second. For larger files,
@@ -97,8 +93,7 @@ def _calculate_update_interval(file_size: int, speed: float) -> float:
 
 
 def _get_button(unique_id: str) -> types.ReplyMarkupInlineKeyboard:
-    """
-    Generates the "Stop Downloading" inline button for a specific unique ID.
+    """Generates the "Stop Downloading" inline button for a specific unique ID.
 
     Args:
         unique_id: The unique ID of the download.
@@ -121,8 +116,7 @@ def _get_button(unique_id: str) -> types.ReplyMarkupInlineKeyboard:
 
 
 def _should_update(progress: dict, now: float, completed: bool) -> bool:
-    """
-    Checks if a progress update should be sent.
+    """Checks if a progress update should be sent.
 
     Args:
         progress: A dictionary containing the current progress information.
@@ -138,8 +132,7 @@ def _should_update(progress: dict, now: float, completed: bool) -> bool:
 def _build_progress_text(
     filename: str, total: int, downloaded: int, speed: float
 ) -> str:
-    """
-    Build a progress update message for a download task.
+    """Build a progress update message for a download task.
 
     This function generates a formatted string indicating the current progress
     of a download task. It displays the filename, total size, current progress,
@@ -166,8 +159,7 @@ def _build_progress_text(
 
 
 def _build_complete_text(filename: str, total: int, duration: float) -> str:
-    """
-    Build a completion message for a download task.
+    """Build a completion message for a download task.
 
     This function generates a formatted string indicating the completion
     of a download task. It displays the filename, total size, time taken,
@@ -192,8 +184,7 @@ def _build_complete_text(filename: str, total: int, duration: float) -> str:
 
 @Client.on_updateFile()
 async def update_file(client: Client, update: types.UpdateFile):
-    """
-    Handles file download progress updates.
+    """Handles file download progress updates.
 
     This function is called when the Telegram Client receives a file download
     progress update. It extracts the necessary information from the update,
@@ -280,8 +271,7 @@ async def update_file(client: Client, update: types.UpdateFile):
 
 
 async def _handle_play_c_data(data, message, chat_id, user_id, user_name, c):
-    """
-    Handle play control callback data for cancelling a file download.
+    """Handle play control callback data for cancelling a file download.
 
     This function checks if the user is an admin, and if so, attempts to
     cancel an ongoing file download based on the provided callback data.
