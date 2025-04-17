@@ -65,7 +65,9 @@ class MusicService(ABC):
         pass
 
     @abstractmethod
-    async def download_track(self, track_info: TrackInfo, video: bool = False) -> Optional[str]:
+    async def download_track(
+        self, track_info: TrackInfo, video: bool = False
+    ) -> Optional[str]:
         """
         Download a track from the music service.
 

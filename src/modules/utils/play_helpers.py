@@ -153,7 +153,6 @@ async def join_ub(chat_id: int, c: Client, ub: pyrogram.Client):
         return types.Error(code=400, message=f"Failed to join chat {chat_id}: {e}")
 
 
-
 async def unban_ub(c: Client, chat_id: int, user_id: int):
     """Unbans a user from a chat."""
     await c.setChatMemberStatus(

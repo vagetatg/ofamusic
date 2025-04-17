@@ -13,6 +13,7 @@ from src.logger import LOGGER
 class Telegram:
     """Helper class to validate and process playable Telegram media
     messages."""
+
     MAX_FILE_SIZE = 600 * 1024 * 1024  # 600MB
     UNSUPPORTED_TYPES = (
         types.MessageText,
@@ -21,6 +22,7 @@ class Telegram:
         types.MessageAnimation,
     )
     DownloaderCache = TTLCache(maxsize=5000, ttl=600)
+
     def __init__(self, reply: Optional[types.Message]):
         """
         Initialize Telegram helper with a message.
