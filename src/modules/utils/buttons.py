@@ -70,13 +70,16 @@ SupportButton = types.ReplyMarkupInlineKeyboard(
     ]
 )
 
+
 # ─────────────────────
 # Dynamic Keyboard Function
 # ─────────────────────
 
 
 def add_me_button(username: str) -> types.ReplyMarkupInlineKeyboard:
-    """Create an inline keyboard with 'Add me to your group' button."""
+    """
+    Create an inline keyboard with 'Add me to your group' button.
+    """
     return types.ReplyMarkupInlineKeyboard(
         [
             [
