@@ -9,7 +9,17 @@ from src import client
 
 
 async def create_directories() -> None:
-    """Create necessary directories."""
+    """Create directories and save cookies.
+
+    This function will create the following directories:
+      - `config.DOWNLOADS_DIR`
+      - `database/photos`
+
+    It will also call `src.platforms.save_cookies.save_all_cookies` to
+    download and save cookies from the URLs in `config.COOKIES_URL`.
+
+    If any error occurs, it will raise a `SystemExit` exception with code 1.
+    """
     from src.platforms.save_cookies import save_all_cookies
 
     try:

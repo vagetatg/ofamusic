@@ -1,6 +1,7 @@
 #  Copyright (c) 2025 AshokShau
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
+
 import time
 from datetime import datetime
 from types import NoneType
@@ -24,7 +25,7 @@ from src.pytgcalls import call
 
 @Client.on_message(filters=Filter.command("start"))
 async def start_cmd(c: Client, message: types.Message):
-    me: types.User = await c.getMe()
+    """Handle the /start command to welcome users."""
     chat_id = message.chat_id
     if chat_id < 0:
         await db.add_chat(chat_id)
@@ -34,7 +35,7 @@ async def start_cmd(c: Client, message: types.Message):
     text = f"""
     нєу {await message.mention(parse_mode='html')} 👋
 
-<b>Welcome to {me.first_name} v{__version__} </b>
+<b>Welcome to {c.me.first_name} v{__version__} </b>
 
 Your ultimate music companion for Telegram voice chats! 
 
@@ -54,6 +55,7 @@ Your ultimate music companion for Telegram voice chats!
 
 @Client.on_message(filters=Filter.command("help"))
 async def help_cmd(c: Client, message: types.Message):
+    """Handle the /help command to display help information."""
     text = f"""<b>Help for {c.me.first_name}:</b>
 <b>/start:</b> Start the bot.
 <b>/reload:</b> Reload chat administrator list.
@@ -99,6 +101,7 @@ async def help_cmd(c: Client, message: types.Message):
 
 @Client.on_message(filters=Filter.command("privacy"))
 async def privacy_handler(c: Client, message: types.Message):
+    """Handle the /privacy command to display privacy policy."""
     bot_name = c.me.first_name
     text = f"""
     <u><b>Privacy Policy for {bot_name}:</b></u>
@@ -153,11 +156,12 @@ rate_limit_cache = TTLCache(maxsize=100, ttl=180)
 
 
 @Client.on_message(filters=Filter.command("reload"))
-async def reload_cmd(c: Client, message: types.Message):
+async def reload_cmd(c: Client, message: types.Message) -> None:
+    """Handle the /reload command to reload the bot."""
     user_id = message.from_id
     chat_id = message.chat_id
     if chat_id > 0:
-        return
+        return None
 
     if user_id in rate_limit_cache:
         last_used_time = rate_limit_cache[user_id]
@@ -167,19 +171,20 @@ async def reload_cmd(c: Client, message: types.Message):
         )
         if isinstance(reply, types.Error):
             c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
-        return
+        return None
 
     rate_limit_cache[user_id] = datetime.now()
     reply = await message.reply_text("🔄 Reloading...")
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
-        return
+        return None
 
     ub = await call.get_client(chat_id)
     if isinstance(ub, (types.Error, NoneType)):
-        return await reply.edit_text(
+        await reply.edit_text(
             "❌ Something went wrong. Assistant not found for this chat."
         )
+        return None
 
     chat_invite_cache.pop(chat_id, None)
     user_key = f"{chat_id}:{ub.me.id}"
@@ -204,11 +209,12 @@ async def reload_cmd(c: Client, message: types.Message):
     reply = await reply.edit_text(text)
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")
-    return
+    return None
 
 
 @Client.on_message(filters=Filter.command("ping"))
-async def ping_cmd(c: Client, message: types.Message):
+async def ping_cmd(c: Client, message: types.Message) -> None:
+    """Handle the /ping command to check the bot's latency."""
     start_time = time.time()
     reply = await message.reply_text("🏓 Pong!")
     end_time = time.time()
@@ -218,11 +224,12 @@ async def ping_cmd(c: Client, message: types.Message):
         latency_ms = (end_time - start_time) * 1000
         await reply.edit_text(f"🏓 Pong! - {latency_ms:.2f}ms")
 
-    return
+    return None
 
 
 @Client.on_message(filters=Filter.command("song"))
 async def song_cmd(c: Client, message: types.Message):
+    """Handle the /song command."""
     reply = await message.reply_text("🎶 USE: @SpTubeBot")
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply}")
