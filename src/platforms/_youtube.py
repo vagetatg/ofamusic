@@ -30,7 +30,9 @@ class YouTubeData(MusicService):
         self.query = (
             None
             if not query
-            else query.split("&")[0] if query and "&" in query else query
+            else query.split("&")[0]
+            if query and "&" in query
+            else query
         )
 
     def is_valid(self, url: str) -> bool:
