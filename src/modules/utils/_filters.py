@@ -11,6 +11,16 @@ from pytdbot import filters, types
 class Filter:
     @staticmethod
     def _extract_text(event) -> str | None:
+        """Extract text from an event. If the event is a message, it will get
+        the text from the message. If the event is an update, it will get the
+        text from the message. If the event is a callback query, it will decode
+        the data using UTF-8 and return the result. If it can't extract the
+        text, it will return None.
+
+        :param event: The event to extract the text from.
+        :return: The text extracted from the event, or None if the text
+            couldn't be extracted.
+        """
         if isinstance(event, types.Message) and isinstance(
             event.content, types.MessageText
         ):
@@ -30,8 +40,8 @@ class Filter:
     ) -> filters.Filter:
         """Filter for commands.
 
-        Supports multiple commands and prefixes like / or !. Also
-        handles commands with @mentions (e.g., /start@BotName).
+        Supports multiple commands and prefixes like / or !. Also handles commands with
+        @mentions (e.g., /start@BotName).
         """
         if isinstance(commands, str):
             commands = [commands]
