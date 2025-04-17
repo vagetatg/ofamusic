@@ -16,7 +16,7 @@ from src.pytgcalls import call, start_clients
 
 __version__ = "1.1.7"
 
-# Enforce minimum Python version
+# Enforce a minimum Python version
 if sys.version_info < (3, 10):
     raise RuntimeError(
         "\n\n❌ Your Python version is too old!\n"

@@ -2,6 +2,7 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
+
 import re
 from typing import Union
 
@@ -11,6 +12,17 @@ from pytdbot import filters, types
 class Filter:
     @staticmethod
     def _extract_text(event) -> str | None:
+        """
+        Extract text from an event. If the event is a message, it will get the text
+        from the message. If the event is an update, it will get the text from the
+        message. If the event is a callback query, it will decode the data using
+        UTF-8 and return the result. If it can't extract the text, it will return
+        None.
+
+        :param event: The event to extract the text from.
+        :return: The text extracted from the event, or None if the text couldn't
+            be extracted.
+        """
         if isinstance(event, types.Message) and isinstance(
             event.content, types.MessageText
         ):
