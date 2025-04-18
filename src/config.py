@@ -54,7 +54,7 @@ IGNORE_BACKGROUND_UPDATES = (
 
 
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
-    """BatBin urls to download cookies; more info https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md"""
+    """https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md"""
     if not env_value:
         return []
     urls = []

@@ -3,15 +3,14 @@ FROM python:3.13-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        ffmpeg \
-        git \
-        aria2 \
+    ffmpeg \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt /app/
-
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir uv==0.6.14
 
 COPY . /app/
 
-CMD ["bash", "start"]
+RUN uv pip install -e . --system
+
+CMD ["tgmusicbot"]
