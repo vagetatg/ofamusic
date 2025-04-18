@@ -11,7 +11,7 @@ from pyrogram import errors
 from pytdbot import Client, types
 
 from src.helpers import call
-from src.modules.utils.cacher import chat_cache
+from src.helpers import chat_cache
 
 
 class InactiveCallManager:

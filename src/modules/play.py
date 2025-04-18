@@ -22,7 +22,7 @@ from src.logger import LOGGER
 from src.modules.utils import Filter, SupportButton, get_audio_duration, sec_to_min
 from src.modules.utils.admins import is_admin, load_admin_cache
 from src.modules.utils.buttons import PlayButton
-from src.modules.utils.cacher import chat_cache
+from src.helpers import chat_cache
 from src.modules.utils.play_helpers import (
     check_user_status,
     del_msg,

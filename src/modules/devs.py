@@ -28,7 +28,7 @@ from src.config import OWNER_ID
 from src.helpers import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
-from src.modules.utils.cacher import chat_cache
+from src.helpers import chat_cache
 from src.modules.utils.play_helpers import del_msg, extract_argument
 
 

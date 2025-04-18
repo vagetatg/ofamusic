@@ -13,7 +13,7 @@ from src.logger import LOGGER
 from src.modules.utils import SupportButton
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import add_me_button
-from src.modules.utils.cacher import chat_cache
+from src.helpers import chat_cache
 from src.modules.utils.play_helpers import user_status_cache
 
 

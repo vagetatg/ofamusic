@@ -3,6 +3,7 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 from ._api import ApiData
+from ._cacher import chat_cache
 from ._database import db
 from ._dataclass import CachedTrack, MusicTrack, PlatformTracks, TrackInfo
 from ._downloader import MusicServiceWrapper
@@ -14,6 +15,7 @@ from ._youtube import YouTubeData
 
 __all__ = [
     "ApiData",
+    "chat_cache",
     "JiosaavnData",
     "db",
     "MusicServiceWrapper",

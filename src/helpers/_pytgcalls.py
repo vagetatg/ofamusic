@@ -27,9 +27,9 @@ from pytgcalls.types import (
 from src import config
 from src.logger import LOGGER
 from src.modules.utils import PlayButton, get_audio_duration, sec_to_min, send_logger
-from src.modules.utils.cacher import chat_cache
 from src.modules.utils.thumbnails import gen_thumb
 from ._api import ApiData
+from ._cacher import chat_cache
 from ._database import db
 from ._dataclass import CachedTrack
 from ._downloader import MusicServiceWrapper
