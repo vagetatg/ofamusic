@@ -10,9 +10,9 @@ import sys
 from pytdbot import Client, types
 
 import config
-from src.database import db
+from src.helpers import call, start_clients
+from src.helpers import db
 from src.modules.jobs import InactiveCallManager
-from src.pytgcalls import call, start_clients
 
 __version__ = "1.1.7"
 

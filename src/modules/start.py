@@ -10,7 +10,8 @@ from cachetools import TTLCache
 from pytdbot import Client, types
 
 from src import __version__
-from src.database import db
+from src.helpers import call
+from src.helpers import db
 from src.modules.utils import Filter, sec_to_min
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import add_me_button
@@ -20,7 +21,6 @@ from src.modules.utils.play_helpers import (
     check_user_status,
     user_status_cache,
 )
-from src.pytgcalls import call
 
 
 @Client.on_message(filters=Filter.command("start"))

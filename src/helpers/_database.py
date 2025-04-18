@@ -7,7 +7,7 @@ from typing import Optional
 from cachetools import TTLCache
 from motor.motor_asyncio import AsyncIOMotorClient
 
-import config
+from src.config import MONGO_URI
 from src.logger import LOGGER
 
 
@@ -26,7 +26,7 @@ class Database:
         `TTLCache` objects with a maximum size of 1000 and a time to live of
         600 seconds.
         """
-        self.mongo_client = AsyncIOMotorClient(config.MONGO_URI)
+        self.mongo_client = AsyncIOMotorClient(MONGO_URI)
         _db = self.mongo_client["MusicBot"]
         self.chat_db = _db["chats"]
         self.users_db = _db["users"]

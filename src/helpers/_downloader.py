@@ -5,8 +5,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-import config
-from .dataclass import PlatformTracks, TrackInfo
+from ._dataclass import PlatformTracks, TrackInfo
+from src import config
 
 
 class MusicService(ABC):

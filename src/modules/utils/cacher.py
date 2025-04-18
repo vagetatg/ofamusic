@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 
 class ChatCacher:
-    from src.platforms.dataclass import CachedTrack
+    from src.helpers import CachedTrack
 
     def __init__(self):
         self.chat_cache: Dict[int, Dict[str, Any]] = {}

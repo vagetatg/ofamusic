@@ -8,7 +8,7 @@ from types import NoneType
 from pytdbot import Client, types
 
 from src import call
-from src.database import db
+from src.helpers import db
 from src.logger import LOGGER
 from src.modules.utils import SupportButton
 from src.modules.utils.admins import load_admin_cache

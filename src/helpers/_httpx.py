@@ -10,8 +10,8 @@ from typing import Any, Optional, Union
 import aiofiles
 import httpx
 
-import config
-from config import API_KEY
+from src import config
+from src.config import API_KEY
 from src.logger import LOGGER
 
 

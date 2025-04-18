@@ -24,15 +24,17 @@ from pytgcalls.types import (
     stream,
 )
 
-import config
-from src.database import db
+from src import config
 from src.logger import LOGGER
 from src.modules.utils import PlayButton, get_audio_duration, sec_to_min, send_logger
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.thumbnails import gen_thumb
-from src.platforms import ApiData, JiosaavnData, YouTubeData
-from src.platforms.dataclass import CachedTrack
-from src.platforms.downloader import MusicServiceWrapper
+from ._jiosaavn import JiosaavnData
+from ._youtube import YouTubeData
+from ._api import ApiData
+from ._downloader import MusicServiceWrapper
+from ._database import db
+from ._dataclass import CachedTrack
 
 
 class CallError(Exception):

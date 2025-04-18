@@ -75,46 +75,46 @@ Say goodbye to restrictions with our **Premium Music API** – your ultimate sol
    sudo apt-get update && sudo apt-get upgrade -y
    ```
 
-2. Install required packages:
+2.Install tmux to keep running your bot when you close the terminal by:
    ```sh
-   sudo apt-get install git python3-pip ffmpeg aria2 -y
+   sudo apt install tmux && tmux
    ```
 
-3. Clone the repository:  
+3.Install required packages:
+   ```sh
+   sudo apt-get install git python3-pip ffmpeg -y && pip3 install uv
+   ```
+
+4.Clone the repository:  
    ```sh
    git clone https://github.com/AshokShau/TgMusicBot.git && cd TgMusicBot
    ```
 
-4. Create a virtual environment:  
+5.Create a virtual environment:  
    ```sh
-   python3 -m venv venv
+   uv venv .venv
    ```
 
-5. Activate the virtual environment:  
-   - Windows: `venv/Scripts/activate`
-   - Linux/Mac: `source venv/bin/activate`
+6.Activate the virtual environment:  
+   - Windows: `.venv/Scripts/activate`
+   - Linux/Mac: `source .venv/bin/activate`
 
-6. Install dependencies:  
+7.Install dependencies:  
    ```sh
-   pip install -r requirements.txt
+   uv pip install -e .
    ```
 
-7. Set up environment variables:  
+8.Set up environment variables:  
    ```sh
    cp sample.env .env && vi .env
    ```
    > Press `Ctrl+C` when you're done with editing env and `:wq` to save the environment variables.
 
-8. Install tmux to keep running your bot when you close the terminal by:
+9.Finally, run the bot by:  
    ```sh
-   sudo apt install tmux && tmux
+   uv run src
    ```
-
-9. Finally run the bot by:  
-   ```sh
-   bash start
-   ```
-   > For getting out from tmux session : Press `Ctrl+b` and then `d`.
+   > For getting out from tmux session: Press `Ctrl+b` and then `d`.
 
 </details>
 

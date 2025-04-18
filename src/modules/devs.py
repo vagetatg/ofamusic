@@ -23,9 +23,9 @@ from pytdbot import Client, types
 from pytdbot import VERSION as pyTdVer
 from pytgcalls import __version__ as pytgver
 
-import config
-from config import OWNER_ID
-from src.database import db
+from src import config
+from src.config import OWNER_ID
+from src.helpers import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
 from src.modules.utils.cacher import chat_cache

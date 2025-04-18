@@ -7,7 +7,8 @@ from typing import Union
 
 from pytdbot import Client, types
 
-from src.database import db
+from src.helpers import call
+from src.helpers import db
 from src.logger import LOGGER
 from src.modules.play import _get_platform_url, play_music
 from src.modules.progress_handler import _handle_play_c_data
@@ -15,8 +16,7 @@ from src.modules.utils import Filter, PauseButton, ResumeButton, sec_to_min
 from src.modules.utils.admins import is_admin
 from src.modules.utils.cacher import chat_cache
 from src.modules.utils.play_helpers import del_msg, edit_text, extract_argument
-from src.platforms.downloader import MusicServiceWrapper
-from src.pytgcalls import call
+from src.helpers import MusicServiceWrapper
 
 
 async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message]:

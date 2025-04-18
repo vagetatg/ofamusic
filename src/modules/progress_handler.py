@@ -9,7 +9,7 @@ from pytdbot import Client, types
 
 from src.logger import LOGGER
 from src.modules.utils.admins import is_admin
-from src.platforms.telegram import Telegram
+from src.helpers import Telegram
 
 download_progress = {}
 

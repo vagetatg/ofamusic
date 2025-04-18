@@ -1,6 +1,6 @@
 **
 !*.py
 !src/
-!requirements.txt
+!pyproject.toml
 !start
 !cookies

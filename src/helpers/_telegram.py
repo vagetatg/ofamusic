@@ -153,7 +153,7 @@ class Telegram:
                 "message_id": message.id,
             }
 
-        file_obj = await self.msg.download(synchronous=True)
+        file_obj = await self.msg.download()
         return file_obj, file_name
 
     @staticmethod

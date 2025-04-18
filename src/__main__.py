@@ -4,8 +4,7 @@
 
 from aiofiles import os
 
-import config
-from src import client
+from src import client, config
 
 
 async def create_directories() -> None:
@@ -16,12 +15,12 @@ async def create_directories() -> None:
       - `config.DOWNLOADS_DIR`
       - `database/photos`
 
-    It will also call `src.platforms.save_cookies.save_all_cookies` to
+    It will also call `src.platforms._save_cookies.save_all_cookies` to
     download and save cookies from the URLs in `config.COOKIES_URL`.
 
     If any error occurs, it will raise a `SystemExit` exception with code 1.
     """
-    from src.platforms.save_cookies import save_all_cookies
+    from src.helpers import save_all_cookies
 
     try:
         await os.makedirs(config.DOWNLOADS_DIR, exist_ok=True)
