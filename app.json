@@ -132,6 +132,11 @@
       "description": "Leave all chats for all userbot clients",
       "value": "False",
       "required": false
+    },
+    "DEVS": {
+      "description": "User ID's of developers",
+      "value": "5938660179",
+      "required": false
     }
   },
   "buildpacks": [
