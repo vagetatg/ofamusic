@@ -124,10 +124,8 @@ class MusicServiceWrapper(MusicService):
         elif config.DEFAULT_SERVICE == "jiosaavn":
             return JiosaavnData(query)
         return (
-                ApiData(query)
-                if config.API_URL and config.API_KEY
-                else YouTubeData(query)
-            )
+            ApiData(query) if config.API_URL and config.API_KEY else YouTubeData(query)
+        )
 
     def is_valid(self, url: str) -> bool:
         return self.service.is_valid(url)
