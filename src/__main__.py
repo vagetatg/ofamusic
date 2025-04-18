@@ -7,6 +7,7 @@ from aiofiles import os
 from src import client
 from src.config import COOKIES_URL, DOWNLOADS_DIR
 
+
 async def create_directories() -> None:
     """
     Create directories and save cookies.
@@ -33,6 +34,7 @@ async def create_directories() -> None:
 def main() -> None:
     client.loop.create_task(create_directories())
     client.run()
+
 
 if __name__ == "__main__":
     main()

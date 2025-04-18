@@ -7,10 +7,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# TODO: use uv and pyproject.toml
-COPY requirements.txt /app/
+RUN pip install uv
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml requirements.txt* /app/
+
+RUN uv pip install --no-cache -r requirements.txt --system
 
 COPY . /app/
 
