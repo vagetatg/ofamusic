@@ -217,7 +217,7 @@ class SpotifyDownload:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            stdout, stderr = await process.communicate()
+            _, stderr = await process.communicate()
             if process.returncode != 0:
                 LOGGER.error("FFmpeg error: %s", stderr.decode().strip())
                 raise subprocess.CalledProcessError(process.returncode, "ffmpeg")

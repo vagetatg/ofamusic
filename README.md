@@ -165,7 +165,7 @@ tgmusicbot v1.1.7
 
 5.Create a virtual environment:  
    ```sh
-   uv venv .venv
+   uv venv
    ```
 
 6.Activate the virtual environment:  

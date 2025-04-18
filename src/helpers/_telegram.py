@@ -107,6 +107,7 @@ class Telegram:
                         self.content.document.document.size,
                         self.content.document.file_name or "Document.mp4",
                     )
+            return 0, "UnknownMedia"
         except Exception as e:
             LOGGER.error("Error while extracting file info: %s", e)
 

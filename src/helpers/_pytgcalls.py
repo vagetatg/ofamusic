@@ -206,9 +206,10 @@ class MusicBot:
         """
         Registers decorators for handling updates from call instances.
 
-        This method iterates over all PyTgCalls instances stored in the `calls` dictionary
-        and registers an update handler for each instance. The handler processes various
-        types of updates, such as `StreamEnded`, `UpdatedGroupCallParticipant`, and
+        This method iterates over all PyTgCalls instances stored in the `calls`
+        dictionary and registers an update handler for each instance.
+        The handler processes various types of updates,
+        such as `StreamEnded`, `UpdatedGroupCallParticipant`, and
         `ChatUpdate`, and performs appropriate actions such as playing the next track
         or clearing the chat cache.
 
@@ -224,18 +225,18 @@ class MusicBot:
                     LOGGER.debug("Received update: %s", update)
                     if isinstance(update, stream.StreamEnded):
                         await self.play_next(update.chat_id)
-                        return
+                        return None
                     elif isinstance(update, UpdatedGroupCallParticipant):
-                        return
+                        return None
                     elif isinstance(update, ChatUpdate) and (
                         update.status.KICKED or update.status.LEFT_GROUP
                     ):
                         chat_cache.clear_chat(update.chat_id)
-                        return
-                    else:
-                        return
+                        return None
+                    return None
                 except Exception as e:
                     LOGGER.error("Error in general handler: %s", e)
+                    return None
 
     async def play_media(
         self,

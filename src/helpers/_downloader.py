@@ -60,7 +60,7 @@ class MusicService(ABC):
         Retrieve detailed information about a specific track.
 
         Returns:
-            Optional[TrackInfo]: Track information if successful, or None if retrieval fails.
+            Optional[TrackInfo]: Track information if successful, None otherwise.
         """
         pass
 
@@ -99,7 +99,8 @@ class MusicServiceWrapper(MusicService):
         This method checks the validity of the query against different music services
         (YouTube, JioSaavn, and various API-powered services) and returns an instance
         of the corresponding service handler. If the query is not directly valid for
-        any service, it falls back to the default service specified in the configuration.
+        any service,
+        It falls back to the default service specified in the configuration.
 
         Returns:
             MusicService: An instance of a class implementing the MusicService interface,
@@ -122,8 +123,7 @@ class MusicServiceWrapper(MusicService):
             return ApiData(query)
         elif config.DEFAULT_SERVICE == "jiosaavn":
             return JiosaavnData(query)
-        else:
-            return (
+        return (
                 ApiData(query)
                 if config.API_URL and config.API_KEY
                 else YouTubeData(query)
