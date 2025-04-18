@@ -43,6 +43,79 @@ Say goodbye to restrictions with our **Premium Music API** – your ultimate sol
 ---
 
 ## **Installation**  
+<details> 
+<summary>Dependencies Tree: Click to expand</summary>
+
+```
+tgmusicbot v1.1.7
+├── aiofiles v24.1.0
+├── apscheduler v3.11.0
+│   └── tzlocal v5.3.1
+├── cachetools v5.5.2
+├── kurigram v2.2.0
+│   ├── pyaes v1.6.1
+│   └── pysocks v1.7.1
+├── meval v2.5
+├── motor v3.7.0
+│   └── pymongo v4.12.0
+│       └── dnspython v2.7.0
+├── mutagen v1.47.0
+├── ntgcalls v1.3.3
+├── pillow v11.2.1
+├── psutil v7.0.0
+├── py-tgcalls v2.1.1
+│   ├── aiohttp v3.11.16
+│   │   ├── aiohappyeyeballs v2.6.1
+│   │   ├── aiosignal v1.3.2
+│   │   │   └── frozenlist v1.6.0
+│   │   ├── attrs v25.3.0
+│   │   ├── frozenlist v1.6.0
+│   │   ├── multidict v6.4.3
+│   │   ├── propcache v0.3.1
+│   │   └── yarl v1.20.0
+│   │       ├── idna v3.10
+│   │       ├── multidict v6.4.3
+│   │       └── propcache v0.3.1
+│   ├── deprecation v2.1.0
+│   │   └── packaging v24.2
+│   └── ntgcalls v1.3.3
+├── py-yt-search v0.2
+│   └── httpx v0.28.1
+│       ├── anyio v4.9.0
+│       │   ├── idna v3.10
+│       │   └── sniffio v1.3.1
+│       ├── certifi v2025.1.31
+│       ├── httpcore v1.0.8
+│       │   ├── certifi v2025.1.31
+│       │   └── h11 v0.14.0
+│       └── idna v3.10
+├── pycryptodome v3.22.0
+├── pydantic v2.11.3
+│   ├── annotated-types v0.7.0
+│   ├── pydantic-core v2.33.1
+│   │   └── typing-extensions v4.13.2
+│   ├── typing-extensions v4.13.2
+│   └── typing-inspection v0.4.0
+│       └── typing-extensions v4.13.2
+├── pytdbot v0.9.2
+│   ├── aio-pika v9.5.5
+│   │   ├── aiormq v6.8.1
+│   │   │   ├── pamqp v3.3.0
+│   │   │   └── yarl v1.20.0 (*)
+│   │   ├── exceptiongroup v1.2.2
+│   │   └── yarl v1.20.0 (*)
+│   └── deepdiff v8.4.2
+│       └── orderly-set v5.4.0
+├── pytgcrypto v1.2.9.2
+├── python-dotenv v1.1.0
+├── pytz v2025.2
+├── tdjson v1.8.47
+├── ujson v5.10.0
+└── yt-dlp v2025.3.31
+```
+
+</details>
+
 <details>
 <summary><strong>📌 Using Docker (Recommended) (Click to expand)</strong></summary>
 
