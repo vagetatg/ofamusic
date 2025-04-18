@@ -234,7 +234,7 @@ tgmusicbot v1.1.7
 
 ### 🔗 String Sessions
 
-- **STRING** - Pyrogram String Session, STRING2 ... STRING10
+- **STRING1** - Pyrogram String Session, STRING2 ... STRING10
 
 > Get from [@StringFatherBot](https://t.me/StringFatherBot)
 

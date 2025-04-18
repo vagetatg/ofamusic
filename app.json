@@ -28,7 +28,7 @@
       "value": "",
       "required": true
     },
-    "STRING": {
+    "STRING1": {
       "description": "Your first session string",
       "value": "",
       "required": true
