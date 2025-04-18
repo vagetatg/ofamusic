@@ -11,9 +11,6 @@ RUN pip install uv
 
 COPY . /app/
 
-RUN uv venv && \
-    . .venv/bin/activate && \
-    uv pip install .
+RUN uv pip install . --system
 
-# Run the bot
-CMD [".venv/bin/tgmusicbot"]
+CMD ["tgmusicbot"]
