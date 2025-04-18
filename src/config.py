@@ -40,6 +40,7 @@ SUPPORT_GROUP: str = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
 SUPPORT_CHANNEL: str = getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
 
 IGNORE_BACKGROUND_UPDATES: bool = getenv("IGNORE_BACKGROUND_UPDATES", "True").lower() == "true"
+AUTO_LEAVE : bool = getenv("AUTO_LEAVE", "True").lower() == "true"
 
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
     """Parse COOKIES_URL for one or more valid URLs."""

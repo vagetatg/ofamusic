@@ -127,6 +127,11 @@
       "description": "Telegram Channel Link",
       "value": "https://t.me/FallenProjects",
       "required": false
+    },
+    "AUTO_LEAVE": {
+      "description": "Leave all chats for all userbot clients",
+      "value": "False",
+      "required": false
     }
   },
   "buildpacks": [

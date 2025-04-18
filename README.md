@@ -248,6 +248,8 @@ tgmusicbot v1.1.7
 - **SUPPORT_GROUP** – Support Group Link
 - **SUPPORT_CHANNEL** – Support Channel Link
 - **IGNORE_BACKGROUND_UPDATES** – Ignore background updates
+- **LOGGER_ID** – Log Group ID
+- **AUTO_LEAVE** – Leave all chats for all userbot clients.
 
 ### 🎵 Music Download Options
 
