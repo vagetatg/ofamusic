@@ -31,3 +31,6 @@ dependencies = [
     "yt-dlp~=2025.3.31",
     "py-tgcalls @ git+https://github.com/pytgcalls/pytgcalls.git@master"
 ]
+
+[tool.setuptools]
+packages = ["src"]

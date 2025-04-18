@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml .
 
 # Install Python dependencies using uv
-RUN uv pip install . --no-cache --system
+RUN uv pip install -e . --no-cache --system
 
 # Copy application code
 COPY . .
