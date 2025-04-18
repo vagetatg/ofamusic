@@ -12,18 +12,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 def get_env_int(name: str, default: Optional[int] = None) -> Optional[int]:
     value = getenv(name)
     return int(value) if value and value.isdigit() else default
+
 
 API_ID: Optional[int] = get_env_int("API_ID")
 API_HASH: Optional[str] = getenv("API_HASH")
 TOKEN: Optional[str] = getenv("TOKEN")
 
-SESSION_STRINGS: list[str] = [
-    getenv(f"STRING{i}", None)
-    for i in range(1, 11)
-]
+SESSION_STRINGS: list[str] = [getenv(f"STRING{i}", None) for i in range(1, 11)]
 
 SESSION_STRINGS = [s for s in SESSION_STRINGS if s]
 
@@ -39,8 +38,11 @@ DOWNLOADS_DIR: str = getenv("DOWNLOADS_DIR", "database/music")
 SUPPORT_GROUP: str = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
 SUPPORT_CHANNEL: str = getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
 
-IGNORE_BACKGROUND_UPDATES: bool = getenv("IGNORE_BACKGROUND_UPDATES", "True").lower() == "true"
-AUTO_LEAVE : bool = getenv("AUTO_LEAVE", "True").lower() == "true"
+IGNORE_BACKGROUND_UPDATES: bool = (
+    getenv("IGNORE_BACKGROUND_UPDATES", "True").lower() == "true"
+)
+AUTO_LEAVE: bool = getenv("AUTO_LEAVE", "True").lower() == "true"
+
 
 def process_cookie_urls(env_value: Optional[str]) -> list[str]:
     """Parse COOKIES_URL for one or more valid URLs."""
@@ -48,6 +50,7 @@ def process_cookie_urls(env_value: Optional[str]) -> list[str]:
         return []
     parts = env_value.replace(",", " ").split()
     return [url.strip() for url in parts if url.strip()]
+
 
 COOKIES_URL: list[str] = process_cookie_urls(getenv("COOKIES_URL", ""))
 
