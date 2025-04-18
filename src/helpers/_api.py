@@ -8,7 +8,6 @@ from typing import Optional, Union
 
 from src import config
 from src.logger import LOGGER
-
 from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
 from ._dl_helper import SpotifyDownload
 from ._downloader import MusicService

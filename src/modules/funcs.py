@@ -143,7 +143,8 @@ async def queue_info(_: Client, msg: types.Message) -> None:
         )
         short_text += f"   ├ <b>Loop:</b> {current_song.loop}\n"
         short_text += f"   └ <b>Played Time:</b> {sec_to_min(await call.played_time(chat.id))} min"
-        short_text += f"\n\n<b>» Total of {len(_queue)} track(s) in the queue.</b>"
+        short_text += f"\n\n<b>» Total of {
+        len(_queue)} track(s) in the queue.</b>"
         text = short_text
     await msg.reply_text(text, disable_web_page_preview=True)
 

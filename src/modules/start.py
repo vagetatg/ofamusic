@@ -38,7 +38,7 @@ async def start_cmd(c: Client, message: types.Message):
 
 <b>Welcome to {c.me.first_name} v{__version__} </b>
 
-Your ultimate music companion for Telegram voice chats! 
+Your ultimate music companion for Telegram voice chats!
 
 <b>Supported Platforms:</b> Spotify, YouTube and Telegram Audio.
 
@@ -66,14 +66,14 @@ async def help_cmd(c: Client, message: types.Message):
 <b>/play:</b> Reply to an audio or provide a song name to play music.
 <b>/vplay:</b> Reply to a video or provide a song name to play video.
 <b>/speed:</b> Change the playback speed of the current song (0.5 - 4.0).
-<b>/skip:</b> Skip the current song.  
+<b>/skip:</b> Skip the current song.
 <b>/remove x:</b> Remove x song from the queue.
-<b>/pause:</b> Pause the current song.  
-<b>/resume:</b> Resume the current song.  
-<b>/end:</b> End the current song.  
+<b>/pause:</b> Pause the current song.
+<b>/resume:</b> Resume the current song.
+<b>/end:</b> End the current song.
 <b>/seek:</b> Seek to a specific time in the current song.
-<b>/mute:</b> Mute the current song.  
-<b>/unmute:</b> Unmute the current song. 
+<b>/mute:</b> Mute the current song.
+<b>/unmute:</b> Unmute the current song.
 <b>/volume:</b> Change the volume of the current song.
 <b>/loop:</b> Loop the current song. use /loop 0 to disable.
 <b>/queue:</b> Get the queue of the current chat.
@@ -153,7 +153,10 @@ If you have any questions or concerns about our privacy policy, feel free to con
 
     reply = await message.reply_text(text)
     if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending privacy policy message: {reply.message}")
+        c.logger.warning(
+            f"Error sending privacy policy message: {
+            reply.message}"
+        )
     return
 
 

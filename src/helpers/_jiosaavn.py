@@ -11,7 +11,6 @@ import yt_dlp
 
 from src import config
 from src.logger import LOGGER
-
 from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
 from ._downloader import MusicService
 from ._httpx import DownloadResult, HttpxClient

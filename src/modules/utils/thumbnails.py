@@ -6,8 +6,8 @@ import asyncio
 from io import BytesIO
 
 import httpx
-from aiofiles.os import path as aiopath
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
+from aiofiles.os import path as aiopath
 
 from src.helpers import CachedTrack
 from src.logger import LOGGER

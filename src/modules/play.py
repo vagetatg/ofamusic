@@ -235,7 +235,10 @@ async def _handle_multiple_tracks(
                 url=track.url,
             ),
         )
-        text += f"<b>{position}.</b> {track.name}\n└ Duration: {sec_to_min(track.duration)}\n"
+        text += f"<b>{position}.</b> {
+        track.name}\n└ Duration: {
+        sec_to_min(
+            track.duration)}\n"
 
     text += "</blockquote>\n"
     total_dur = sum(t.duration for t in tracks)
