@@ -143,7 +143,7 @@ tgmusicbot v1.1.7
 <details>
 <summary><strong>📌 Manual Installation (Click to expand)</strong></summary>
 
-1. Update and Upgrade your system:
+1.Update and Upgrade your system:
    ```sh
    sudo apt-get update && sudo apt-get upgrade -y
    ```
