@@ -1,9 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "tgmusicbot"
 version = "1.1.7"
 description = "Telegram Music Bot"
-readme = "README.md"
 license = "AGPL-3.0"
+readme = "README.md"
 requires-python = ">=3.10"
 authors = [
     {name = "Ashok Shau", email = "ashokshau@t.me"}
@@ -29,7 +33,7 @@ dependencies = [
     "tdjson~=1.8.47",
     "ujson~=5.10.0",
     "yt-dlp~=2025.3.31",
-    "py-tgcalls @ git+https://github.com/pytgcalls/pytgcalls.git@master"
+    "py-tgcalls @ git+https://github.com/pytgcalls/pytgcalls.git@master",
 ]
 
 [project.scripts]
@@ -37,3 +41,4 @@ tgmusicbot = "src.__main__:main"
 
 [tool.setuptools]
 packages = ["src"]
+
