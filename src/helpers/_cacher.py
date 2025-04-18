@@ -3,14 +3,14 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 from collections import deque
-from typing import Any, Dict, Optional
+from typing import Any, Optional
+
+from ._dataclass import CachedTrack
 
 
 class ChatCacher:
-    from src.platforms.dataclass import CachedTrack
-
     def __init__(self):
-        self.chat_cache: Dict[int, Dict[str, Any]] = {}
+        self.chat_cache: dict[int, dict[str, Any]] = {}
 
     def add_song(self, chat_id: int, song: CachedTrack) -> CachedTrack:
         if chat_id not in self.chat_cache:
