@@ -11,6 +11,6 @@ RUN pip install uv
 
 COPY . /app/
 
-RUN uv pip install . --system
+RUN uv pip install -e . --system
 
 CMD ["tgmusicbot"]
