@@ -9,9 +9,10 @@ from py_yt import Playlist, VideosSearch
 
 from src.helpers import MusicTrack, PlatformTracks, TrackInfo
 from src.logger import LOGGER
+
 from ._dl_helper import YouTubeDownload
-from ._httpx import HttpxClient
 from ._downloader import MusicService
+from ._httpx import HttpxClient
 
 
 class YouTubeData(MusicService):
@@ -29,7 +30,9 @@ class YouTubeData(MusicService):
         self.query = (
             None
             if not query
-            else query.split("&")[0] if query and "&" in query else query
+            else query.split("&")[0]
+            if query and "&" in query
+            else query
         )
 
     def is_valid(self, url: str) -> bool:

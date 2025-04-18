@@ -10,8 +10,7 @@ from cachetools import TTLCache
 from pytdbot import Client, types
 
 from src import __version__
-from src.helpers import call
-from src.helpers import db
+from src.helpers import call, db
 from src.modules.utils import Filter, sec_to_min
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import add_me_button

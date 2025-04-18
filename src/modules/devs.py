@@ -19,8 +19,8 @@ import psutil
 from meval import meval
 from ntgcalls import __version__ as ntgver
 from pyrogram import __version__ as pyrover
-from pytdbot import Client, types
 from pytdbot import VERSION as pyTdVer
+from pytdbot import Client, types
 from pytgcalls import __version__ as pytgver
 
 from src import config

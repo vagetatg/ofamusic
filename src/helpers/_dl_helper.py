@@ -13,10 +13,11 @@ import aiofiles
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
 
-from src.helpers._httpx import HttpxClient
 from src import config
-from ._dataclass import TrackInfo
+from src.helpers._httpx import HttpxClient
 from src.logger import LOGGER
+
+from ._dataclass import TrackInfo
 
 
 class YouTubeDownload:

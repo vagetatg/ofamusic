@@ -169,7 +169,9 @@ async def unban_ub(c: Client, chat_id: int, user_id: int):
     )
 
 
-async def check_user_status(c: Client, chat_id: int, user_id: int) -> (
+async def check_user_status(
+    c: Client, chat_id: int, user_id: int
+) -> (
     Literal[
         "chatMemberStatusLeft",
         "chatMemberStatusCreator",

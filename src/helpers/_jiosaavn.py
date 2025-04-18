@@ -9,11 +9,12 @@ from typing import Any, Optional
 
 import yt_dlp
 
-from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
-from src.logger import LOGGER
-from ._httpx import DownloadResult, HttpxClient
-from ._downloader import MusicService
 from src import config
+from src.logger import LOGGER
+
+from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
+from ._downloader import MusicService
+from ._httpx import DownloadResult, HttpxClient
 
 
 class JiosaavnData(MusicService):
