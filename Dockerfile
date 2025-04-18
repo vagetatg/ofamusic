@@ -2,24 +2,16 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    ffmpeg \
-    git \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ffmpeg \
+        git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-RUN pip install --no-cache-dir uv
+# TODO: use uv and pyproject.toml
+COPY requirements.txt /app/
 
-# Copy dependency specifications first for better caching
-COPY pyproject.toml .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies using uv
-RUN uv pip install -e . --no-cache --system
+COPY . /app/
 
-# Copy application code
-COPY . .
-
-# Run the application
-CMD ["uv", "run", "src"]
+CMD ["python3", "-m", "src"]

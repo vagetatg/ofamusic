@@ -9,7 +9,7 @@ import sys
 
 from pytdbot import Client, types
 
-import config
+from src import config
 from src.helpers import call, start_clients
 from src.helpers import db
 from src.modules.jobs import InactiveCallManager

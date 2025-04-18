@@ -185,7 +185,7 @@ tgmusicbot v1.1.7
 
 9.Finally, run the bot by:  
    ```sh
-   uv run src
+   tgmusicbot
    ```
    > For getting out from tmux session: Press `Ctrl+b` and then `d`.
 

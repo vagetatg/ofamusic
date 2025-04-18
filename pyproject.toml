@@ -32,5 +32,8 @@ dependencies = [
     "py-tgcalls @ git+https://github.com/pytgcalls/pytgcalls.git@master"
 ]
 
+[project.scripts]
+tgmusicbot = "src.__main__:main"
+
 [tool.setuptools]
 packages = ["src"]

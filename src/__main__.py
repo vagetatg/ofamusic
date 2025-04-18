@@ -30,6 +30,9 @@ async def create_directories() -> None:
         raise SystemExit(1) from e
 
 
-if __name__ == "__main__":
+def main() -> None:
     client.loop.create_task(create_directories())
     client.run()
+
+if __name__ == "__main__":
+    main()
