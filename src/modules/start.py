@@ -10,96 +10,52 @@ from cachetools import TTLCache
 from pytdbot import Client, types
 
 from src import __version__
+from src.config import SUPPORT_GROUP
 from src.helpers import call, db
 from src.modules.utils import Filter, sec_to_min
 from src.modules.utils.admins import load_admin_cache
-from src.modules.utils.buttons import add_me_markup
+from src.modules.utils.buttons import add_me_markup, HelpMenu, BackHelpMenu
 from src.helpers import chat_cache
 from src.modules.utils.play_helpers import (
     chat_invite_cache,
     check_user_status,
     user_status_cache,
 )
+from src.modules.utils.strings import (
+    PmStartText,
+    StartText,
+    UserCommands,
+    ChatOwnerCommands,
+    BotDevsCommands,
+    AdminCommands,
+)
 
 
-@Client.on_message(filters=Filter.command("start"))
+@Client.on_message(filters=Filter.command(["start", "help"]))
 async def start_cmd(c: Client, message: types.Message):
     """
-    Handle the /start command to welcome users.
+    Handle the /start and /help command to welcome users.
     """
     chat_id = message.chat_id
     if chat_id < 0:
         await db.add_chat(chat_id)
-    else:
-        await db.add_user(chat_id)
+        reply = await message.reply_text(
+            text=StartText.format(
+                await message.mention(), c.me.first_name, SUPPORT_GROUP
+            )
+        )
+        if isinstance(reply, types.Error):
+            c.logger.warning(f"Error sending start message: {reply.message}")
+        return None
 
-    text = f"""
-    нєу {await message.mention(parse_mode='html')} 👋
-
-<b>Welcome to {c.me.first_name} v{__version__} </b>
-
-Your ultimate music companion for Telegram voice chats!
-
-<b>Supported Platforms:</b> Spotify, YouTube and Telegram Audio.
-
-<b>📢 Note:</b> This bot works best in groups and requires admin permissions to function.
-    """
+    await db.add_user(chat_id)
+    text = PmStartText.format(await message.mention(), c.me.first_name, __version__)
     bot_username = c.me.usernames.editable_username
-    reply = await message.reply_text(
-        text, parse_mode="html", reply_markup=add_me_markup(bot_username)
-    )
+    reply = await message.reply_text(text, reply_markup=add_me_markup(bot_username))
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending start message: {reply.message}")
 
     return None
-
-
-@Client.on_message(filters=Filter.command("help"))
-async def help_cmd(c: Client, message: types.Message):
-    """
-    Handle the /help command to display help information.
-    """
-    text = f"""<b>Help for {c.me.first_name}:</b>
-<b>/start:</b> Start the bot.
-<b>/reload:</b> Reload chat administrator list.
-<b>/authlist:</b> Get the list of authorized users.
-<b>/play:</b> Reply to an audio or provide a song name to play music.
-<b>/vplay:</b> Reply to a video or provide a song name to play video.
-<b>/speed:</b> Change the playback speed of the current song (0.5 - 4.0).
-<b>/skip:</b> Skip the current song.
-<b>/remove x:</b> Remove x song from the queue.
-<b>/pause:</b> Pause the current song.
-<b>/resume:</b> Resume the current song.
-<b>/end:</b> End the current song.
-<b>/seek:</b> Seek to a specific time in the current song.
-<b>/mute:</b> Mute the current song.
-<b>/unmute:</b> Unmute the current song.
-<b>/volume:</b> Change the volume of the current song.
-<b>/loop:</b> Loop the current song. use /loop 0 to disable.
-<b>/queue:</b> Get the queue of the current chat.
-<b>/clear:</b> Clear the queue of the current chat.
-<b>/song:</b> Download a song from YouTube, Spotify.
-<b>/setPlayType:</b> Change the play type of the bot.
-<b>/privacy:</b> Read our privacy policy.
-
-<b>Chat Owner Commands:</b>
-<b>/auth:</b> Grant auth permissions to a user.
-<b>/unauth:</b> Revoke auth permissions from a user.
-<b>/buttons:</b> Toggle the buttons for the bot.
-<b>/thumb:</b> Toggle the thumbnail for the bot.
-
-<b>Bot Owner Commands:</b>
-<b>/stats:</b> Get the statistics of the bot.
-<b>/logger:</b> Toggle the logger for the bot.
-<b>/broadcast:</b> Broadcast a message to all chats and users.
-<b>/activevc:</b> Get the active voice chats list with details.
-
-──────────────────────────────────────────
-<b>Note:</b> This bot works best in groups and requires admin permissions to function.
-"""
-    reply = await message.reply_text(text=text)
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending help message: {reply.message}")
 
 
 @Client.on_message(filters=Filter.command("privacy"))
@@ -248,4 +204,32 @@ async def song_cmd(c: Client, message: types.Message):
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply}")
 
+    return
+
+
+@Client.on_updateNewCallbackQuery(filters=Filter.regex(r"help_\w+"))
+async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) -> None:
+    data = message.payload.data.decode()
+    if data == "help_all":
+        await message.answer(text="Help Menu")
+        user = await c.getUser(message.sender_user_id)
+        await message.edit_message_text(
+            text=PmStartText.format(user.first_name, c.me.first_name, __version__),
+            reply_markup=HelpMenu,
+        )
+    elif data == "help_user":
+        await message.answer(text="User Help Menu")
+        await message.edit_message_text(text=UserCommands, reply_markup=BackHelpMenu)
+    elif data == "help_admin":
+        await message.answer(text="Admin Help Menu")
+        await message.edit_message_text(text=AdminCommands, reply_markup=BackHelpMenu)
+    elif data == "help_owner":
+        await message.answer(text="Owner Help Menu")
+        await message.edit_message_text(
+            text=ChatOwnerCommands, reply_markup=BackHelpMenu
+        )
+    elif data == "help_devs":
+        await message.answer(text="Developer Help Menu")
+        await message.edit_message_text(text=BotDevsCommands, reply_markup=BackHelpMenu)
+    await message.answer(text=f"WTF ? {data}")
     return
