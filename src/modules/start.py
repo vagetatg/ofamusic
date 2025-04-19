@@ -12,7 +12,7 @@ from pytdbot import Client, types
 from src import __version__
 from src.config import SUPPORT_GROUP
 from src.helpers import call, db
-from src.modules.utils import Filter, sec_to_min
+from src.modules.utils import Filter, sec_to_min, SupportButton
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import add_me_markup, HelpMenu, BackHelpMenu
 from src.helpers import chat_cache
@@ -42,7 +42,9 @@ async def start_cmd(c: Client, message: types.Message):
         reply = await message.reply_text(
             text=StartText.format(
                 await message.mention(), c.me.first_name, SUPPORT_GROUP
-            )
+            ),
+            disable_web_page_preview=True,
+            reply_markup=SupportButton,
         )
         if isinstance(reply, types.Error):
             c.logger.warning(f"Error sending start message: {reply.message}")
