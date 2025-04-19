@@ -215,23 +215,22 @@ async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) 
     if data == "help_all":
         await message.answer(text="Help Menu")
         user = await c.getUser(message.sender_user_id)
-        await message.edit_message_text(
-            text=PmStartText.format(user.first_name, c.me.first_name, __version__),
-            reply_markup=HelpMenu,
-        )
-    elif data == "help_user":
-        await message.answer(text="User Help Menu")
-        await message.edit_message_text(text=UserCommands, reply_markup=BackHelpMenu)
-    elif data == "help_admin":
-        await message.answer(text="Admin Help Menu")
-        await message.edit_message_text(text=AdminCommands, reply_markup=BackHelpMenu)
-    elif data == "help_owner":
-        await message.answer(text="Owner Help Menu")
-        await message.edit_message_text(
-            text=ChatOwnerCommands, reply_markup=BackHelpMenu
-        )
-    elif data == "help_devs":
-        await message.answer(text="Developer Help Menu")
-        await message.edit_message_text(text=BotDevsCommands, reply_markup=BackHelpMenu)
-    await message.answer(text=f"WTF ? {data}")
-    return
+        text = PmStartText.format(user.first_name, c.me.first_name, __version__)
+        await message.edit_message_text(text=text, reply_markup=HelpMenu)
+        return None
+
+    actions = {
+        "help_user": {"answer": "User Help Menu", "text": UserCommands, "markup": BackHelpMenu},
+        "help_admin": {"answer": "Admin Help Menu", "text": AdminCommands, "markup": BackHelpMenu},
+        "help_owner": {"answer": "Owner Help Menu", "text": ChatOwnerCommands, "markup": BackHelpMenu},
+        "help_devs": {"answer": "Developer Help Menu", "text": BotDevsCommands, "markup": BackHelpMenu},
+    }
+
+    action = actions.get(data)
+    if action:
+        await message.answer(text=action["answer"])
+        await message.edit_message_text(text=action["text"], reply_markup=action["markup"])
+        return None
+
+    await message.answer(text=f"Unknown action: {data}")
+    return None
