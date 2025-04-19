@@ -1128,7 +1128,7 @@ requires-dist = [
     { name = "aiofiles", specifier = "~=24.1.0" },
     { name = "apscheduler", specifier = "~=3.11.0" },
     { name = "cachetools", specifier = "~=5.5.2" },
-    { name = "kurigram", specifier = "==2.2.1" },
+    { name = "kurigram", specifier = "~=2.2.1" },
     { name = "meval", specifier = "~=2.5" },
     { name = "motor", specifier = "~=3.7.0" },
     { name = "mutagen", specifier = "~=1.47.0" },
