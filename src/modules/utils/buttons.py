@@ -53,13 +53,12 @@ ResumeButton = types.ReplyMarkupInlineKeyboard(
     [[SKIP_BTN, STOP_BTN, PAUSE_BTN], [CLOSE_BTN]]
 )
 
-SupportButton = types.ReplyMarkupInlineKeyboard(
-    [[CHANNEL_BTN, GROUP_BTN], [CLOSE_BTN]]
-)
+SupportButton = types.ReplyMarkupInlineKeyboard([[CHANNEL_BTN, GROUP_BTN], [CLOSE_BTN]])
 
 # ─────────────────────
 # Dynamic Keyboard Generator
 # ─────────────────────
+
 
 def add_me_markup(username: str) -> types.ReplyMarkupInlineKeyboard:
     """
