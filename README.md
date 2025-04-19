@@ -52,7 +52,7 @@ downloads.
 ## **Installation**
 
 <details> 
-<summary>Dependencies Tree: Click to expand</summary>
+<summary>Dependency Tree: Click to expand</summary>
 
 ```
 tgmusicbot v1.1.8
