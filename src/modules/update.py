@@ -10,11 +10,13 @@ import uuid
 from os import execvp
 
 from pytdbot import Client, types
+
 from src.config import DEVS
 from src.helpers import chat_cache
 from src.logger import LOGGER
 from src.modules.utils import Filter
 from src.modules.utils.play_helpers import del_msg
+
 
 def is_docker():
     """Check if running inside a Docker container."""
@@ -27,6 +29,7 @@ def is_docker():
         except Exception:
             return False
     return False
+
 
 @Client.on_message(filters=Filter.command(["update", "restart"]))
 async def update(c: Client, message: types.Message) -> None:
@@ -43,7 +46,9 @@ async def update(c: Client, message: types.Message) -> None:
     if command == "update":
         # Ensure .git exists
         if not os.path.exists(".git"):
-            await msg.edit_text("⚠️ This instance does not support updates (no .git directory).")
+            await msg.edit_text(
+                "⚠️ This instance does not support updates (no .git directory)."
+            )
             return
 
         # Secure way to resolve git-path
@@ -101,7 +106,9 @@ async def update(c: Client, message: types.Message) -> None:
 
     # Restart logic
     if is_docker():
-        await msg.reply_text("🚢 Detected Docker — exiting process to let Docker restart it.")
+        await msg.reply_text(
+            "🚢 Detected Docker — exiting process to let Docker restart it."
+        )
         sys.exit(0)
     else:
         tgmusic_path = shutil.which("tgmusic")
