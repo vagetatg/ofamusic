@@ -11,6 +11,7 @@ from os import execvp
 from pytdbot import Client, types
 
 from src.config import DEVS
+from src.helpers import chat_cache
 from src.logger import LOGGER
 from src.modules.utils import Filter
 from src.modules.utils.play_helpers import del_msg
@@ -22,7 +23,7 @@ def is_docker():
 
 
 @Client.on_message(filters=Filter.command(["update", "restart"]))
-async def update(_: Client, message: types.Message) -> None:
+async def update(c: Client, message: types.Message) -> None:
     """Handle the /update and /restart commands."""
     if message.from_id not in DEVS:
         await del_msg(message)
@@ -91,6 +92,11 @@ async def update(_: Client, message: types.Message) -> None:
                 await msg.edit_text(f"⚠️ Update error: {e}")
                 return None
 
+        if active_vc := chat_cache.get_active_chats():
+            for chat_id in active_vc:
+                await c.sendTextMessage(chat_id, "♻️ Restarting the bot...")
+
+        # restart the bot
         await msg.edit_text("♻️ Restarting the bot...")
         if is_docker():
             # --restart always if set :)
