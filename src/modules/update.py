@@ -19,7 +19,11 @@ from src.modules.utils.play_helpers import del_msg
 
 def is_docker():
     """Check if we're running inside a Docker container."""
-    return os.path.exists("/.dockerenv") or os.path.isfile("/proc/1/cgroup") and "docker" in open("/proc/1/cgroup").read()
+    return (
+        os.path.exists("/.dockerenv")
+        or os.path.isfile("/proc/1/cgroup")
+        and "docker" in open("/proc/1/cgroup").read()
+    )
 
 
 @Client.on_message(filters=Filter.command(["update", "restart"]))
@@ -30,7 +34,9 @@ async def update(c: Client, message: types.Message) -> None:
         return None
 
     command = message.text.strip().split()[0].lstrip("/")
-    msg = await message.reply_text(f"{'Updating and ' if command == 'update' else ''}Restarting the bot...")
+    msg = await message.reply_text(
+        f"{'Updating and ' if command == 'update' else ''}Restarting the bot..."
+    )
     if isinstance(msg, types.Error):
         LOGGER.error("Error sending message: %s", msg)
         await message.reply_text(f"⚠️ Something went wrong... {msg.message}")
@@ -39,12 +45,16 @@ async def update(c: Client, message: types.Message) -> None:
     try:
         if command == "update":
             try:
-                output = subp.check_output(["git", "pull"], stderr=subp.STDOUT).decode("utf-8")
+                output = subp.check_output(["git", "pull"], stderr=subp.STDOUT).decode(
+                    "utf-8"
+                )
                 if "Already up to date." in output:
                     msg = await msg.edit_text("✅ Bot is already up to date.")
                     if isinstance(msg, types.Error):
                         LOGGER.error("Error sending message: %s", msg)
-                        await message.reply_text(f"⚠️ Something went wrong... {msg.message}")
+                        await message.reply_text(
+                            f"⚠️ Something went wrong... {msg.message}"
+                        )
                         return None
                     return None
 
@@ -62,15 +72,21 @@ async def update(c: Client, message: types.Message) -> None:
 
                     if isinstance(reply, types.Error):
                         LOGGER.error("Error sending message: %s", reply)
-                        await message.reply_text(f"⚠️ Something went wrong... {reply.message}")
+                        await message.reply_text(
+                            f"⚠️ Something went wrong... {reply.message}"
+                        )
                         return None
                     os.remove(filename)
 
                 else:
-                    msg = await msg.edit_text(f"<b>Update Output:</b>\n<pre>{output}</pre>")
+                    msg = await msg.edit_text(
+                        f"<b>Update Output:</b>\n<pre>{output}</pre>"
+                    )
                     if isinstance(msg, types.Error):
                         LOGGER.error("Error sending message: %s", msg)
-                        await message.reply_text(f"⚠️ Something went wrong... {msg.message}")
+                        await message.reply_text(
+                            f"⚠️ Something went wrong... {msg.message}"
+                        )
                         return None
 
                 msg = await msg.edit_text("✅ Bot updated successfully. Restarting...")
@@ -81,7 +97,9 @@ async def update(c: Client, message: types.Message) -> None:
 
             except subp.CalledProcessError as e:
                 LOGGER.error("Error updating bot: %s", e)
-                msg = await msg.edit_text(f"⚠️ Update failed:\n<pre>{e.output.decode()}</pre>")
+                msg = await msg.edit_text(
+                    f"⚠️ Update failed:\n<pre>{e.output.decode()}</pre>"
+                )
                 if isinstance(msg, types.Error):
                     LOGGER.error("Error sending message: %s", msg)
                     await message.reply_text(f"⚠️ Something went wrong... {msg.message}")
@@ -100,7 +118,9 @@ async def update(c: Client, message: types.Message) -> None:
         await msg.edit_text("♻️ Restarting the bot...")
         if is_docker():
             # --restart always if set :)
-            await msg.reply_text("🚢 Detected Docker — exiting process to let Docker restart it.")
+            await msg.reply_text(
+                "🚢 Detected Docker — exiting process to let Docker restart it."
+            )
             sys.exit(0)
         else:
             execvp("tgmusic", ["tgmusic"])
