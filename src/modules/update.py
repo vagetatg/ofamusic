@@ -83,9 +83,7 @@ async def update(c: Client, message: types.Message) -> None:
                 )
                 os.remove(filename)
             else:
-                await msg.edit_text(f"<b>Update Output:</b>\n<pre>{output}</pre>")
-            await msg.edit_text("✅ Bot updated successfully. Restarting...")
-
+                await msg.edit_text(f"✅ Bot updated successfully. Restarting...\n<b>Update Output:</b>\n<pre>{output}</pre>")
         except subp.CalledProcessError as e:
             LOGGER.error("Update failed: %s", e)
             await msg.edit_text(f"⚠️ Update failed:\n<pre>{e.output}</pre>")
@@ -104,7 +102,7 @@ async def update(c: Client, message: types.Message) -> None:
 
     # Restart logic
     if is_docker():
-        await msg.reply_text("🚢 Detected Docker — exiting process to let Docker restart it.")
+        await msg.edit_text("🚢 Detected Docker — exiting process to let Docker restart it.")
         sys.exit(0)
     else:
         tgmusic_path = shutil.which("tgmusic")
