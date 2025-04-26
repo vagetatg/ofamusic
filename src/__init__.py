@@ -6,6 +6,7 @@ import asyncio
 import os
 import shutil
 import sys
+from datetime import datetime
 
 from pytdbot import Client, types
 
@@ -14,6 +15,7 @@ from src.helpers import call, db, start_clients
 from src.modules.jobs import InactiveCallManager
 
 __version__ = "1.1.8"
+StartTime = datetime.now()
 
 # Enforce a minimum Python version
 if sys.version_info < (3, 10):

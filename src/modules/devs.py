@@ -11,6 +11,7 @@ import socket
 import sys
 import traceback
 import uuid
+from datetime import datetime, timedelta
 from html import escape
 from sys import version as pyver
 from typing import Any, Optional, Tuple
@@ -20,13 +21,13 @@ from meval import meval
 from ntgcalls import __version__ as ntgver
 from pyrogram import __version__ as pyrover
 from pytdbot import Client, types
-from pytdbot import VERSION as pyTdVer
+from pytdbot import VERSION as py_td_ver
 from pytgcalls import __version__ as pytgver
 
+from src import StartTime
 from src.config import OWNER_ID, DEVS, LOGGER_ID
 from src.helpers import chat_cache
 from src.helpers import db
-from src.logger import LOGGER
 from src.modules.utils import Filter
 from src.modules.utils.play_helpers import del_msg, extract_argument
 
@@ -156,78 +157,118 @@ async def exec_eval(c: Client, m: types.Message):
 
 @Client.on_message(filters=Filter.command("stats"))
 async def sys_stats(client: Client, message: types.Message):
-    """
-    Get bot and system stats.
-    """
+    """Get comprehensive bot and system statistics including hardware, software, and performance metrics."""
     if message.from_id not in DEVS:
         await del_msg(message)
-        return None
+        return
 
-    sysroot = await message.reply_text(
-        f"ɢᴇᴛᴛɪɴɢ {client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs, ɪᴛ'ʟʟ ᴛᴀᴋᴇ ᴀ ᴡʜɪʟᴇ..."
+    sys_msg = await message.reply_text(
+        f"📊 Gathering <b>{client.me.first_name}</b> system statistics..."
     )
 
+    # System Information
     hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(socket.gethostname())
-    architecture = platform.machine()
+    ip_address = socket.gethostbyname(hostname)
     mac_address = ":".join(re.findall("..", f"{uuid.getnode():012x}"))
-    sp = platform.system()
-    ram = f"{str(round(psutil.virtual_memory().total / 1024.0 ** 3))} ɢʙ"
-    p_core = psutil.cpu_count(logical=False)
-    t_core = psutil.cpu_count(logical=True)
+    architecture = platform.machine()
+    system = platform.system()
+    release = platform.release()
+    # version = platform.version()
+    processor = platform.processor() or "Unknown"
+
+    # Hardware Information
+    ram = psutil.virtual_memory()
+    swap = psutil.swap_memory()
+    cores_physical = psutil.cpu_count(logical=False)
+    cores_total = psutil.cpu_count(logical=True)
 
     try:
-        cpu_freq = psutil.cpu_freq().current
-        if cpu_freq >= 1000:
-            cpu_freq = f"{round(cpu_freq / 1000, 2)}ɢʜᴢ"
-        else:
-            cpu_freq = f"{round(cpu_freq, 2)}ᴍʜᴢ"
+        cpu_freq = psutil.cpu_freq()
+        cpu_freq_str = (
+            f"{cpu_freq.current / 1000:.2f} GHz"
+            if cpu_freq.current >= 1000
+            else f"{cpu_freq.current:.2f} MHz"
+        )
+        cpu_freq_str += f" (Max: {cpu_freq.max / 1000:.2f} GHz)" if cpu_freq.max else ""
     except Exception as e:
-        LOGGER.warning("Error getting CPU frequency: %s", e)
-        cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
+        client.logger.warning("Failed to fetch CPU frequency: %s", e)
+        cpu_freq_str = "Unavailable"
 
-    hdd = psutil.disk_usage("/")
-    total = hdd.total / (1024.0**3)
-    used = hdd.used / (1024.0**3)
-    free = hdd.free / (1024.0**3)
-    platform_release = platform.release()
-    platform_version = platform.version()
+    # Disk Information
+    disk = psutil.disk_usage("/")
+    disk_io = psutil.disk_io_counters()
+
+    # Network Information
+    net_io = psutil.net_io_counters()
+    net_if = psutil.net_if_addrs()
+
+    # Uptime and Performance
+    uptime = timedelta(seconds=int((datetime.now() - StartTime).total_seconds()))
+    load_avg = (
+        ", ".join([f"{x:.2f}" for x in psutil.getloadavg()])
+        if hasattr(psutil, "getloadavg")
+        else "N/A"
+    )
+    cpu_percent = psutil.cpu_percent(interval=1)
+
+    # Database Statistics
     chats = len(await db.get_all_chats())
     users = len(await db.get_all_users())
 
-    await sysroot.edit_text(
-        f"""
-<b><u>{client.me.first_name} sʏsᴛᴇᴍ sᴛᴀᴛs</u></b>
+    def format_bytes(size):
+        for unit in ["B", "KiB", "MiB", "GiB", "TiB"]:
+            if size < 1024:
+                return f"{size:.2f} {unit}"
+            size /= 1024
+        return f"{size:.2f} PiB"
 
-<b>Chats:</b> {chats}
-<b>Users:</b> {users}
+    response = f"""
+<b>⚙️ {client.me.first_name} System Statistics</b>
+━━━━━━━━━━━━━━━━━━━━
+<b>🕒 Uptime:</b> <code>{uptime}</code>
+<b>📈 Load Average:</b> <code>{load_avg}</code>
+<b>🧮 CPU Usage:</b> <code>{cpu_percent}%</code>
 
-<b>Python:</b> {pyver.split()[0]}
-<b>Pyrogram:</b> {pyrover}
-<b>Py-TgCalls:</b> {pytgver}
-<b>NTGCalls:</b> {ntgver}
-<b>PyTdBot:</b> {pyTdVer}
+<b>💬 Database Stats:</b>
+  • <b>Chats:</b> <code>{chats:,}</code>
+  • <b>Users:</b> <code>{users:,}</code>
 
+<b>📦 Software Versions:</b>
+  • <b>Python:</b> <code>{pyver.split()[0]}</code>
+  • <b>Pyrogram:</b> <code>{pyrover}</code>
+  • <b>Py-TgCalls:</b> <code>{pytgver}</code>
+  • <b>NTgCalls:</b> <code>{ntgver}</code>
+  • <b>PyTdBot:</b> <code>{py_td_ver}</code>
 
-<b>IP:</b> {ip_address}
-<b>MAC:</b> {mac_address}
-<b>Hostname:</b> {hostname}
-<b>Platform:</b> {sp}
-<b>Architecture:</b> {architecture}
-<b>Platform Release:</b> {platform_release}
-<b>Platform Version:</b> {platform_version}
+<b>🖥️ System Information:</b>
+  • <b>System:</b> <code>{system} {release}</code>
+  • <b>Architecture:</b> <code>{architecture}</code>
+  • <b>Processor:</b> <code>{processor}</code>
+  • <b>Hostname:</b> <code>{hostname}</code>
+  • <b>IP Address:</b> <tg-spoiler>{ip_address}</tg-spoiler>
+  • <b>MAC Address:</b> <code>{mac_address}</code>
 
-<b><u>Storage</u></b>
-<b>Available:</b> {total:.2f} GiB
-<b>Used:</b> {used:.2f} GiB
-<b>Free:</b> {free:.2f} GiB
+<b>💾 Memory:</b>
+  • <b>RAM:</b> <code>{ram.used / (1024 ** 3):.2f} GiB / {ram.total / (1024 ** 3):.2f} GiB ({ram.percent}%)</code>
+  • <b>Swap:</b> <code>{swap.used / (1024 ** 3):.2f} GiB / {swap.total / (1024 ** 3):.2f} GiB ({swap.percent}%)</code>
 
-<b>RAM:</b> {ram}
-<b>Physical Cores:</b> {p_core}
-<b>Total Cores:</b> {t_core}
-<b>CPU Frequency:</b> {cpu_freq}""",
-    )
-    return None
+<b>🔧 CPU:</b>
+  • <b>Cores:</b> <code>{cores_physical} physical, {cores_total} logical</code>
+  • <b>Frequency:</b> <code>{cpu_freq_str}</code>
+
+<b>💽 Disk:</b>
+  • <b>Total:</b> <code>{disk.total / (1024 ** 3):.2f} GiB</code>
+  • <b>Used:</b> <code>{disk.used / (1024 ** 3):.2f} GiB ({disk.percent}%)</code>
+  • <b>Free:</b> <code>{disk.free / (1024 ** 3):.2f} GiB</code>
+  • <b>IO:</b> <code>Read: {format_bytes(disk_io.read_bytes)}, Write: {format_bytes(disk_io.write_bytes)}</code>
+
+<b>🌐 Network:</b>
+  • <b>Sent:</b> <code>{format_bytes(net_io.bytes_sent)}</code>
+  • <b>Received:</b> <code>{format_bytes(net_io.bytes_recv)}</code>
+  • <b>Interfaces:</b> <code>{len(net_if)} available</code>
+"""
+
+    await sys_msg.edit_text(response, disable_web_page_preview=True)
 
 
 @Client.on_message(filters=Filter.command("activevc"))

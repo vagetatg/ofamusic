@@ -1,15 +1,16 @@
 #  Copyright (c) 2025 AshokShau
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
-
+import asyncio
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from types import NoneType
 
+import psutil
 from cachetools import TTLCache
 from pytdbot import Client, types
 
-from src import __version__
+from src import __version__, StartTime
 from src.config import SUPPORT_GROUP
 from src.helpers import call, db
 from src.helpers import chat_cache
@@ -38,7 +39,6 @@ async def start_cmd(c: Client, message: types.Message):
     """
     chat_id = message.chat_id
     if chat_id < 0:
-        await db.add_chat(chat_id)
         reply = await message.reply_text(
             text=StartText.format(
                 await message.mention(), c.me.first_name, SUPPORT_GROUP
@@ -50,7 +50,6 @@ async def start_cmd(c: Client, message: types.Message):
             c.logger.warning(f"Error sending start message: {reply.message}")
         return None
 
-    await db.add_user(chat_id)
     text = PmStartText.format(await message.mention(), c.me.first_name, __version__)
     bot_username = c.me.usernames.editable_username
     reply = await message.reply_text(text, reply_markup=add_me_markup(bot_username))
@@ -181,20 +180,37 @@ async def reload_cmd(c: Client, message: types.Message) -> None:
 
 
 @Client.on_message(filters=Filter.command("ping"))
-async def ping_cmd(c: Client, message: types.Message) -> None:
+async def ping_cmd(client: Client, message: types.Message) -> None:
     """
-    Handle the /ping command to check the bot's latency.
+    Handle the /ping command to check bot performance metrics.
     """
-    start_time = time.time()
-    reply = await message.reply_text("🏓 Pong!")
-    end_time = time.time()
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending message: {reply}")
-    else:
-        latency_ms = (end_time - start_time) * 1000
-        await reply.edit_text(f"🏓 Pong! - {latency_ms:.2f}ms")
+    start_time = time.monotonic()
+    reply_msg = await message.reply_text("🏓 Pinging...")
+    latency = (time.monotonic() - start_time) * 1000  # ms
 
-    return None
+    try:
+        call_ping, cpu_usage = await call.stats_call(
+            message.chat_id if message.chat_id < 0 else 1
+        )
+        call_ping_info = f"{call_ping:.2f} ms"
+        cpu_info = f"{cpu_usage:.2f}%"
+    except Exception as e:
+        client.logger.warning(f"Call stats failed: {e}")
+        call_ping_info = "Unavailable"
+        cpu_info = "Unavailable"
+
+    uptime = datetime.now() - StartTime
+    uptime_str = str(uptime).split(".")[0]
+
+    response = (
+        "📊 <b>System Performance Metrics</b>\n\n"
+        f"⏱️ <b>Bot Latency:</b> <code>{latency:.2f} ms</code>\n"
+        f"🕒 <b>Uptime:</b> <code>{uptime_str}</code>\n"
+        f"🧠 <b>CPU Usage:</b> <code>{cpu_info}</code>\n"
+        f"📞 <b>NTgCalls Ping:</b> <code>{call_ping_info}</code>\n"
+    )
+
+    await reply_msg.edit_text(response, disable_web_page_preview=True)
 
 
 @Client.on_message(filters=Filter.command("song"))
