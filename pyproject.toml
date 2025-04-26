@@ -7,10 +7,23 @@ name = "tgmusicbot"
 version = "1.1.8"
 description = "Telegram Music Bot with full playback support using PyTdBot and PyTgCalls"
 readme = "README.md"
-license = "AGPL-3.0"
+license = {file = "LICENSE"}
 requires-python = ">=3.10"
 authors = [
     { name = "Ashok Shau", email = "ashokshau@t.me" }
+]
+keywords = [
+    "telegram", "music", "bot", "async", "tdlib",
+    "pytgcalls", "voicechat", "spotify", "ytmusic", "opensource",
+    "pytdbot", "py-tgcalls", "yt-dlp"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Communications :: Chat :: Telegram",
+    "Topic :: Multimedia :: Sound/Audio :: Players",
+    "Environment :: Console",
+    "Framework :: AsyncIO"
 ]
 dependencies = [
     "aiofiles~=24.1.0",
@@ -44,21 +57,6 @@ tgmusic = "src.__main__:main"
 "Homepage" = "https://github.com/AshokShau/tgmusicbot"
 "Source" = "https://github.com/AshokShau/tgmusicbot"
 "Issue Tracker" = "https://github.com/AshokShau/tgmusicbot/issues"
-
-keywords = [
-    "telegram", "music", "bot", "async", "tdlib",
-    "pytgcalls", "voicechat", "spotify", "ytmusic", "opensource",
-    "pytdbot", "py-tgcalls", "yt-dlp"
-]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
-    "Operating System :: OS Independent",
-    "Topic :: Communications :: Chat :: Telegram",
-    "Topic :: Multimedia :: Sound/Audio :: Players",
-    "Environment :: Console",
-    "Framework :: AsyncIO"
-]
 
 [tool.setuptools]
 packages = ["src"]

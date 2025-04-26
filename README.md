@@ -189,7 +189,7 @@ tgmusicbot v1.1.8
    git clone https://github.com/AshokShau/TgMusicBot.git && cd TgMusicBot
    ```
 
-5.Create a virtual environment [Docs](https://docs.astral.sh/uv/pip/environments/):
+5.Create a [virtual environment](https://docs.astral.sh/uv/pip/environments/):
 
    ```sh
    uv venv
@@ -211,7 +211,7 @@ tgmusicbot v1.1.8
    ```sh
    cp sample.env .env && vi .env
    ```
-
+> Press `I` on the keyboard to enter the insert mode.
 > Press `Ctrl+C` when you're done with editing env and `:wq` to save the environment variables.
 
 9.Finally, run the bot by:
