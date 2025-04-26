@@ -3,6 +3,7 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import asyncio
+from asyncio import create_task
 from types import NoneType
 
 from pytdbot import Client, types
@@ -198,20 +199,30 @@ async def new_message(client: Client, update: types.UpdateNewMessage) -> None:
     """
     message = update.message
     if not message:
-        return None
+        return
+
     chat_id = message.chat_id
     content = message.content
+
+    # Run DB operation in the background
+    if chat_id < 0:
+        create_task(db.add_chat(chat_id))
+    else:
+        create_task(db.add_user(chat_id))
+
+    # Handle video chat events
     if isinstance(content, types.MessageVideoChatEnded):
         LOGGER.info("Video chat ended in %s", chat_id)
         chat_cache.clear_chat(chat_id)
-        await client.sendTextMessage(chat_id, "Video chat ended!\nall queues cleared")
-        return None
+        await client.sendTextMessage(chat_id, "Video chat ended!\nAll queues cleared")
+        return
+
     if isinstance(content, types.MessageVideoChatStarted):
         LOGGER.info("Video chat started in %s", chat_id)
         chat_cache.clear_chat(chat_id)
         await client.sendTextMessage(
-            chat_id, "Video chat started!\nuse /play song name to play a song"
+            chat_id, "Video chat started!\nUse /play song name to play a song"
         )
-        return None
+        return
+
     LOGGER.debug("New message in %s: %s", chat_id, message)
-    return None
