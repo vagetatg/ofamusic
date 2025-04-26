@@ -14,7 +14,10 @@ RUN pip install --no-cache-dir "setuptools>=78.1.0" uv==0.6.17
 
 WORKDIR /app
 
-RUN git clone --recursive -b dev https://github.com/pytgcalls/ntgcalls.git
+RUN git clone --recursive -b dev https://github.com/pytgcalls/ntgcalls.git && \
+    cd ntgcalls && \
+    git checkout 47cfe5d81dad4ab7ee99d7337f6054cd2fe11a87 && \
+    git submodule update --init --recursive
 
 WORKDIR /app/ntgcalls
 
