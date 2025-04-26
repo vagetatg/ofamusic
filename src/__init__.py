@@ -58,10 +58,12 @@ class Telegram(Client):
             self.call_manager.stop_scheduler(),
             super().stop(),
         ]
-        await asyncio.gather(*shutdown_tasks, return_exceptions=False)
+        await asyncio.gather(*shutdown_tasks)
 
     @staticmethod
     def _check_config() -> None:
+        if not config.API_ID or not config.API_HASH or not config.TOKEN:
+            raise ValueError("API_ID, API_HASH and TOKEN are required")
         if config.IGNORE_BACKGROUND_UPDATES and os.path.exists("database"):
             shutil.rmtree("database")
         if not isinstance(config.MONGO_URI, str):

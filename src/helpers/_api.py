@@ -35,7 +35,6 @@ class ApiData(MusicService):
         Check if the URL is a valid music service URL.
         """
         if not (self.API_URL and config.API_KEY):
-            LOGGER.warning("API_URL or API_KEY is not configured.")
             return False
 
         if not url:
