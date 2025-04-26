@@ -67,7 +67,6 @@ tgmusicbot v1.1.8
 ├── motor v3.7.0
 │   └── pymongo v4.12.0
 │       └── dnspython v2.7.0
-├── ntgcalls v1.3.4
 ├── pillow v11.2.1
 ├── psutil v7.0.0
 ├── py-tgcalls v2.1.1
@@ -119,6 +118,13 @@ tgmusicbot v1.1.8
 ├── tdjson v1.8.47
 ├── ujson v5.10.0
 ├── yt-dlp v2025.3.31
+├── black v25.1.0 (extra: dev)
+│   ├── click v8.1.8
+│   ├── mypy-extensions v1.1.0
+│   ├── packaging v25.0
+│   ├── pathspec v0.12.1
+│   └── platformdirs v4.3.7
+├── ruff v0.11.7 (extra: dev)
 └── setuptools v78.1.0 (extra: dev)
 ```
 

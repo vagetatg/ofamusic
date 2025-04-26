@@ -32,7 +32,7 @@ from src.modules.utils.play_helpers import del_msg, extract_argument
 
 
 def format_exception(
-        exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
+    exp: BaseException, tb: Optional[list[traceback.FrameSummary]] = None
 ) -> str:
     """
     Formats an exception traceback as a string, similar to the Python interpreter.
@@ -187,9 +187,9 @@ async def sys_stats(client: Client, message: types.Message):
         cpu_freq = "ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ"
 
     hdd = psutil.disk_usage("/")
-    total = hdd.total / (1024.0 ** 3)
-    used = hdd.used / (1024.0 ** 3)
-    free = hdd.free / (1024.0 ** 3)
+    total = hdd.total / (1024.0**3)
+    used = hdd.used / (1024.0**3)
+    free = hdd.free / (1024.0**3)
     platform_release = platform.release()
     platform_version = platform.version()
     chats = len(await db.get_all_chats())

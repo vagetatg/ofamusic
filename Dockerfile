@@ -13,7 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir "setuptools>=78.1.0" uv==0.6.17
 
 WORKDIR /app
-RUN git clone -b dev https://github.com/pytgcalls/ntgcalls.git --recursive
+
+RUN git clone --recursive -b dev https://github.com/pytgcalls/ntgcalls.git
+
 WORKDIR /app/ntgcalls
 
 RUN python3 setup.py build_lib && uv pip install . --system --no-deps

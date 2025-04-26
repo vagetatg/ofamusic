@@ -105,7 +105,7 @@ async def _validate_chat(client: Client, chat_id: int) -> bool:
 
 
 async def _handle_status_changes(
-        client: Client, chat_id: int, user_id: int, old_status: str, new_status: str
+    client: Client, chat_id: int, user_id: int, old_status: str, new_status: str
 ) -> None:
     """Route different status change scenarios to appropriate handlers."""
     if old_status == "chatMemberStatusLeft" and new_status in {
@@ -114,14 +114,14 @@ async def _handle_status_changes(
     }:
         await _handle_join(client, chat_id, user_id)
     elif (
-            old_status in {"chatMemberStatusMember", "chatMemberStatusAdministrator"}
-            and new_status == "chatMemberStatusLeft"
+        old_status in {"chatMemberStatusMember", "chatMemberStatusAdministrator"}
+        and new_status == "chatMemberStatusLeft"
     ):
         await _handle_leave_or_kick(chat_id, user_id)
     elif new_status == "chatMemberStatusBanned":
         await _handle_ban(chat_id, user_id)
     elif (
-            old_status == "chatMemberStatusBanned" and new_status == "chatMemberStatusLeft"
+        old_status == "chatMemberStatusBanned" and new_status == "chatMemberStatusLeft"
     ):
         await _handle_unban(chat_id, user_id)
     else:
@@ -156,16 +156,16 @@ async def _handle_unban(chat_id: int, user_id: int) -> None:
 
 
 async def _handle_promotion_demotion(
-        client: Client, chat_id: int, user_id: int, old_status: str, new_status: str
+    client: Client, chat_id: int, user_id: int, old_status: str, new_status: str
 ) -> None:
     """Handle user promotion/demotion in chat."""
     is_promoted = (
-            old_status != "chatMemberStatusAdministrator"
-            and new_status == "chatMemberStatusAdministrator"
+        old_status != "chatMemberStatusAdministrator"
+        and new_status == "chatMemberStatusAdministrator"
     )
     is_demoted = (
-            old_status == "chatMemberStatusAdministrator"
-            and new_status != "chatMemberStatusAdministrator"
+        old_status == "chatMemberStatusAdministrator"
+        and new_status != "chatMemberStatusAdministrator"
     )
 
     if not (is_promoted or is_demoted):

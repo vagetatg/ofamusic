@@ -46,7 +46,9 @@ async def update(c: Client, message: types.Message) -> None:
     if command == "update":
         # Ensure .git exists
         if not os.path.exists(".git"):
-            await msg.edit_text("⚠️ This instance does not support updates (no .git directory).")
+            await msg.edit_text(
+                "⚠️ This instance does not support updates (no .git directory)."
+            )
             return
 
         # Secure way to resolve git-path
@@ -83,7 +85,9 @@ async def update(c: Client, message: types.Message) -> None:
                 )
                 os.remove(filename)
             else:
-                await msg.edit_text(f"✅ Bot updated successfully. Restarting...\n<b>Update Output:</b>\n<pre>{output}</pre>")
+                await msg.edit_text(
+                    f"✅ Bot updated successfully. Restarting...\n<b>Update Output:</b>\n<pre>{output}</pre>"
+                )
         except subp.CalledProcessError as e:
             LOGGER.error("Update failed: %s", e)
             await msg.edit_text(f"⚠️ Update failed:\n<pre>{e.output}</pre>")
@@ -102,7 +106,9 @@ async def update(c: Client, message: types.Message) -> None:
 
     # Restart logic
     if is_docker():
-        await msg.edit_text("🚢 Detected Docker — exiting process to let Docker restart it.")
+        await msg.edit_text(
+            "🚢 Detected Docker — exiting process to let Docker restart it."
+        )
         sys.exit(0)
     else:
         tgmusic_path = shutil.which("tgmusic")

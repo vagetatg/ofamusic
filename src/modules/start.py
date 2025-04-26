@@ -220,15 +220,33 @@ async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) 
         return None
 
     actions = {
-        "help_user": {"answer": "User Help Menu", "text": UserCommands, "markup": BackHelpMenu},
-        "help_admin": {"answer": "Admin Help Menu", "text": AdminCommands, "markup": BackHelpMenu},
-        "help_owner": {"answer": "Owner Help Menu", "text": ChatOwnerCommands, "markup": BackHelpMenu},
-        "help_devs": {"answer": "Developer Help Menu", "text": BotDevsCommands, "markup": BackHelpMenu},
+        "help_user": {
+            "answer": "User Help Menu",
+            "text": UserCommands,
+            "markup": BackHelpMenu,
+        },
+        "help_admin": {
+            "answer": "Admin Help Menu",
+            "text": AdminCommands,
+            "markup": BackHelpMenu,
+        },
+        "help_owner": {
+            "answer": "Owner Help Menu",
+            "text": ChatOwnerCommands,
+            "markup": BackHelpMenu,
+        },
+        "help_devs": {
+            "answer": "Developer Help Menu",
+            "text": BotDevsCommands,
+            "markup": BackHelpMenu,
+        },
     }
 
     if action := actions.get(data):
         await message.answer(text=action["answer"])
-        await message.edit_message_text(text=action["text"], reply_markup=action["markup"])
+        await message.edit_message_text(
+            text=action["text"], reply_markup=action["markup"]
+        )
         return None
 
     await message.answer(text=f"Unknown action: {data}")
