@@ -12,6 +12,7 @@ from src.logger import LOGGER
 from ._dl_helper import YouTubeDownload
 from ._downloader import MusicService
 from ._httpx import HttpxClient
+from ..config import API_URL
 
 
 class YouTubeData(MusicService):
@@ -50,6 +51,12 @@ class YouTubeData(MusicService):
         if not self.is_valid(self.query):
             return None
 
+        # If API_URL is set, use it
+        if API_URL:
+            if data := await self.client.make_request(f"{API_URL}/get_url_new?url={self.query}"):
+                return self._create_platform_tracks(data)
+
+        # The default implementation
         data = await self._fetch_data(self.query)
         return self._create_platform_tracks(data) if data else None
 
