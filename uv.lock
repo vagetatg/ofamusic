@@ -853,13 +853,10 @@ dependencies = [
 [[package]]
 name = "py-yt-search"
 version = "0.2"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/ashokshau/py-yt-search.git?rev=test#2646748dc0ec674231c65fc6f4f40b18d79a4114" }
 dependencies = [
     { name = "httpx" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/1b/09/edee0dcc341da5bc96b2b003b2b7971a1484c9d0f2c9caf6ec68975974e3/py_yt_search-0.2.tar.gz", hash = "sha256:d33f237ccbd1b3ed581a9bbe996b70e238ea67ceaae74da9ae84c018350f22ff", size = 35554, upload_time = "2025-02-22T11:12:23.42Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/bc/ccd65eac7b3a1c0352d48ca66428d86d902e31d3e1c787e551dce5a48203/py_yt_search-0.2-py3-none-any.whl", hash = "sha256:195c2bdb8b1495a2a5587fb5644f81878930e8a3fd14e85683ce0e59fc43a719", size = 41821, upload_time = "2025-02-22T11:12:21.579Z" },
+    { name = "python-dotenv" },
 ]
 
 [[package]]
@@ -1233,7 +1230,7 @@ requires-dist = [
     { name = "pillow", specifier = "~=11.2.1" },
     { name = "psutil", specifier = "~=7.0.0" },
     { name = "py-tgcalls", git = "https://github.com/pytgcalls/pytgcalls.git?rev=master" },
-    { name = "py-yt-search", specifier = "~=0.2" },
+    { name = "py-yt-search", git = "https://github.com/ashokshau/py-yt-search.git?rev=test" },
     { name = "pycryptodome", specifier = "~=3.22.0" },
     { name = "pydantic", specifier = "~=2.11.3" },
     { name = "pytdbot", specifier = "~=0.9.2" },

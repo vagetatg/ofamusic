@@ -34,7 +34,7 @@ dependencies = [
     "motor~=3.7.0",
     "pillow~=11.2.1",
     "psutil~=7.0.0",
-    "py-yt-search~=0.2",
+#    "py-yt-search~=0.2",
     "pycryptodome~=3.22.0",
     "pydantic~=2.11.3",
     "PyTgCrypto~=1.2.9.2",
@@ -45,6 +45,7 @@ dependencies = [
     "ujson~=5.10.0",
     "yt-dlp~=2025.3.31",
     "py-tgcalls @ git+https://github.com/pytgcalls/pytgcalls.git@master",
+    "py-yt-search @ git+https://github.com/ashokshau/py-yt-search.git@test"
 ]
 
 [project.optional-dependencies]
