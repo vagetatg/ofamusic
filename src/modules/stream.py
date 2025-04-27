@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-import os
 import subprocess
 
 from pytdbot import Client, types
@@ -11,13 +10,13 @@ from src.config import DEVS
 from src.helpers import Telegram
 from src.logger import LOGGER
 from src.modules.utils import Filter
-from src.modules.utils.play_helpers import edit_text, del_msg
+from src.modules.utils.play_helpers import edit_text, del_msg, extract_argument
 
 
 async def stream(stream_url: str, path: str) -> bool:
     ffmpeg_cmd = [
         "ffmpeg",
-        "-stream_loop", "-1",
+        # "-stream_loop", "-1",
         "-i", str(path),
         "-c:v", "libx264",
         "-preset", "superfast",
@@ -47,7 +46,7 @@ async def stream(stream_url: str, path: str) -> bool:
             universal_newlines=True
         )
 
-        # Wait for process to complete
+        # Wait for a process to complete
         return_code = ffmpeg_proc.wait()
 
         if return_code == 0:
@@ -94,7 +93,7 @@ async def stream_cmd(_: Client, msg: types.Message) -> None:
         )
         return
 
-    stream_url = os.getenv("STREAM_URL", "")
+    stream_url = extract_argument(msg.text)
     if not stream_url:
         await edit_text(reply_message, "❌ Stream URL is not set.")
         return
