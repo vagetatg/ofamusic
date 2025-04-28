@@ -30,7 +30,7 @@ class ApiData(MusicService):
         "soundcloud": re.compile(
             r"^(https?://)?(soundcloud\.com/[a-zA-Z0-9\-_]+/[a-zA-Z0-9\-_]+)(\?.*)?$",
             re.IGNORECASE,
-        )
+        ),
     }
 
     def __init__(self, query: Optional[str] = None) -> None:
@@ -42,13 +42,13 @@ class ApiData(MusicService):
         """
         self.query = self._sanitize_query(query) if query else None
         self.client = HttpxClient()
-        self.api_url = config.API_URL.rstrip('/') if config.API_URL else None
+        self.api_url = config.API_URL.rstrip("/") if config.API_URL else None
         self.api_key = config.API_KEY
 
     @staticmethod
     def _sanitize_query(query: str) -> str:
         """Clean and normalize the input query."""
-        return query.strip().split('?')[0].split('#')[0]
+        return query.strip().split("?")[0].split("#")[0]
 
     def is_valid(self, url: Optional[str]) -> bool:
         """
@@ -65,7 +65,9 @@ class ApiData(MusicService):
 
         return any(pattern.match(url) for pattern in self.URL_PATTERNS.values())
 
-    async def _make_api_request(self, endpoint: str, params: Optional[dict] = None) -> Optional[dict]:
+    async def _make_api_request(
+        self, endpoint: str, params: Optional[dict] = None
+    ) -> Optional[dict]:
         """
         Make authenticated API requests with proper error handling.
 
@@ -84,11 +86,7 @@ class ApiData(MusicService):
         url = f"{self.api_url}/{endpoint.lstrip('/')}"
 
         try:
-            return await self.client.make_request(
-                url,
-                headers=headers,
-                params=params
-            )
+            return await self.client.make_request(url, headers=headers, params=params)
         except Exception as e:
             LOGGER.error("API request to %s failed: %s", endpoint, str(e))
             return None
@@ -149,7 +147,9 @@ class ApiData(MusicService):
         data = await self._make_api_request("get_track", {"id": self.query})
         return TrackInfo(**data) if data else None
 
-    async def download_track(self, track: TrackInfo, video: bool = False) -> Optional[Union[str, Path]]:
+    async def download_track(
+        self, track: TrackInfo, video: bool = False
+    ) -> Optional[Union[str, Path]]:
         """
         Download a track based on its platform.
 
@@ -185,7 +185,7 @@ class ApiData(MusicService):
                 "Error downloading track %s: %s",
                 getattr(track, "tc", "unknown"),
                 str(e),
-                exc_info=True
+                exc_info=True,
             )
             return None
 
@@ -203,5 +203,9 @@ class ApiData(MusicService):
         if not data or not isinstance(data, dict) or "results" not in data:
             return None
 
-        valid_tracks = [MusicTrack(**track) for track in data["results"] if track and isinstance(track, dict)]
+        valid_tracks = [
+            MusicTrack(**track)
+            for track in data["results"]
+            if track and isinstance(track, dict)
+        ]
         return PlatformTracks(tracks=valid_tracks) if valid_tracks else None

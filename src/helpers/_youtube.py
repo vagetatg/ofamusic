@@ -61,10 +61,11 @@ class YouTubeData(MusicService):
         if not url:
             return False
         return any(
-            pattern.match(url) for pattern in (
+            pattern.match(url)
+            for pattern in (
                 self.YOUTUBE_VIDEO_PATTERN,
                 self.YOUTUBE_PLAYLIST_PATTERN,
-                self.YOUTUBE_SHORTS_PATTERN
+                self.YOUTUBE_SHORTS_PATTERN,
             )
         )
 
@@ -120,7 +121,9 @@ class YouTubeData(MusicService):
             LOGGER.error(f"Error fetching track {self.query}: {str(e)}")
             return None
 
-    async def download_track(self, track: TrackInfo, video: bool = False) -> Optional[str]:
+    async def download_track(
+        self, track: TrackInfo, video: bool = False
+    ) -> Optional[str]:
         """
         Download a YouTube track.
 
@@ -177,13 +180,17 @@ class YouTubeData(MusicService):
                 if not result:
                     return None
 
-                track = self._format_track({
-                    "id": result["id"],
-                    "title": result["title"],
-                    "duration": result.get("duration", {}).get("secondsText", "0:00"),
-                    "channel": result.get("channel", {}),
-                    "thumbnails": result.get("thumbnails", [{}]),
-                })
+                track = self._format_track(
+                    {
+                        "id": result["id"],
+                        "title": result["title"],
+                        "duration": result.get("duration", {}).get(
+                            "secondsText", "0:00"
+                        ),
+                        "channel": result.get("channel", {}),
+                        "thumbnails": result.get("thumbnails", [{}]),
+                    }
+                )
                 return {"results": [track]}
             except Exception as e:
                 LOGGER.warning(f"Proxy fetch failed, falling back: {str(e)}")
@@ -225,11 +232,10 @@ class YouTubeData(MusicService):
     def _extract_video_id(url: str) -> Optional[str]:
         """Extract video ID from various YouTube URL formats."""
         for pattern in (
-                YouTubeData.YOUTUBE_VIDEO_PATTERN,
-                YouTubeData.YOUTUBE_SHORTS_PATTERN
+            YouTubeData.YOUTUBE_VIDEO_PATTERN,
+            YouTubeData.YOUTUBE_SHORTS_PATTERN,
         ):
-            match = pattern.match(url)
-            if match:
+            if match := pattern.match(url):
                 return match.group(1)
         return None
 
@@ -276,10 +282,14 @@ class YouTubeData(MusicService):
             "name": track_data.get("title", "Unknown Title"),
             "duration": YouTubeData._duration_to_seconds(duration),
             "artist": track_data.get("channel", {}).get("name", "Unknown Artist"),
-            "cover": next((
-                thumb["url"] for thumb in reversed(track_data.get("thumbnails", []))
-                if thumb.get("url")
-            ), ""),
+            "cover": next(
+                (
+                    thumb["url"]
+                    for thumb in reversed(track_data.get("thumbnails", []))
+                    if thumb.get("url")
+                ),
+                "",
+            ),
             "year": 0,
             "url": f"https://www.youtube.com/watch?v={track_data.get('id', '')}",
             "platform": "youtube",

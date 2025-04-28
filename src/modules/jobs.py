@@ -113,6 +113,7 @@ class InactiveCallManager:
         """
         if not AUTO_LEAVE:
             return
+
         for client_name, call_instance in call.calls.items():
             ub: PyroClient = call_instance.mtproto_client
             chats_to_leave = []
@@ -129,6 +130,7 @@ class InactiveCallManager:
             self.bot.logger.debug(
                 f"[{client_name}] Found {len(chats_to_leave)} chats to leave."
             )
+
             for chat_id in chats_to_leave:
                 is_active = chat_cache.is_active(chat_id)
                 if is_active:

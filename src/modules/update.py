@@ -2,6 +2,7 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
+import asyncio
 import os
 import shutil
 import subprocess as subp
@@ -12,7 +13,7 @@ from os import execvp
 from pytdbot import Client, types
 
 from src.config import DEVS
-from src.helpers import chat_cache
+from src.helpers import chat_cache, call
 from src.logger import LOGGER
 from src.modules.utils import Filter
 from src.modules.utils.play_helpers import del_msg
@@ -26,7 +27,8 @@ def is_docker():
         try:
             with open("/proc/1/cgroup", "r") as f:
                 return "docker" in f.read()
-        except Exception:
+        except Exception as e:
+            LOGGER.warning("Failed to check if running in Docker: %s", e)
             return False
     return False
 
@@ -51,7 +53,7 @@ async def update(c: Client, message: types.Message) -> None:
             )
             return
 
-        # Secure way to resolve git-path
+        # Secure way to resolve git_path
         git_path = shutil.which("git") or "/usr/bin/git"
         if not os.path.isfile(git_path):
             await msg.edit_text("❌ Git not found on system.")
@@ -100,7 +102,9 @@ async def update(c: Client, message: types.Message) -> None:
     # Inform active chats
     if active_vc := chat_cache.get_active_chats():
         for chat_id in active_vc:
+            await call.end(chat_id)
             await c.sendTextMessage(chat_id, "♻️ Restarting the bot...")
+            await asyncio.sleep(0.5)
 
     await msg.edit_text("♻️ Restarting the bot...")
 

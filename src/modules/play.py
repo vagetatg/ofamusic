@@ -9,7 +9,6 @@ from pytdbot import Client, types
 
 from src.helpers import (
     CachedTrack,
-    CallError,
     MusicServiceWrapper,
     MusicTrack,
     PlatformTracks,
@@ -108,7 +107,7 @@ async def _update_msg_with_thumb(
 
     parsed_text = await c.parseTextEntities(text, types.TextParseModeHTML())
     if isinstance(parsed_text, types.Error):
-        return await edit_text(msg, text=str(parsed_text), reply_markup=button)
+        return await edit_text(msg, text=parsed_text.message, reply_markup=button)
 
     input_content = types.InputMessagePhoto(
         types.InputFileLocal(thumb), caption=parsed_text
@@ -182,10 +181,9 @@ async def _handle_single_track(
     chat_cache.set_active(chat_id, True)
     chat_cache.add_song(chat_id, song)
 
-    try:
-        await call.play_media(chat_id, song.file_path, video=is_video)
-    except CallError as e:
-        return await edit_text(msg, text=f"⚠️ {e}")
+    _call = await call.play_media(chat_id, song.file_path, video=is_video)
+    if isinstance(_call, types.Error):
+        return await edit_text(msg, text=f"⚠️ {str(_call)}")
 
     thumb = await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
     text = (
@@ -270,7 +268,7 @@ async def play_music(
     is_video: bool = False,
 ):
     """
-    Handle playing music from given URL or file.
+    Handle playing music from a given URL or file.
     """
     if not url_data or not url_data.tracks:
         return await edit_text(msg, "❌ Unable to retrieve song info.")
@@ -399,8 +397,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
         )
 
     await load_admin_cache(c, chat_id)
-    bot_id = c.options["my_id"] or c.me.id
-    if not await is_admin(chat_id, bot_id):
+    if not await is_admin(chat_id, c.me.id):
         return await msg.reply_text(
             "I need admin with invite user permission if group is private.\n\n"
             "After promoting me, try again or use /reload."
@@ -462,7 +459,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
         if not wrapper.is_valid(url):
             return await edit_text(
                 reply_message,
-                "❌ Invalid URL! Provide a valid link.",
+                "❌ Invalid URL! Provide a valid link.\nSupported platforms are: YouTube, SoundCloud, Spotify, Apple Music & Jiosaavn.",
                 reply_markup=SupportButton,
             )
 

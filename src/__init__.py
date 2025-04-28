@@ -5,7 +5,6 @@
 import asyncio
 import os
 import shutil
-import sys
 from datetime import datetime
 
 from pytdbot import Client, types
@@ -16,15 +15,6 @@ from src.modules.jobs import InactiveCallManager
 
 __version__ = "1.1.8"
 StartTime = datetime.now()
-
-# Enforce a minimum Python version
-if sys.version_info < (3, 10):
-    raise RuntimeError(
-        "\n\n❌ Your Python version is too old!\n"
-        "   This project requires Python 3.10 or newer to run.\n"
-        "   Please upgrade Python:\n"
-        "     🔗 https://www.python.org/downloads/\n"
-    )
 
 
 class Telegram(Client):
@@ -52,7 +42,8 @@ class Telegram(Client):
         await call.register_decorators()
         await self.call_manager.start_scheduler()
         await super().start()
-        self.logger.info("✅ Bot started successfully.")
+        self.logger.info(f"Bot started in {datetime.now() - StartTime} seconds.")
+        self.logger.info(f"Version: {__version__}")
 
     async def stop(self) -> None:
         shutdown_tasks = [
@@ -74,4 +65,4 @@ class Telegram(Client):
             raise ValueError("No STRING session provided\n\nAdd STRING session in .env")
 
 
-client = Telegram()
+client: Telegram = Telegram()

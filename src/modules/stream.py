@@ -16,24 +16,39 @@ from src.modules.utils.play_helpers import edit_text, del_msg, extract_argument
 async def stream(stream_url: str, path: str) -> bool:
     ffmpeg_cmd = [
         "ffmpeg",
-        # "-stream_loop", "-1",
-        "-i", str(path),
-        "-c:v", "libx264",
-        "-preset", "superfast",
-        "-b:v", "2000k",
-        "-maxrate", "2000k",
-        "-bufsize", "4000k",
-        "-pix_fmt", "yuv420p",
-        "-g", "30",
-        "-threads", "0",
-        "-c:a", "aac",
-        "-b:a", "96k",
-        "-ac", "2",
-        "-ar", "44100",
-        "-f", "flv",
-        "-rtmp_buffer", "100",
-        "-rtmp_live", "live",
-        stream_url
+        "-i",
+        path,
+        "-c:v",
+        "libx264",
+        "-preset",
+        "superfast",
+        "-b:v",
+        "2000k",
+        "-maxrate",
+        "2000k",
+        "-bufsize",
+        "4000k",
+        "-pix_fmt",
+        "yuv420p",
+        "-g",
+        "30",
+        "-threads",
+        "0",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "96k",
+        "-ac",
+        "2",
+        "-ar",
+        "44100",
+        "-f",
+        "flv",
+        "-rtmp_buffer",
+        "100",
+        "-rtmp_live",
+        "live",
+        stream_url,
     ]
 
     try:
@@ -43,12 +58,11 @@ async def stream(stream_url: str, path: str) -> bool:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
+            universal_newlines=True,
         )
 
         # Wait for a process to complete
         return_code = ffmpeg_proc.wait()
-
         if return_code == 0:
             LOGGER.info("FFmpeg stream completed successfully")
             return True
@@ -95,7 +109,7 @@ async def stream_cmd(_: Client, msg: types.Message) -> None:
 
     stream_url = extract_argument(msg.text)
     if not stream_url:
-        await edit_text(reply_message, "❌ Stream URL is not set.")
+        await edit_text(reply_message, "❌ Please provide RTMP stream URL.")
         return
 
     await edit_text(reply_message, "📡 Starting stream...")

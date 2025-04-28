@@ -31,7 +31,10 @@ async def handle_non_supergroup(client: Client, chat_id: int) -> None:
     )
     bot_username = client.me.usernames.editable_username
     await client.sendTextMessage(
-        chat_id, text, reply_markup=add_me_markup(bot_username)
+        chat_id=chat_id,
+        text=text,
+        reply_markup=add_me_markup(bot_username),
+        disable_web_page_preview=True,
     )
     await asyncio.sleep(1)
     await client.leaveChat(chat_id)
@@ -77,24 +80,14 @@ async def chat_member(client: Client, update: types.UpdateChatMember) -> None:
     # Early return for non-group chats
     if chat_id > 0 or not await _validate_chat(client, chat_id):
         return None
+    await db.add_chat(chat_id)
+    user_id = update.new_chat_member.member_id.user_id
+    old_status = update.old_chat_member.status["@type"]
+    new_status = update.new_chat_member.status["@type"]
 
-    try:
-        await db.add_chat(chat_id)
-        user_id = update.new_chat_member.member_id.user_id
-        old_status = update.old_chat_member.status["@type"]
-        new_status = update.new_chat_member.status["@type"]
-
-        # Skip invalid user IDs
-        if user_id == 0:
-            return None
-
-        # Handle different status change scenarios
-        await _handle_status_changes(client, chat_id, user_id, old_status, new_status)
-        return None
-
-    except Exception as e:
-        LOGGER.error("Error processing chat member update in %s: %s", chat_id, e)
-        return None
+    # Handle different status change scenarios
+    await _handle_status_changes(client, chat_id, user_id, old_status, new_status)
+    return None
 
 
 async def _validate_chat(client: Client, chat_id: int) -> bool:
@@ -184,7 +177,8 @@ async def _handle_promotion_demotion(
 async def _update_user_status_cache(chat_id: int, user_id: int, status: str) -> None:
     """Update the user status cache if the user is the bot."""
     ub = await call.get_client(chat_id)
-    if isinstance(ub, (types.Error, NoneType)):
+    if isinstance(ub, types.Error):
+        LOGGER.warning("Error getting client for chat %s: %s", chat_id, ub)
         return
 
     if user_id == ub.me.id:

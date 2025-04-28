@@ -56,12 +56,10 @@ async def send_message_with_retry(
     Exception: if there's an unexpected error.
     """
     for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            async with semaphore:
-                result = await (
-                    message.copy(target_id) if is_copy else message.forward(target_id)
-                )
-
+        async with semaphore:
+            result = await (
+                message.copy(target_id) if is_copy else message.forward(target_id)
+            )
             if isinstance(result, types.Error):
                 if result.code == 429:
                     retry_after = (
@@ -83,13 +81,7 @@ async def send_message_with_retry(
                     return 0
                 LOGGER.error("[Error] %s: %s", target_id, result.message)
                 return 0
-
             return 1
-
-        except Exception as e:
-            LOGGER.error("[Error] %s: %s", target_id, e)
-            await asyncio.sleep(2)
-
     return 0
 
 
