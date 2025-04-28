@@ -1,26 +1,13 @@
 FROM python:3.13-slim
 
+WORKDIR /app
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
-    libx11-dev \
-    libasound2-dev \
-    libpulse-dev \
     git \
-    curl \
-    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir "setuptools>=78.1.0" uv==0.6.17
-
-WORKDIR /app
-
-RUN git clone --recursive -b dev https://github.com/pytgcalls/ntgcalls.git
-
-WORKDIR /app/ntgcalls
-
-RUN python3 setup.py build_lib && uv pip install . --system --no-deps
-
-WORKDIR /app
+RUN pip install --no-cache-dir uv==0.6.17
 
 COPY . /app/
 
