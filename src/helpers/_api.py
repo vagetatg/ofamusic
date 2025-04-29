@@ -82,14 +82,8 @@ class ApiData(MusicService):
             LOGGER.error("API configuration missing")
             return None
 
-        headers = {"Authorization": f"Bearer {self.api_key}"}
         url = f"{self.api_url}/{endpoint.lstrip('/')}"
-
-        try:
-            return await self.client.make_request(url, headers=headers, params=params)
-        except Exception as e:
-            LOGGER.error("API request to %s failed: %s", endpoint, str(e))
-            return None
+        return await self.client.make_request(url, params=params)
 
     async def get_recommendations(self, limit: int = 4) -> Optional[PlatformTracks]:
         """
