@@ -615,7 +615,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             return None
         else:
             try:
-                platform, song_id = data.split("_", 1)
+                _, platform, song_id = data.split("_", 2)
             except ValueError:
                 LOGGER.error(f"Invalid callback data format: {data}")
                 await send_response(get_string('invalid_request_format', lang), alert=True)
@@ -631,6 +631,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
 
             url = _get_platform_url(platform, song_id)
             if not url:
+                LOGGER.error(f"Invalid platform: {platform}; data: {data}")
                 await edit_text(
                     reply_message, text=f"⚠️ {get_string('invalid_platform', lang)} {platform}"
                 )
