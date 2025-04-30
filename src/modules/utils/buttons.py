@@ -94,6 +94,32 @@ LangsButtons = types.ReplyMarkupInlineKeyboard(
                 type=types.InlineKeyboardButtonTypeCallback(b"lang_hi"),
             ),
         ],
+        [
+            types.InlineKeyboardButton(
+                text="Spanish",
+                type=types.InlineKeyboardButtonTypeCallback(b"lang_es"),
+            ),
+            types.InlineKeyboardButton(
+                text="French",
+                type=types.InlineKeyboardButtonTypeCallback(b"lang_fr"),
+            ),
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="Arabic",
+                type=types.InlineKeyboardButtonTypeCallback(b"lang_ar"),
+            ),
+            types.InlineKeyboardButton(
+                text="বাংলা (Bengali)",
+                type=types.InlineKeyboardButtonTypeCallback(b"lang_bn"),
+            ),
+        ],
+        [
+            types.InlineKeyboardButton(
+                text="русский (Russian)",
+                type=types.InlineKeyboardButtonTypeCallback(b"lang_ru"),
+            ),
+        ],
         [CLOSE_BTN],
     ]
 )
