@@ -82,6 +82,21 @@ HelpMenu = types.ReplyMarkupInlineKeyboard(
 
 BackHelpMenu = types.ReplyMarkupInlineKeyboard([[HELP_BTN, CLOSE_BTN]])
 
+LangsButtons = types.ReplyMarkupInlineKeyboard(
+    [
+        [
+            types.InlineKeyboardButton(
+                text="English",
+                type=types.InlineKeyboardButtonTypeCallback(b"lang_en"),
+            ),
+            types.InlineKeyboardButton(
+                text="हिन्दी",
+                type=types.InlineKeyboardButtonTypeCallback(b"lang_hi"),
+            ),
+        ],
+        [CLOSE_BTN],
+    ]
+)
 
 # ─────────────────────
 # Dynamic Keyboard Generator

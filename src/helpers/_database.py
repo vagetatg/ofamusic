@@ -31,9 +31,11 @@ class Database:
         self.chat_db = _db["chats"]
         self.users_db = _db["users"]
         self.bot_db = _db["bot"]
+        self.language = _db["language"]
 
         self.chat_cache = TTLCache(maxsize=1000, ttl=600)
         self.bot_cache = TTLCache(maxsize=1000, ttl=600)
+        self.lang_cache = TTLCache(maxsize=1000, ttl=600)
 
     async def ping(self) -> None:
         """
@@ -608,6 +610,33 @@ class Database:
         )
         self.bot_cache[bot_id] = status
 
+
+    async def get_lang(self, chat_id: int) -> str:
+        """
+        Get the language code for the given chat ID.
+        Defaults to 'en' if not set.
+        """
+        if chat_id in self.lang_cache:
+            return self.lang_cache[chat_id]
+
+        data = await self.language.find_one({"chat_id": chat_id})
+        lang = data.get("lang", "en") if data else "en"
+        self.lang_cache[chat_id] = lang
+        return lang
+
+
+    async def set_lang(self, chat_id: int, lang: str) -> None:
+        """
+        Set or update the language code for the given chat ID.
+        """
+        await self.language.update_one(
+            {"chat_id": chat_id},
+            {"$set": {"lang": lang}},
+            upsert=True
+        )
+        self.lang_cache[chat_id] = lang
+
+
     async def close(self) -> None:
         """
         Close the database connection.
@@ -624,3 +653,4 @@ class Database:
 
 
 db: Database = Database()
+

@@ -10,6 +10,7 @@ __all__ = [
     "PauseButton",
     "ResumeButton",
     "SupportButton",
+    "LangsButtons",
     "send_logger",
 ]
 
@@ -19,7 +20,7 @@ import json
 from pytdbot import Client, types
 
 from ._filters import Filter
-from .buttons import PauseButton, PlayButton, ResumeButton, SupportButton
+from .buttons import PauseButton, PlayButton, ResumeButton, SupportButton, LangsButtons
 from ... import config
 from ...helpers import CachedTrack
 from ...logger import LOGGER
