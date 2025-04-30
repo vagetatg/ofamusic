@@ -37,7 +37,8 @@ dependencies = [
     "psutil~=7.0.0",
     "py-yt-search~=0.3",
     "pycryptodome~=3.22.0",
-    "pydantic~=2.11.3",
+    "pydantic~=2.11.4",
+    "py-tgcalls~=2.1.2b1",
     "PyTgCrypto~=1.2.9.2",
     "python-dotenv~=1.1.0",
     "pytdbot~=0.9.2",
@@ -45,11 +46,10 @@ dependencies = [
     "tdjson~=1.8.47",
     "ujson~=5.10.0",
     "yt-dlp~=2025.3.31",
-    "py-tgcalls @ git+https://github.com/pytgcalls/pytgcalls.git@master",
 ]
 
 [project.optional-dependencies]
-dev = ["setuptools~=78.1.0", "black", "ruff"]
+dev = ["setuptools~=78.1.1", "black", "ruff"]
 
 [project.scripts]
 tgmusic = "src.__main__:main"

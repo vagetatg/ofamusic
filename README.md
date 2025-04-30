@@ -66,13 +66,13 @@ tgmusicbot v1.1.8
 │   └── pysocks v1.7.1
 ├── meval v2.5
 ├── motor v3.7.0
-│   └── pymongo v4.12.0
+│   └── pymongo v4.12.1
 │       └── dnspython v2.7.0
 ├── ntgcalls v1.3.5b1
 ├── pillow v11.2.1
 ├── psutil v7.0.0
-├── py-tgcalls v2.1.1
-│   ├── aiohttp v3.11.16
+├── py-tgcalls v2.1.2b1
+│   ├── aiohttp v3.11.18
 │   │   ├── aiohappyeyeballs v2.6.1
 │   │   ├── aiosignal v1.3.2
 │   │   │   └── frozenlist v1.6.0
@@ -92,16 +92,16 @@ tgmusicbot v1.1.8
 │   │   ├── anyio v4.9.0
 │   │   │   ├── idna v3.10
 │   │   │   └── sniffio v1.3.1
-│   │   ├── certifi v2025.1.31
-│   │   ├── httpcore v1.0.8
-│   │   │   ├── certifi v2025.1.31
-│   │   │   └── h11 v0.14.0
+│   │   ├── certifi v2025.4.26
+│   │   ├── httpcore v1.0.9
+│   │   │   ├── certifi v2025.4.26
+│   │   │   └── h11 v0.16.0
 │   │   └── idna v3.10
 │   └── python-dotenv v1.1.0
 ├── pycryptodome v3.22.0
-├── pydantic v2.11.3
+├── pydantic v2.11.4
 │   ├── annotated-types v0.7.0
-│   ├── pydantic-core v2.33.1
+│   ├── pydantic-core v2.33.2
 │   │   └── typing-extensions v4.13.2
 │   ├── typing-extensions v4.13.2
 │   └── typing-inspection v0.4.0
@@ -128,7 +128,7 @@ tgmusicbot v1.1.8
 │   ├── pathspec v0.12.1
 │   └── platformdirs v4.3.7
 ├── ruff v0.11.7 (extra: dev)
-└── setuptools v78.1.0 (extra: dev)
+└── setuptools v78.1.1 (extra: dev)
 ```
 
 </details>
