@@ -20,5 +20,10 @@
   "invalid_toggle_usage": "⚠️ Invalid usage.\nUse /{key} [enable|disable|on|off]",
   "toggle_status": "⚙️ {label} is currently {status}.\n\nUse /{key} [on/off] to change it.",
   "enabled": "enabled ✅",
-  "disabled": "disabled ❌"
+  "disabled": "disabled ❌",
+  "logger_usage_status": "Usage: /logger [enable|disable|on|off]\n\nCurrent status: {status}",
+  "logger_enabled": "Logger enabled.",
+  "logger_disabled": "Logger disabled.",
+  "logger_invalid_usage": "Usage: /logger [enable|disable]\n\nYour argument is {arg}",
+
 }
