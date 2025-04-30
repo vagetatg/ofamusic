@@ -42,6 +42,12 @@ class InactiveCallManager:
         """
         async with semaphore:
             vc_users = await call.vc_users(chat_id)
+            if isinstance(vc_users, types.Error):
+                self.bot.logger.warning(
+                    f"An error occurred while getting vc users: {vc_users.message}"
+                )
+                return
+
             if len(vc_users) > 1:
                 self.bot.logger.debug(
                     f"Active users detected in chat {chat_id}. Skipping..."
@@ -50,6 +56,11 @@ class InactiveCallManager:
 
             # Check if the call has been active for more than 20 seconds
             played_time = await call.played_time(chat_id)
+            if isinstance(played_time, types.Error):
+                self.bot.logger.warning(
+                    f"An error occurred while getting played time: {played_time.message}"
+                )
+                return
             if played_time < 20:
                 self.bot.logger.debug(
                     f"Call in chat {chat_id} has been active for less than 20 "

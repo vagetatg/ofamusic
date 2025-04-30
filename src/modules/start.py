@@ -147,10 +147,8 @@ async def reload_cmd(c: Client, message: types.Message) -> None:
         return None
 
     ub = await call.get_client(chat_id)
-    if isinstance(ub, (types.Error, NoneType)):
-        await reply.edit_text(
-            "❌ Something went wrong. Assistant not found for this chat."
-        )
+    if isinstance(ub, types.Error):
+        await reply.edit_text(ub.message)
         return None
 
     chat_invite_cache.pop(chat_id, None)

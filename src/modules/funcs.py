@@ -44,7 +44,7 @@ async def handle_playback_action(
 
     done = await action(chat_id)
     if isinstance(done, types.Error):
-        await msg.reply_text(f"⚠️ {fail_msg}\nError: {done.message}")
+        await msg.reply_text(f"⚠️ {fail_msg}\n\n{done.message}")
         return
 
     await msg.reply_text(f"{success_msg}\n│ \n└ Requested by: {await msg.mention()} 🥀")
@@ -208,8 +208,11 @@ async def seek_song(c: Client, msg: types.Message) -> None:
         return
 
     curr_dur = await call.played_time(chat_id)
-    seek_to = curr_dur + seek_time
+    if isinstance(curr_dur, types.Error):
+        await msg.reply_text(curr_dur.message)
+        return
 
+    seek_to = curr_dur + seek_time
     if seek_to >= curr_song.duration:
         await msg.reply_text(
             f"🛑 Cannot seek past the song duration ({sec_to_min(curr_song.duration)} min)."
@@ -224,7 +227,7 @@ async def seek_song(c: Client, msg: types.Message) -> None:
         curr_song.is_video,
     )
     if isinstance(_seek, types.Error):
-        await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {_seek.message}")
+        await msg.reply_text(_seek.message)
         return
 
     reply = await msg.reply_text(
@@ -271,9 +274,7 @@ async def change_speed(_: Client, msg: types.Message) -> None:
     speed = round(float(args), 2)
     _change_speed = await call.speed_change(chat_id, speed)
     if isinstance(_change_speed, types.Error):
-        await msg.reply_text(
-            f"⚠️ Something went wrong...\n\nError: {_change_speed.message}"
-        )
+        await msg.reply_text(_change_speed.message)
         return
     await msg.reply_text(
         f"🚀 Speed changed to {speed}\n│ \n└ Action by: {await msg.mention()}"
@@ -368,7 +369,7 @@ async def stop_song(_: Client, msg: types.Message) -> None:
 
     _end = await call.end(chat_id)
     if isinstance(_end, types.Error):
-        await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {_end.message}")
+        await msg.reply_text(_end.message)
         return
     await msg.reply_text(
         f"🎵 <b>Stream Ended</b> ❄️\n│ \n└ Requested by: {await msg.mention()} 🥀"
@@ -438,7 +439,7 @@ async def volume(_: Client, msg: types.Message) -> None:
         return None
     done = await call.change_volume(chat_id, vol_int)
     if isinstance(done, types.Error):
-        await msg.reply_text(f"⚠️ Something went wrong...\n\nError: {done.message}")
+        await msg.reply_text(done.message)
         return None
 
     await msg.reply_text(
@@ -554,9 +555,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         elif data == "play_stop":
             done = await call.end(chat_id)
             if isinstance(done, types.Error):
-                await send_response(
-                    f"⚠️ Something went wrong...\n\nError: {done.message}", alert=True
-                )
+                await send_response(done.message, alert=True)
                 return None
             await send_response(
                 f"<b>➻ Stream stopped:</b>\n└ Requested by: {user_name}"
@@ -577,9 +576,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         elif data == "play_resume":
             done = await call.resume(chat_id)
             if isinstance(done, types.Error):
-                await send_response(
-                    f"⚠️ Something went wrong...\n\nError: {done.message}", alert=True
-                )
+                await send_response(f"{done.message}", alert=True)
                 return None
             await send_response(
                 f"<b>➻ Stream resumed:</b>\n└ Requested by: {user_name}",

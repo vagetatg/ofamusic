@@ -415,7 +415,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
     # Assistant checks
     ub = await call.get_client(chat_id)
     if isinstance(ub, (types.Error, NoneType)):
-        return await edit_text(reply_message, "❌ Assistant not found for this chat.")
+        return await edit_text(reply_message, text=ub.message)
 
     # User status check
     user_key = f"{chat_id}:{ub.me.id}"
@@ -435,7 +435,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
             await unban_ub(c, chat_id, ub.me.id)
         join = await join_ub(chat_id, c, ub)
         if isinstance(join, types.Error):
-            return await edit_text(reply_message, f"❌ {str(join)}")
+            return await edit_text(reply_message, f"❌ {join.message}")
 
     await del_msg(msg)
     wrapper = (YouTubeData if is_video else MusicServiceWrapper)(url or args)
@@ -444,7 +444,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
         if is_video:
             return await edit_text(
                 reply_message,
-                text="ᴜsᴀɢᴇ: /vplay video_name or YouTube link",
+                text="ᴜsᴀɢᴇ: /play song_name or YouTube link",
                 reply_markup=SupportButton,
             )
         else:
