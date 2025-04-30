@@ -43,6 +43,7 @@ downloads.
 - **Group Voice Chats** - Supports Telegram **group voice chats** (requires admin permissions).
 - **Optimized Performance** - Fully **async**, efficient, and lightweight.
 - **Easy Deployment** - Pre-configured **Docker** setup.
+- **Multi-Language Support** - Available in English, Hindi, Spanish, Arabic, and more. Easily extendable with your own translations.
 - **Open-Source & Free** - Built from scratch using **[PyTdBot](https://github.com/pytdbot/client)** & **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
   > 💡 Prefer using Pyrogram instead of PyTdBot? Check out
   the [Pyro-Branch](https://github.com/AshokShau/TgMusicBot/tree/pyro).
