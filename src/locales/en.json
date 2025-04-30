@@ -1,3 +1,7 @@
 {
-  "author": "AshokShau"
+  "authors": "AshokShau",
+  "language_set": "Your language has been set to English.",
+  "only_group": "This command can only be used in groups.",
+  "only_admin": "Only admins can use this command.",
+  "only_owner": "Only group owner can use this command."
 }

@@ -4,7 +4,6 @@
 
 import asyncio
 from asyncio import create_task
-from types import NoneType
 
 from pytdbot import Client, types
 

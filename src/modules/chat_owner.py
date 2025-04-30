@@ -6,7 +6,7 @@ from typing import Optional
 
 from pytdbot import Client, types
 
-from src.helpers import db
+from src.helpers import db, get_string
 from src.modules.utils import Filter
 from src.modules.utils.admins import is_admin, is_owner
 from src.modules.utils.play_helpers import extract_argument
@@ -23,11 +23,13 @@ async def _validate_auth_command(msg: types.Message) -> Optional[types.Message]:
 
     Returns the replied message if all checks pass, otherwise None.
     """
-    if msg.chat_id > 0:
+    chat_id = msg.chat_id
+    if chat_id > 0:
         return None
 
-    if not await is_owner(msg.chat_id, msg.from_id):
-        await msg.reply_text("Only group owner can use this command.")
+    lang = await db.get_lang(chat_id)
+    if not await is_owner(chat_id, msg.from_id):
+        await msg.reply_text(get_string("only_owner", lang))
         return None
 
     if not msg.reply_to_message_id:
