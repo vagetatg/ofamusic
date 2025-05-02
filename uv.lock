@@ -1180,13 +1180,13 @@ wheels = [
 
 [[package]]
 name = "tdjson"
-version = "1.8.47"
+version = "1.8.48"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/03/42/e29f5b87124a775949f63b8d3382ca5e9ecf1471aace21c1aa0ceaf74a5c/tdjson-1.8.47-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:76a200f2fda7e0b7459bb23f6ea4dafa27f8b3c6c99b6833bde73d8ab4a31625", size = 16011441, upload_time = "2025-04-11T18:46:55.674Z" },
-    { url = "https://files.pythonhosted.org/packages/8d/73/5ba14cfc56cec13933f580e353f03203408021dc875e8bfddd38c7cd7c64/tdjson-1.8.47-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0881062abe55575a9354863c5ce92e7950c0d158c78e4a678c892b44ddcdba6c", size = 16011474, upload_time = "2025-04-11T18:46:58.874Z" },
-    { url = "https://files.pythonhosted.org/packages/4f/59/56d1666c835d3d864376622a807e36b440ed6197b5c5d595fd2bd042c525/tdjson-1.8.47-cp312-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bec655363a010eff5313a784ed31ad31e017aad78ea0877c3cefb43057a1e2aa", size = 16009310, upload_time = "2025-04-11T18:47:01.495Z" },
-    { url = "https://files.pythonhosted.org/packages/77/d1/9363faaef8d3ee760d4b68a8f58842524972cc81e122652c43a56e9a908f/tdjson-1.8.47-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:66f852c5b281c2ab5cf51c234ba8659d4e9515c2de9ea426fa7f39ba15e0b2e5", size = 16012071, upload_time = "2025-04-11T18:47:04.078Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/2e/3c6c1d85fd0ae0821301598dbd72d88bdedabe48d698cff8683e629ae84a/tdjson-1.8.48-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:168d16662583ab4a34ebaf3559a075c6af85a92dfb6b01ab3ab798e605c95783", size = 16292470, upload_time = "2025-04-30T22:53:15.205Z" },
+    { url = "https://files.pythonhosted.org/packages/58/45/aa362af61d6abd9a08be8dd1827403a9a9129b9fdf8324541e9f9f83af63/tdjson-1.8.48-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:868806b6004eaab2f0f79faafb42ce49ebb9d46a623ab24c761dfbce1ca09400", size = 16292491, upload_time = "2025-04-30T22:53:17.908Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/dc/80d71e361c72ba462bd5e72522e05be82fdac7228aaccc80836ebb346c2f/tdjson-1.8.48-cp312-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:548ffb8f3eaa7e91c40291e9a02e0bc66a529004e96f5c64f3d96578f8b956b6", size = 16290184, upload_time = "2025-04-30T22:53:20.136Z" },
+    { url = "https://files.pythonhosted.org/packages/34/53/d205ae6aff889f8834c4113174beb9519d6855d6d65026120e5851399ce7/tdjson-1.8.48-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fc48a16a81606c31e58f88ce31b852b120e30edadc1b4d5a030ef8364a610e51", size = 16293039, upload_time = "2025-04-30T22:53:22.793Z" },
 ]
 
 [[package]]
@@ -1244,10 +1244,10 @@ requires-dist = [
     { name = "python-dotenv", specifier = "~=1.1.0" },
     { name = "pytz", specifier = "~=2025.2" },
     { name = "ruff", marker = "extra == 'dev'" },
-    { name = "setuptools", marker = "extra == 'dev'", specifier = "~=78.1.0" },
-    { name = "tdjson", specifier = "~=1.8.47" },
+    { name = "setuptools", marker = "extra == 'dev'", specifier = "~=78.1.1" },
+    { name = "tdjson", specifier = "~=1.8.48" },
     { name = "ujson", specifier = "~=5.10.0" },
-    { name = "yt-dlp", specifier = "~=2025.3.31" },
+    { name = "yt-dlp", specifier = "~=2025.4.30" },
 ]
 provides-extras = ["dev"]
 
@@ -1487,9 +1487,9 @@ wheels = [
 
 [[package]]
 name = "yt-dlp"
-version = "2025.3.31"
+version = "2025.4.30"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a2/11/333d16f88b1515d4c601e1dfbf1028e6798f0b2a8ff1dc5aaa7b797aa9e8/yt_dlp-2025.3.31.tar.gz", hash = "sha256:1bfe0e660d1a70a09e27b2d58f92e30b1e2e362cc487829f2f824346ae49fb91", size = 2967466, upload_time = "2025-03-31T22:03:52.176Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/75/ca/1d1a33dec2107463f59bc4b448fcf43718d86a36b6150e8a0cfd1a96a893/yt_dlp-2025.4.30.tar.gz", hash = "sha256:d01367d0c3ae94e35cb1e2eccb7a7c70e181c4ca448f4ee2374f26489d263603", size = 2981094, upload_time = "2025-04-30T23:31:17.679Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a8/bf/7b0affb8f163376309696cfd1c677818fa0969fbb9d88225087208799afe/yt_dlp-2025.3.31-py3-none-any.whl", hash = "sha256:8ecb3aa218a3bebe431119f513a8972b9b9d992edf67168c00ab92329a03baec", size = 3226021, upload_time = "2025-03-31T22:03:49.185Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/18/bbccb18661a853c3db947152439229b9bf686fe0ab2cc7848ab3a24f2ad2/yt_dlp-2025.4.30-py3-none-any.whl", hash = "sha256:53cd82bf13f12a1fe9c564b0004e001156b153c9247fa3cef14d1400ab359150", size = 3239476, upload_time = "2025-04-30T23:31:14.997Z" },
 ]
