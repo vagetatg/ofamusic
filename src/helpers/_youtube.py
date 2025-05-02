@@ -171,7 +171,9 @@ class YouTubeData(MusicService):
             return None
 
         if API_URL and API_KEY:
-            if data := await self.client.make_request(f"{API_URL}/get_url_new?url={normalized_url}", max_retries=1):
+            if data := await self.client.make_request(
+                f"{API_URL}/get_url_new?url={normalized_url}", max_retries=1
+            ):
                 return data
 
         try:

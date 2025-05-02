@@ -94,8 +94,10 @@ async def auth_list(_: Client, msg: types.Message):
         await msg.reply_text(get_string("no_auth_users", lang))
         return
 
-    text = get_string("auth_list_header", lang) + "\n" + "\n".join(
-        [f"- <code>{uid}</code>" for uid in auth_users]
+    text = (
+        get_string("auth_list_header", lang)
+        + "\n"
+        + "\n".join([f"- <code>{uid}</code>" for uid in auth_users])
     )
     await msg.reply_text(text)
 
@@ -117,9 +119,13 @@ async def _handle_toggle_command(
     current = await get_func(chat_id)
     args = extract_argument(msg.text)
     if not args:
-        status = get_string("enabled", lang) if current else get_string("disabled", lang)
+        status = (
+            get_string("enabled", lang) if current else get_string("disabled", lang)
+        )
         await msg.reply_text(
-            get_string("toggle_status", lang).format(label=label, status=status, key=key)
+            get_string("toggle_status", lang).format(
+                label=label, status=status, key=key
+            )
         )
         return
 

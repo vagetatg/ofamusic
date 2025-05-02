@@ -327,7 +327,9 @@ async def logger(c: Client, message: types.Message):
     enabled = await db.get_logger_status(c.me.id)
 
     if not args:
-        status = get_string("enabled", lang) if enabled else get_string("disabled", lang)
+        status = (
+            get_string("enabled", lang) if enabled else get_string("disabled", lang)
+        )
         await message.reply_text(
             get_string("logger_usage_status", lang).format(status=status)
         )
@@ -343,6 +345,4 @@ async def logger(c: Client, message: types.Message):
         await message.reply_text(get_string("logger_disabled", lang))
         return
 
-    await message.reply_text(
-        get_string("logger_invalid_usage", lang).format(arg=args)
-    )
+    await message.reply_text(get_string("logger_invalid_usage", lang).format(arg=args))

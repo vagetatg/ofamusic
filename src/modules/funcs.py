@@ -47,7 +47,9 @@ async def handle_playback_action(
         await msg.reply_text(f"⚠️ {fail_msg}\n\n{done.message}")
         return
 
-    await msg.reply_text(f"{success_msg}\n│ \n{get_string('requested_by', lang)}: {await msg.mention()} 🥀")
+    await msg.reply_text(
+        f"{success_msg}\n│ \n{get_string('requested_by', lang)}: {await msg.mention()} 🥀"
+    )
     return
 
 
@@ -76,9 +78,7 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
 
     play_type = extract_argument(msg.text, enforce_digit=True)
     if not play_type:
-        await msg.reply_text(
-            get_string("set_play_type_usage", lang)
-        )
+        await msg.reply_text(get_string("set_play_type_usage", lang))
         return
 
     play_type = int(play_type)
@@ -88,7 +88,6 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
 
     await db.set_play_type(chat_id, play_type)
     await msg.reply_text(get_string("play_type_set", lang).format(play_type))
-
 
 
 @Client.on_message(filters=Filter.command("queue"))
@@ -171,14 +170,15 @@ async def modify_loop(c: Client, msg: types.Message) -> None:
 
     loop = int(args)
     chat_cache.set_loop_count(chat_id, loop)
-    action = get_string("loop_disabled" if loop == 0 else "loop_changed", lang).format(loop)
+    action = get_string("loop_disabled" if loop == 0 else "loop_changed", lang).format(
+        loop
+    )
     reply = await msg.reply_text(
         get_string("loop_reply", lang).format(action, await msg.mention())
     )
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending reply: {reply.message}")
     return None
-
 
 
 @Client.on_message(filters=Filter.command("seek"))
@@ -218,7 +218,9 @@ async def seek_song(c: Client, msg: types.Message) -> None:
     seek_to = curr_dur + seek_time
     if seek_to >= curr_song.duration:
         await msg.reply_text(
-            get_string("seek_error_duration", lang).format(sec_to_min(curr_song.duration))
+            get_string("seek_error_duration", lang).format(
+                sec_to_min(curr_song.duration)
+            )
         )
         return
 
@@ -279,7 +281,6 @@ async def change_speed(_: Client, msg: types.Message) -> None:
     return
 
 
-
 @Client.on_message(filters=Filter.command("remove"))
 async def remove_song(c: Client, msg: types.Message) -> None:
     """Remove a track from the queue."""
@@ -323,7 +324,6 @@ async def remove_song(c: Client, msg: types.Message) -> None:
     return None
 
 
-
 @Client.on_message(filters=Filter.command("clear"))
 async def clear_queue(c: Client, msg: types.Message) -> None:
     """
@@ -355,7 +355,6 @@ async def clear_queue(c: Client, msg: types.Message) -> None:
     return None
 
 
-
 @Client.on_message(filters=Filter.command(["stop", "end"]))
 async def stop_song(_: Client, msg: types.Message) -> None:
     """
@@ -385,7 +384,11 @@ async def pause_song(_: Client, msg: types.Message) -> None:
     """Pause the current song."""
     lang = await db.get_lang(msg.chat_id)
     await handle_playback_action(
-        _, msg, call.pause, get_string("stream_paused", lang), get_string("pause_error", lang)
+        _,
+        msg,
+        call.pause,
+        get_string("stream_paused", lang),
+        get_string("pause_error", lang),
     )
 
 
@@ -394,7 +397,11 @@ async def resume(_: Client, msg: types.Message) -> None:
     """Resume the current song."""
     lang = await db.get_lang(msg.chat_id)
     await handle_playback_action(
-        _, msg, call.resume, get_string("stream_resumed", lang), get_string("resume_error", lang)
+        _,
+        msg,
+        call.resume,
+        get_string("stream_resumed", lang),
+        get_string("resume_error", lang),
     )
 
 
@@ -403,7 +410,11 @@ async def mute_song(_: Client, msg: types.Message) -> None:
     """Mute the current song."""
     lang = await db.get_lang(msg.chat_id)
     await handle_playback_action(
-        _, msg, call.mute, get_string("stream_muted", lang), get_string("mute_error", lang)
+        _,
+        msg,
+        call.mute,
+        get_string("stream_muted", lang),
+        get_string("mute_error", lang),
     )
 
 
@@ -412,7 +423,11 @@ async def unmute_song(_: Client, msg: types.Message) -> None:
     """Unmute the current song."""
     lang = await db.get_lang(msg.chat_id)
     await handle_playback_action(
-        _, msg, call.unmute, get_string("stream_unmuted", lang), get_string("unmute_error", lang)
+        _,
+        msg,
+        call.unmute,
+        get_string("stream_unmuted", lang),
+        get_string("unmute_error", lang),
     )
 
 
@@ -454,7 +469,6 @@ async def volume(_: Client, msg: types.Message) -> None:
         get_string("volume_set", lang).format(vol_int, await msg.mention())
     )
     return None
-
 
 
 @Client.on_message(filters=Filter.command("skip"))
@@ -565,10 +579,11 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             done = await call.play_next(chat_id)
             if isinstance(done, types.Error):
                 await send_response(
-                    f"⚠️ {get_string('error_occurred', lang)}\n\n{done.message}", alert=True
+                    f"⚠️ {get_string('error_occurred', lang)}\n\n{done.message}",
+                    alert=True,
                 )
                 return None
-            await send_response(get_string('song_skipped', lang), delete=True)
+            await send_response(get_string("song_skipped", lang), delete=True)
             return None
         elif data == "play_stop":
             done = await call.end(chat_id)
@@ -583,7 +598,8 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             done = await call.pause(chat_id)
             if isinstance(done, types.Error):
                 await send_response(
-                    f"⚠️ {get_string('error_occurred', lang)}\n\n{done.message}", alert=True
+                    f"⚠️ {get_string('error_occurred', lang)}\n\n{done.message}",
+                    alert=True,
                 )
                 return None
             await send_response(
@@ -608,7 +624,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                     f"Failed to close {_delete.message}", show_alert=True
                 )
                 return None
-            await message.answer(get_string('closed', lang), show_alert=True)
+            await message.answer(get_string("closed", lang), show_alert=True)
             return None
         elif data.startswith("play_c_"):
             await _handle_play_c_data(data, message, chat_id, user_id, user_name, c)
@@ -618,10 +634,14 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
                 _, platform, song_id = data.split("_", 2)
             except ValueError:
                 LOGGER.error(f"Invalid callback data format: {data}")
-                await send_response(get_string('invalid_request_format', lang), alert=True)
+                await send_response(
+                    get_string("invalid_request_format", lang), alert=True
+                )
                 return None
 
-            await message.answer(text=f"{get_string('playing_song', lang)} {user_name}", show_alert=True)
+            await message.answer(
+                text=f"{get_string('playing_song', lang)} {user_name}", show_alert=True
+            )
             reply_message = await message.edit_message_text(
                 f"🎶 {get_string('searching', lang)} ...\n{get_string('requested_by', lang)}: {user_name} 🥀"
             )
@@ -633,17 +653,16 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             if not url:
                 LOGGER.error(f"Invalid platform: {platform}; data: {data}")
                 await edit_text(
-                    reply_message, text=f"⚠️ {get_string('invalid_platform', lang)} {platform}"
+                    reply_message,
+                    text=f"⚠️ {get_string('invalid_platform', lang)} {platform}",
                 )
                 return None
 
             if song := await MusicServiceWrapper(url).get_info():
                 return await play_music(c, reply_message, song, user_name)
-            await edit_text(reply_message, text=get_string('song_not_found', lang))
+            await edit_text(reply_message, text=get_string("song_not_found", lang))
             return None
     except Exception as e:
         c.logger.critical(f"Unhandled exception in callback_query: {e}")
-        await message.answer(
-            f"⚠️ {get_string('error_occurred', lang)}", show_alert=True
-        )
+        await message.answer(f"⚠️ {get_string('error_occurred', lang)}", show_alert=True)
         return None

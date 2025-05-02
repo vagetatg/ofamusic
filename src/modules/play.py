@@ -158,7 +158,9 @@ async def _handle_single_track(
         if file_path := await call.song_download(song):
             song.file_path = file_path
         else:
-            return await edit_text(msg, f"❌ {get_string('error_downloading_song', lang)}")
+            return await edit_text(
+                msg, f"❌ {get_string('error_downloading_song', lang)}"
+            )
 
     song.duration = song.duration or await get_audio_duration(song.file_path)
     if chat_cache.is_active(chat_id):
@@ -217,7 +219,11 @@ async def _handle_multiple_tracks(
     lang = await db.get_lang(msg.chat_id)
     is_active = chat_cache.is_active(chat_id)
     queue = chat_cache.get_queue(chat_id)
-    text = "<b>➻ " + get_string("added_to_queue", lang) + ":</b>\n<blockquote expandable>\n"
+    text = (
+        "<b>➻ "
+        + get_string("added_to_queue", lang)
+        + ":</b>\n<blockquote expandable>\n"
+    )
     for index, track in enumerate(tracks):
         position = len(queue) + index
         chat_cache.add_song(
@@ -259,7 +265,6 @@ async def _handle_multiple_tracks(
     await edit_text(msg, text, reply_markup=PlayButton)
 
 
-
 async def play_music(
     c: Client,
     msg: types.Message,
@@ -284,9 +289,8 @@ async def play_music(
     return await _handle_multiple_tracks(c, msg, chat_id, url_data.tracks, user_by)
 
 
-
 async def _handle_recommendations(
-        _: Client, msg: types.Message, wrapper: MusicServiceWrapper
+    _: Client, msg: types.Message, wrapper: MusicServiceWrapper
 ):
     """
     Show music recommendations when no query is provided.
@@ -350,7 +354,6 @@ async def _handle_telegram_file(
     return None
 
 
-
 async def _handle_text_search(
     c: Client,
     msg: types.Message,
@@ -388,7 +391,6 @@ async def _handle_text_search(
         msg, text=text, reply_markup=keyboard, disable_web_page_preview=True
     )
     return None
-
 
 
 async def handle_play_command(c: Client, msg: types.Message, is_video: bool = False):

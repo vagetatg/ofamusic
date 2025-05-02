@@ -610,7 +610,6 @@ class Database:
         )
         self.bot_cache[bot_id] = status
 
-
     async def get_lang(self, chat_id: int) -> str:
         """
         Get the language code for the given chat ID.
@@ -624,18 +623,14 @@ class Database:
         self.lang_cache[chat_id] = lang
         return lang
 
-
     async def set_lang(self, chat_id: int, lang: str) -> None:
         """
         Set or update the language code for the given chat ID.
         """
         await self.language.update_one(
-            {"chat_id": chat_id},
-            {"$set": {"lang": lang}},
-            upsert=True
+            {"chat_id": chat_id}, {"$set": {"lang": lang}}, upsert=True
         )
         self.lang_cache[chat_id] = lang
-
 
     async def close(self) -> None:
         """
@@ -653,4 +648,3 @@ class Database:
 
 
 db: Database = Database()
-

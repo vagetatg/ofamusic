@@ -15,6 +15,7 @@ async def set_language(_: Client, msg: types.Message) -> None:
     await msg.reply_text("Choose your language:", reply_markup=LangsButtons)
     return None
 
+
 @Client.on_updateNewCallbackQuery(filters=Filter.regex(r"^lang_"))
 async def handle_language_cb(_: Client, message: types.UpdateNewCallbackQuery) -> None:
     data = message.payload.data.decode()

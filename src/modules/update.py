@@ -109,7 +109,7 @@ async def update(c: Client, message: types.Message) -> None:
                 "The bot is being updated/restarted to bring you new features and improvements.\n"
                 "Your music playback has been stopped temporarily. Please start again after a minute.\n\n"
                 "Thank you for your patience!",
-                parse_mode="html"
+                parse_mode="html",
             )
             await asyncio.sleep(0.5)
 
