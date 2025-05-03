@@ -21,7 +21,7 @@ from meval import meval
 from ntgcalls import __version__ as ntgver
 from pyrogram import __version__ as pyrover
 from pytdbot import Client, types
-from pytdbot import VERSION as py_td_ver
+from pytdbot import __version__ as py_td_ver
 from pytgcalls import __version__ as pytgver
 
 from src import StartTime
