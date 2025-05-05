@@ -15,7 +15,7 @@ from src.helpers import MusicTrack, PlatformTracks, TrackInfo
 from src.logger import LOGGER
 from ._downloader import MusicService
 from ._httpx import HttpxClient
-from ..config import API_URL, API_KEY, DOWNLOADS_DIR, PROXY_URL
+from ..config import API_URL, API_KEY, DOWNLOADS_DIR, PROXY
 
 
 class YouTubeUtils:
@@ -229,8 +229,8 @@ class YouTubeUtils:
         else:
             cmd.extend(["-f", "bestaudio[ext=m4a]/bestaudio/best"])
 
-        if PROXY_URL:
-            cmd.extend(["--proxy", PROXY_URL])
+        if PROXY:
+            cmd.extend(["--proxy", PROXY])
         elif cookie_file := await YouTubeUtils.get_cookie_file():
             cmd.extend(["--cookies", cookie_file])
 
