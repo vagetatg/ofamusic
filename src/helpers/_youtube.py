@@ -316,9 +316,8 @@ class YouTubeData(MusicService):
             return None
 
         try:
-            url = (f"https://youtube.com/watch?v={self.query}"
-                   if not self.query.startswith(("http://", "https://"))
-                   else self.query)
+            url = (self.query if self.query.startswith(("http://", "https://")) else f"https://youtube.com/watch?v={self.query}")
+
 
             data = await self._fetch_data(url)
             if not data or not data.get("results"):
