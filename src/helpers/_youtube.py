@@ -168,9 +168,7 @@ class YouTubeUtils:
             parts = list(map(int, duration.split(":")))
             if len(parts) == 3:  # HH:MM:SS
                 return parts[0] * 3600 + parts[1] * 60 + parts[2]
-            if len(parts) == 2:  # MM:SS
-                return parts[0] * 60 + parts[1]
-            return parts[0]  # SS
+            return parts[0] * 60 + parts[1] if len(parts) == 2 else parts[0]
         except (ValueError, AttributeError):
             return 0
 
