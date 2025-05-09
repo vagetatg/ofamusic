@@ -30,7 +30,7 @@ Supporting platforms like YouTube, Spotify, Apple Music, Soundcloud, JioSaavn an
   </a>
 
   <!-- License -->
-  <a href="https://github.com/AshokShau/TgMusicBot/blob/AshokShau/LICENSE">
+  <a href="https://github.com/AshokShau/TgMusicBot/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/AshokShau/TgMusicBot?style=for-the-badge&color=blue" alt="License"/>
   </a>
 
