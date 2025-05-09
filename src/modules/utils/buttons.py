@@ -127,7 +127,7 @@ LangsButtons = types.ReplyMarkupInlineKeyboard(
         [
             types.InlineKeyboardButton(
                 text="Kurdish",
-                type=types.InlineKeyboardButtonTypeCallback(b"lang_ku"),
+                type=types.InlineKeyboardButtonTypeCallback(b"lang_ckb"),
             ),
         ],
         [CLOSE_BTN],
