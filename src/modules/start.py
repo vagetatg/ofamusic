@@ -13,13 +13,11 @@ from src import __version__, StartTime
 from src.config import SUPPORT_GROUP
 from src.helpers import call
 from src.helpers import chat_cache
-from src.modules.utils import Filter, sec_to_min, SupportButton
+from src.modules.utils import Filter, sec_to_min, SupportButton, user_status_cache, check_user_status
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import add_me_markup, HelpMenu, BackHelpMenu
 from src.modules.utils.play_helpers import (
     chat_invite_cache,
-    check_user_status,
-    user_status_cache,
     extract_argument,
 )
 from src.modules.utils.strings import (
@@ -166,7 +164,7 @@ async def reload_cmd(c: Client, message: types.Message) -> None:
 
     loaded = "✅" if load_admins else "❌"
     text = (
-        f"<b>Assistant Status:</b> {ub_stats}\n"
+        f"<b>Assistant Status:</b> {ub_stats.getType()}\n"
         f"<b>Admins Loaded:</b> {loaded}\n"
         f"<b>» Reloaded by:</b> {await message.mention()}"
     )
