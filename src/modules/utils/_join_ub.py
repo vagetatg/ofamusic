@@ -5,12 +5,9 @@
 from typing import Union, TypeAlias
 
 import pyrogram
-from pyrogram import errors
-
 from cachetools import TTLCache
+from pyrogram import errors
 from pytdbot import Client, types
-
-from .play_helpers import chat_invite_cache
 
 ChatMemberStatus: TypeAlias = Union[
     types.ChatMemberStatusCreator,
@@ -24,6 +21,7 @@ ChatMemberStatus: TypeAlias = Union[
 ChatMemberStatusResult: TypeAlias = Union[ChatMemberStatus, types.Error]
 user_status_cache: TTLCache[str, ChatMemberStatus] = TTLCache(maxsize=5000, ttl=1000)
 
+chat_invite_cache = TTLCache(maxsize=1000, ttl=1000)
 
 async def check_user_status(c: Client, chat_id: int, user_id: int) -> ChatMemberStatusResult:
     cache_key = f"{chat_id}:{user_id}"

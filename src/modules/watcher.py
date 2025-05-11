@@ -11,10 +11,9 @@ from src.helpers import chat_cache
 from src.helpers import db
 from src.logger import LOGGER
 from src.modules.utils import SupportButton, ChatMemberStatus
-
+from src.modules.utils import user_status_cache
 from src.modules.utils.admins import load_admin_cache
 from src.modules.utils.buttons import add_me_markup
-from src.modules.utils import user_status_cache
 
 
 async def handle_non_supergroup(client: Client, chat_id: int) -> None:

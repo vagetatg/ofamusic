@@ -5,12 +5,9 @@
 import asyncio
 from typing import Any, Union
 
-from cachetools import TTLCache
 from pytdbot import Client, types
 
 from src.logger import LOGGER
-
-chat_invite_cache = TTLCache(maxsize=1000, ttl=1000)
 
 
 async def get_url(
