@@ -10,7 +10,6 @@ __all__ = [
     "PauseButton",
     "ResumeButton",
     "SupportButton",
-    "LangsButtons",
     "send_logger",
     "user_status_cache",
     "join_ub",
@@ -24,7 +23,7 @@ import json
 from pytdbot import Client, types
 
 from ._filters import Filter
-from .buttons import PauseButton, PlayButton, ResumeButton, SupportButton, LangsButtons
+from .buttons import PauseButton, PlayButton, ResumeButton, SupportButton
 from ._join_ub import user_status_cache, ChatMemberStatus, join_ub, check_user_status
 from ... import config
 from ...helpers import CachedTrack
