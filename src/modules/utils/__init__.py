@@ -34,7 +34,7 @@ def is_channel_cmd(text: str) -> bool:
     if not text:
         return False
     text = text.strip().lower()
-    return any(text.startswith(prefix) for prefix in ("/c", "!c", ".c", "c"))
+    return any(text.startswith(prefix) for prefix in ("/c", "!c", ".c", "cplay"))
 
 
 def sec_to_min(seconds):
