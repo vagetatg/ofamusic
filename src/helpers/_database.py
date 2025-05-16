@@ -2,7 +2,7 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-from typing import Optional
+from typing import Optional, Union
 
 from cachetools import TTLCache
 from pymongo import AsyncMongoClient
@@ -79,7 +79,7 @@ class Database:
         chat = await self.get_chat(chat_id)
         return chat.get("channel_id", chat_id) if chat else chat_id # Default to chat_id
 
-    async def set_channel_id(self, chat_id: int, channel_id: int) -> None:
+    async def set_channel_id(self, chat_id: int, channel_id: Union[int, None]) -> None:
         await self._update_chat_field(chat_id, "channel_id", channel_id)
 
     async def get_chat_id_by_channel(self, channel_id: int) -> Optional[int]:
