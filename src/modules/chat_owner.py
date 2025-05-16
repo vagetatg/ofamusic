@@ -8,13 +8,13 @@ from pytdbot import Client, types
 
 from src.helpers import db, get_string
 from src.logger import LOGGER
-from src.modules.utils import Filter, is_channel_cmd
+from src.modules.utils import Filter
 from src.modules.utils.admins import is_admin, is_owner
 from src.modules.utils.play_helpers import extract_argument
 
 
 async def _validate_auth_command(msg: types.Message) -> Union[types.Message, None]:
-    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
+    chat_id = msg.chat_id
     if chat_id > 0:
         return None
 
@@ -54,13 +54,13 @@ async def _validate_auth_command(msg: types.Message) -> Union[types.Message, Non
     return reply
 
 
-@Client.on_message(filters=Filter.command(["auth", "cauth"]))
+@Client.on_message(filters=Filter.command(["auth"]))
 async def auth(c: Client, msg: types.Message) -> None:
     reply = await _validate_auth_command(msg)
     if not reply:
         return
 
-    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
+    chat_id = msg.chat_id
     user_id = reply.from_id
     lang = await db.get_lang(chat_id)
 
@@ -75,13 +75,13 @@ async def auth(c: Client, msg: types.Message) -> None:
             c.logger.warning(reply.message)
 
 
-@Client.on_message(filters=Filter.command(["unauth", "cunauth"]))
+@Client.on_message(filters=Filter.command(["unauth"]))
 async def un_auth(c: Client, msg: types.Message) -> None:
     reply = await _validate_auth_command(msg)
     if not reply:
         return
 
-    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
+    chat_id = msg.chat_id
     user_id = reply.from_id
     lang = await db.get_lang(chat_id)
 
@@ -96,9 +96,9 @@ async def un_auth(c: Client, msg: types.Message) -> None:
             c.logger.warning(reply.message)
 
 
-@Client.on_message(filters=Filter.command(["authlist", "cauthlist"]))
+@Client.on_message(filters=Filter.command(["authlist"]))
 async def auth_list(c: Client, msg: types.Message) -> None:
-    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
+    chat_id = msg.chat_id
     lang = await db.get_lang(chat_id)
 
     if chat_id > 0:
@@ -133,7 +133,7 @@ async def auth_list(c: Client, msg: types.Message) -> None:
 async def _handle_toggle_command(
     msg: types.Message, key: str, label: str, get_func, set_func
 ) -> None:
-    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
+    chat_id = msg.chat_id
     lang = await db.get_lang(chat_id)
 
     if chat_id > 0:
@@ -180,7 +180,7 @@ async def _handle_toggle_command(
             LOGGER.warning(reply.message)
 
 
-@Client.on_message(filters=Filter.command(["buttons", "cbuttons"]))
+@Client.on_message(filters=Filter.command(["buttons"]))
 async def buttons(_: Client, msg: types.Message) -> None:
     await _handle_toggle_command(
         msg, "buttons", "Button control", db.get_buttons_status, db.set_buttons_status
@@ -188,7 +188,7 @@ async def buttons(_: Client, msg: types.Message) -> None:
     return
 
 
-@Client.on_message(filters=Filter.command(["thumbnail", "thumb", "cthumbnail", "cthumb"]))
+@Client.on_message(filters=Filter.command(["thumbnail", "thumb"]))
 async def thumbnail(_: Client, msg: types.Message) -> None:
     await _handle_toggle_command(
         msg, "thumbnail", "Thumbnail", db.get_thumb_status, db.set_thumb_status

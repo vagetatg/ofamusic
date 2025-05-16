@@ -18,15 +18,16 @@ async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message, typ
     """
     Check if user is admin and if a song is playing.
     """
-    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
+    chat_id = msg.chat_id
+    _chat_id = await db.get_channel_id(chat_id) if is_channel_cmd(msg.text) else chat_id
     lang = await db.get_lang(chat_id)
-    if not chat_cache.is_active(chat_id):
+    if not chat_cache.is_active(_chat_id):
         return await msg.reply_text(text=get_string("no_song_playing", lang))
 
     if not await is_admin(chat_id, msg.from_id):
         return await msg.reply_text(text=get_string("admin_required", lang))
 
-    return chat_id
+    return _chat_id
 
 
 async def handle_playback_action(
@@ -35,15 +36,16 @@ async def handle_playback_action(
     """
     Handle playback actions like stop, pause, resume, mute, unmute.
     """
-    chat_id = await is_admin_or_reply(msg)
-    if isinstance(chat_id, types.Error):
-        c.logger.warning(f"Error sending reply: {chat_id}")
+    lang = await db.get_lang(msg.chat_id)
+    _chat_id = await is_admin_or_reply(msg)
+    if isinstance(_chat_id, types.Error):
+        c.logger.warning(f"Error sending reply: {_chat_id}")
         return
 
-    if isinstance(chat_id, types.Message):
+    if isinstance(_chat_id, types.Message):
         return
-    lang = await db.get_lang(chat_id)
-    done = await action(chat_id)
+
+    done = await action(_chat_id)
     if isinstance(done, types.Error):
         await msg.reply_text(f"⚠️ {fail_msg}\n\n{done.message}")
         return
@@ -369,17 +371,12 @@ async def stop_song(c: Client, msg: types.Message) -> None:
     if isinstance(chat_id, types.Message):
         return None
 
-    lang = await db.get_lang(chat_id)
-
-    if not await is_admin(chat_id, msg.from_id):
-        await msg.reply_text(get_string("admin_required", lang))
-        return None
-
     _end = await call.end(chat_id)
     if isinstance(_end, types.Error):
         await msg.reply_text(_end.message)
         return None
 
+    lang = await db.get_lang(msg.chat_id)
     await msg.reply_text(get_string("stream_ended", lang).format(await msg.mention()))
     return None
 
@@ -449,12 +446,7 @@ async def volume(c: Client, msg: types.Message) -> None:
     if isinstance(chat_id, types.Message):
         return None
 
-    lang = await db.get_lang(chat_id)
-
-    if not await is_admin(chat_id, msg.from_id):
-        await msg.reply_text(get_string("admin_required", lang))
-        return None
-
+    lang = await db.get_lang(msg.chat_id)
     args = extract_argument(msg.text, enforce_digit=True)
     if not args:
         await msg.reply_text(get_string("volume_usage", lang))
@@ -485,6 +477,7 @@ async def skip_song(c: Client, msg: types.Message) -> None:
     """
     Skip the current song.
     """
+    lang = await db.get_lang(msg.chat_id)
     chat_id = await is_admin_or_reply(msg)
     if isinstance(chat_id, types.Error):
         c.logger.warning(f"Error sending reply: {chat_id}")
@@ -493,7 +486,6 @@ async def skip_song(c: Client, msg: types.Message) -> None:
     if isinstance(chat_id, types.Message):
         return None
 
-    lang = await db.get_lang(chat_id)
     await del_msg(msg)
 
     done = await call.play_next(chat_id)

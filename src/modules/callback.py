@@ -20,8 +20,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
     data = message.payload.data.decode()
     user_id = message.sender_user_id
     channel_play = is_channel_cmd(data)
-    chat_id = await db.get_channel_id(message.chat_id) if channel_play else message.chat_id
-    lang = await db.get_lang(chat_id)
+    lang = await db.get_lang(message.chat_id)
     get_msg = await message.getMessage()
 
     if isinstance(get_msg, types.Error):
@@ -49,25 +48,27 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             await edit_func(msg, reply_markup=reply_markup)
 
         if delete:
-            _delete = await c.deleteMessages(chat_id, [message.message_id], revoke=True)
+            _delete = await c.deleteMessages(message.chat_id, [message.message_id], revoke=True)
             if isinstance(_delete, types.Error):
                 c.logger.warning("Error deleting message: %s", _delete.message)
 
-    if requires_admin(data) and not await is_admin(chat_id, user_id):
+    if requires_admin(data) and not await is_admin(message.chat_id, user_id):
         await message.answer(f"⚠️ {get_string('admin_required', lang)}", show_alert=True)
         return None
 
-    if requires_active_chat(data) and not chat_cache.is_active(chat_id):
+    chat_id = message.chat_id
+    _chat_id = await db.get_channel_id(chat_id) if channel_play else chat_id
+    if requires_active_chat(data) and not chat_cache.is_active(_chat_id):
         return await send_response(f"❌ {get_string('no_active_chat', lang)}", alert=True)
 
     if data == "play_skip":
-        result = await call.play_next(chat_id)
+        result = await call.play_next(_chat_id)
         if isinstance(result, types.Error):
             return await send_response(f"⚠️ {get_string('error_occurred', lang)}\n\n{result.message}", alert=True)
         return await send_response(get_string("song_skipped", lang), delete=True)
 
     if data == "play_stop":
-        result = await call.end(chat_id)
+        result = await call.end(_chat_id)
         if isinstance(result, types.Error):
             return await send_response(result.message, alert=True)
         return await send_response(
@@ -75,7 +76,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         )
 
     if data == "play_pause":
-        result = await call.pause(chat_id)
+        result = await call.pause(_chat_id)
         if isinstance(result, types.Error):
             return await send_response(f"⚠️ {get_string('error_occurred', lang)}\n\n{result.message}", alert=True)
         markup = control_buttons("pause", channel_play) if await db.get_buttons_status(chat_id) else None
@@ -85,7 +86,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         )
 
     if data == "play_resume":
-        result = await call.resume(chat_id)
+        result = await call.resume(_chat_id)
         if isinstance(result, types.Error):
             return await send_response(result.message, alert=True)
         markup = control_buttons("resume", channel_play) if await db.get_buttons_status(chat_id) else None
@@ -127,7 +128,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         return None
 
     if song := await MusicServiceWrapper(url).get_info():
-        return await play_music(c, reply, song, user_name, channel=ChannelPlay(chat_id=chat_id, is_channel=channel_play))
+        return await play_music(c, reply, song, user_name, channel=ChannelPlay(chat_id=_chat_id, is_channel=channel_play))
 
     await edit_text(reply, text=get_string("song_not_found", lang))
     return None
