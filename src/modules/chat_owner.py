@@ -167,17 +167,13 @@ async def _handle_toggle_command(
     if arg in ["on", "enable"]:
         await set_func(chat_id, True)
         reply = await msg.reply_text(get_string(f"{key}_status_enabled", lang))
-        if isinstance(reply, types.Error):
-            LOGGER.warning(reply.message)
     elif arg in ["off", "disable"]:
         await set_func(chat_id, False)
         reply = await msg.reply_text(get_string(f"{key}_status_disabled", lang))
-        if isinstance(reply, types.Error):
-            LOGGER.warning(reply.message)
     else:
         reply = await msg.reply_text(get_string("invalid_toggle_usage", lang).format(key=key))
-        if isinstance(reply, types.Error):
-            LOGGER.warning(reply.message)
+    if isinstance(reply, types.Error):
+        LOGGER.warning(reply.message)
 
 
 @Client.on_message(filters=Filter.command(["buttons"]))

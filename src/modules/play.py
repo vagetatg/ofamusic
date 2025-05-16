@@ -399,7 +399,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
         chat_id=chat_id,
         is_channel=is_channel and chat_id != msg.chat_id,
     )
-    
+
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
         return await msg.reply_text(get_string("only_supergroup", lang))
