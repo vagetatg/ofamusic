@@ -26,7 +26,7 @@ from pytgcalls.types import (
 
 from src import config
 from src.logger import LOGGER
-from src.modules.utils import PlayButton, get_audio_duration, sec_to_min, send_logger
+from src.modules.utils import get_audio_duration, sec_to_min, send_logger, control_buttons
 from src.modules.utils.thumbnails import gen_thumb
 from ._api import ApiData
 from ._cacher import chat_cache
@@ -188,9 +188,7 @@ class MusicBot:
             return client_name
 
         # Validate media file exists if not URL
-        if not str(file_path).startswith(
-            ("http://", "https://")
-        ) and not os.path.exists(file_path):
+        if not re.match("^https?://", str(file_path)) and not os.path.exists(file_path):
             return types.Error(
                 code=404, message="Media file not found. It may have been deleted."
             )
@@ -336,7 +334,7 @@ class MusicBot:
                     message_id=reply.id,
                     input_message_content=input_content,
                     reply_markup=(
-                        PlayButton if await db.get_buttons_status(chat_id) else None
+                        control_buttons("play", song.channel.is_channel) if await db.get_buttons_status(chat_id) else None
                     ),
                 )
             else:
@@ -348,7 +346,7 @@ class MusicBot:
                         link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                     ),
                     reply_markup=(
-                        PlayButton if await db.get_buttons_status(chat_id) else None
+                        control_buttons("play", song.channel.is_channel) if await db.get_buttons_status(chat_id) else None
                     ),
                 )
 
@@ -399,7 +397,7 @@ class MusicBot:
         """
         try:
             await self.end(chat_id)
-
+            _chat_id = await db.get_chat_id_by_channel(chat_id) or chat_id
             # Try to get recommendations
             try:
                 recommendations = await MusicServiceWrapper().get_recommendations()
@@ -417,7 +415,7 @@ class MusicBot:
                     ]
 
                     await self.bot.sendTextMessage(
-                        chat_id,
+                        _chat_id,
                         text="🎵 Queue finished. Try these recommendations:\n",
                         reply_markup=types.ReplyMarkupInlineKeyboard(buttons),
                     )
@@ -427,7 +425,7 @@ class MusicBot:
 
             # Fallback message
             await self.bot.sendTextMessage(
-                chat_id, text="🎵 Queue finished.\nUse /play to add more songs!"
+                _chat_id, text="🎵 Queue finished.\nUse /play to add more songs!"
             )
 
         except Exception as e:

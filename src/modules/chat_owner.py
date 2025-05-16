@@ -9,7 +9,7 @@ from pytdbot import Client, types
 from src.helpers import db, get_string
 from src.logger import LOGGER
 from src.modules.utils import Filter
-from src.modules.utils.admins import is_admin, is_owner
+from src.modules.utils.admins import is_admin, is_owner, load_admin_cache
 from src.modules.utils.play_helpers import extract_argument
 
 
@@ -194,3 +194,42 @@ async def thumbnail(_: Client, msg: types.Message) -> None:
         msg, "thumbnail", "Thumbnail", db.get_thumb_status, db.set_thumb_status
     )
     return
+
+@Client.on_message(filters=Filter.command("channelplay"))
+async def set_channel_id(c: Client, msg: types.Message) -> None:
+    chat_id = msg.chat_id
+    reply = await msg.getRepliedMessage() if msg.reply_to_message_id else None
+    if not reply or isinstance(reply, types.Error):
+        await msg.reply_text("⚠️ Reply to a channel to set it as the channel to play from. (with forward tag)")
+        return
+
+    if reply.forward_info is None:
+        await msg.reply_text("⚠️ Reply to a channel to set it as the channel to play from. (with forward tag)")
+        return
+
+    forward_info = reply.forward_info
+    if forward_info.origin is None:
+        await msg.reply_text("⚠️ Reply to a channel to set it as the channel to play from. (with forward tag)")
+        return
+
+    if forward_info.origin.getType() != types.MessageOriginChannel().getType():
+        await msg.reply_text("⚠️ Reply to a channel to set it as the channel to play from. (with forward tag)")
+        return
+
+    channel_id = reply.forward_info.origin.chat_id
+    user_id = msg.from_id
+
+    # MAKE SURE USER IS OWNER OF CHAT OR CHANNEL
+    if not await is_owner(chat_id, user_id):
+        await msg.reply_text("You must be an owner of this chat to set the channel to play from this chat\n\nIf you are use /reload")
+        return
+
+    # TODO: Remove this
+    await load_admin_cache(c, channel_id)
+
+    if not await is_owner(channel_id, user_id):
+        await msg.reply_text("You must be an owner of the channel to set it as the channel to play from this chat\n\nIf you are use /creload")
+        return
+
+    await db.set_channel_id(chat_id, channel_id)
+    await msg.reply_text(f"Channel set to: {channel_id}")

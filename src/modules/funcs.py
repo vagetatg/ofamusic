@@ -9,7 +9,7 @@ from pytdbot import Client, types
 
 from src.helpers import call, db, get_string
 from src.helpers import chat_cache
-from src.modules.utils import Filter, sec_to_min
+from src.modules.utils import Filter, sec_to_min, is_channel_cmd
 from src.modules.utils.admins import is_admin
 from src.modules.utils.play_helpers import del_msg, extract_argument
 
@@ -18,7 +18,7 @@ async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message, typ
     """
     Check if user is admin and if a song is playing.
     """
-    chat_id = msg.chat_id
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
     lang = await db.get_lang(chat_id)
     if not chat_cache.is_active(chat_id):
         return await msg.reply_text(text=get_string("no_song_playing", lang))
@@ -54,7 +54,7 @@ async def handle_playback_action(
     return
 
 
-@Client.on_message(filters=Filter.command(["playtype", "setPlayType"]))
+@Client.on_message(filters=Filter.command(["playtype", "setPlayType", "cplaytype", "csetPlayType"]))
 async def set_play_type(_: Client, msg: types.Message) -> None:
     """
     Set the play type for a given chat.
@@ -68,7 +68,7 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
     -------
     None
     """
-    chat_id = msg.chat_id
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
         return
@@ -91,7 +91,7 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
     await msg.reply_text(get_string("play_type_set", lang).format(play_type))
 
 
-@Client.on_message(filters=Filter.command("queue"))
+@Client.on_message(filters=Filter.command(["queue", "cqueue"]))
 async def queue_info(_: Client, msg: types.Message) -> None:
     """
     Display information about the current queue.
@@ -99,7 +99,7 @@ async def queue_info(_: Client, msg: types.Message) -> None:
     if msg.chat_id > 0:
         return
 
-    chat_id = msg.chat_id
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
     _queue = chat_cache.get_queue(chat_id)
     if not _queue:
         await msg.reply_text(text="🛑 The queue is empty. No tracks left to play!")
@@ -146,12 +146,12 @@ async def queue_info(_: Client, msg: types.Message) -> None:
     await msg.reply_text(text, disable_web_page_preview=True)
 
 
-@Client.on_message(filters=Filter.command("loop"))
+@Client.on_message(filters=Filter.command(["loop", "cloop"]))
 async def modify_loop(c: Client, msg: types.Message) -> None:
     """
     Modify the loop count for the current song.
     """
-    chat_id = msg.chat_id
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
         return None
@@ -182,12 +182,12 @@ async def modify_loop(c: Client, msg: types.Message) -> None:
     return None
 
 
-@Client.on_message(filters=Filter.command("seek"))
+@Client.on_message(filters=Filter.command(["seek", "cseek"]))
 async def seek_song(c: Client, msg: types.Message) -> None:
     """
     Seek to a specific time in the current song.
     """
-    chat_id = msg.chat_id
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
         return
@@ -247,12 +247,12 @@ def extract_number(text: str) -> float | None:
     return float(match.group()) if match else None
 
 
-@Client.on_message(filters=Filter.command("speed"))
+@Client.on_message(filters=Filter.command(["speed", "cspeed"]))
 async def change_speed(_: Client, msg: types.Message) -> None:
     """
     Change the playback speed of the current song.
     """
-    chat_id = msg.chat_id
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
         return
@@ -282,10 +282,10 @@ async def change_speed(_: Client, msg: types.Message) -> None:
     return
 
 
-@Client.on_message(filters=Filter.command("remove"))
+@Client.on_message(filters=Filter.command(["remove", "cremove"]))
 async def remove_song(c: Client, msg: types.Message) -> None:
     """Remove a track from the queue."""
-    chat_id = msg.chat_id
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
         return None
@@ -325,12 +325,12 @@ async def remove_song(c: Client, msg: types.Message) -> None:
     return None
 
 
-@Client.on_message(filters=Filter.command("clear"))
+@Client.on_message(filters=Filter.command(["clear", "cclear"]))
 async def clear_queue(c: Client, msg: types.Message) -> None:
     """
     Clear the queue.
     """
-    chat_id = msg.chat_id
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel_cmd(msg.text) else msg.chat_id
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
         return None
@@ -356,7 +356,7 @@ async def clear_queue(c: Client, msg: types.Message) -> None:
     return None
 
 
-@Client.on_message(filters=Filter.command(["stop", "end"]))
+@Client.on_message(filters=Filter.command(["stop", "end", "cstop", "cend"]))
 async def stop_song(c: Client, msg: types.Message) -> None:
     """
     Stop the current song.
@@ -367,24 +367,24 @@ async def stop_song(c: Client, msg: types.Message) -> None:
         return None
 
     if isinstance(chat_id, types.Message):
-        return
+        return None
 
     lang = await db.get_lang(chat_id)
 
     if not await is_admin(chat_id, msg.from_id):
         await msg.reply_text(get_string("admin_required", lang))
-        return
+        return None
 
     _end = await call.end(chat_id)
     if isinstance(_end, types.Error):
         await msg.reply_text(_end.message)
-        return
+        return None
 
     await msg.reply_text(get_string("stream_ended", lang).format(await msg.mention()))
-    return
+    return None
 
 
-@Client.on_message(filters=Filter.command("pause"))
+@Client.on_message(filters=Filter.command(["pause", "cpause"]))
 async def pause_song(c: Client, msg: types.Message) -> None:
     """Pause the current song."""
     lang = await db.get_lang(msg.chat_id)
@@ -397,7 +397,7 @@ async def pause_song(c: Client, msg: types.Message) -> None:
     )
 
 
-@Client.on_message(filters=Filter.command("resume"))
+@Client.on_message(filters=Filter.command(["resume", "cresume"]))
 async def resume(c: Client, msg: types.Message) -> None:
     """Resume the current song."""
     lang = await db.get_lang(msg.chat_id)
@@ -410,7 +410,7 @@ async def resume(c: Client, msg: types.Message) -> None:
     )
 
 
-@Client.on_message(filters=Filter.command("mute"))
+@Client.on_message(filters=Filter.command(["mute", "cmute"]))
 async def mute_song(c: Client, msg: types.Message) -> None:
     """Mute the current song."""
     lang = await db.get_lang(msg.chat_id)
@@ -423,7 +423,7 @@ async def mute_song(c: Client, msg: types.Message) -> None:
     )
 
 
-@Client.on_message(filters=Filter.command("unmute"))
+@Client.on_message(filters=Filter.command(["unmute", "cunmute"]))
 async def unmute_song(c: Client, msg: types.Message) -> None:
     """Unmute the current song."""
     lang = await db.get_lang(msg.chat_id)
@@ -436,7 +436,7 @@ async def unmute_song(c: Client, msg: types.Message) -> None:
     )
 
 
-@Client.on_message(filters=Filter.command("volume"))
+@Client.on_message(filters=Filter.command(["volume", "cvolume"]))
 async def volume(c: Client, msg: types.Message) -> None:
     """
     Change the volume of the current song.
@@ -480,7 +480,7 @@ async def volume(c: Client, msg: types.Message) -> None:
     return None
 
 
-@Client.on_message(filters=Filter.command("skip"))
+@Client.on_message(filters=Filter.command(["skip", "next", "cskip"]))
 async def skip_song(c: Client, msg: types.Message) -> None:
     """
     Skip the current song.
@@ -510,5 +510,3 @@ async def skip_song(c: Client, msg: types.Message) -> None:
         c.logger.warning(f"Error sending reply: {reply}")
 
     return None
-
-

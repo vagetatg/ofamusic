@@ -75,6 +75,25 @@ class Database:
     async def set_assistant(self, chat_id: int, assistant: str) -> None:
         await self._update_chat_field(chat_id, "assistant", assistant)
 
+    async def get_channel_id(self, chat_id: int) -> int:
+        chat = await self.get_chat(chat_id)
+        return chat.get("channel_id", chat_id) if chat else chat_id # Default to chat_id
+
+    async def set_channel_id(self, chat_id: int, channel_id: int) -> None:
+        await self._update_chat_field(chat_id, "channel_id", channel_id)
+
+    async def get_chat_id_by_channel(self, channel_id: int) -> Optional[int]:
+        """
+        Find the chat ID associated with the given channel ID.
+        """
+        try:
+            chat = await self.chat_db.find_one({"channel_id": channel_id})
+            return chat["_id"] if chat else None
+        except Exception as e:
+            LOGGER.warning("Error getting chat_id by channel_id: %s", e)
+            return None
+
+
     async def clear_all_assistants(self) -> int:
         # Clear assistants from all chats in the database
         result = await self.chat_db.update_many(
