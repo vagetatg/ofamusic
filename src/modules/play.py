@@ -508,12 +508,12 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
 
 @Client.on_message(filters=Filter.command(["play", "cplay"]))
 async def play_audio(c: Client, msg: types.Message) -> None:
-    await handle_play_command(c, msg, is_video=False, play_in_channel=is_channel_cmd(msg.text))
+    await handle_play_command(c, msg, False, is_channel_cmd(msg.text))
 
 
 @Client.on_message(filters=Filter.command(["vplay", "cvplay"]))
 async def play_video(c: Client, msg: types.Message) -> None:
-    await handle_play_command(c, msg, is_video=True, play_in_channel=is_channel_cmd(msg.text))
+    await handle_play_command(c, msg, True, is_channel_cmd(msg.text))
 
 @Client.on_message(filters=Filter.command(["direct", "cdirect"]))
 async def play_file(_: Client, msg: types.Message) -> None:
@@ -524,7 +524,8 @@ async def play_file(_: Client, msg: types.Message) -> None:
         chat_id=chat_id,
         is_channel=is_channel,
     )
-    lang = await db.get_lang(chat_id)
+
+    lang = await db.get_lang(msg.chat_id)
     if chat_id > 0:
         await msg.reply_text(get_string("only_supergroup", lang))
         return None

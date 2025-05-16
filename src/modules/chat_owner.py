@@ -198,6 +198,11 @@ async def thumbnail(_: Client, msg: types.Message) -> None:
 @Client.on_message(filters=Filter.command("channelplay"))
 async def set_channel_id(c: Client, msg: types.Message) -> None:
     chat_id = msg.chat_id
+    lang = await db.get_lang(chat_id)
+    if chat_id > 0:
+        await msg.reply_text(get_string("only_supergroup", lang))
+        return
+
     user_id = msg.from_id
     reply = await msg.getRepliedMessage() if msg.reply_to_message_id else None
     args = extract_argument(msg.text)

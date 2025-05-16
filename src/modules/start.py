@@ -130,7 +130,7 @@ async def reload_cmd(c: Client, message: types.Message) -> None:
         last_used_time = rate_limit_cache[user_id]
         time_remaining = 180 - (datetime.now() - last_used_time).total_seconds()
         reply = await message.reply_text(
-            f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min."
+            f"🚫 You can use this command again in ({sec_to_min(time_remaining)} Min)"
         )
         if isinstance(reply, types.Error):
             c.logger.warning(f"Error sending message: {reply} for chat {chat_id}")

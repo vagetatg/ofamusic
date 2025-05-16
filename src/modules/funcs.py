@@ -472,7 +472,7 @@ async def volume(c: Client, msg: types.Message) -> None:
     return None
 
 
-@Client.on_message(filters=Filter.command(["skip", "next", "cskip"]))
+@Client.on_message(filters=Filter.command(["skip", "cskip"]))
 async def skip_song(c: Client, msg: types.Message) -> None:
     """
     Skip the current song.
