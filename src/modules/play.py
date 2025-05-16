@@ -393,11 +393,13 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
     """
     Generic handler for /play and /vplay.
     """
-    chat_id = await db.get_channel_id(msg.chat_id) if play_in_channel else msg.chat_id
+    is_channel = is_channel_cmd(msg.text)
+    chat_id = await db.get_channel_id(msg.chat_id) if is_channel else msg.chat_id
     channel = ChannelPlay(
         chat_id=chat_id,
-        is_channel=play_in_channel,
+        is_channel=is_channel and chat_id != msg.chat_id,
     )
+    
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
         return await msg.reply_text(get_string("only_supergroup", lang))
@@ -522,7 +524,7 @@ async def play_file(_: Client, msg: types.Message) -> None:
     chat_id = await db.get_channel_id(msg.chat_id) if is_channel else msg.chat_id
     channel = ChannelPlay(
         chat_id=chat_id,
-        is_channel=is_channel,
+        is_channel=is_channel and chat_id != msg.chat_id,
     )
 
     lang = await db.get_lang(msg.chat_id)
