@@ -198,38 +198,42 @@ async def thumbnail(_: Client, msg: types.Message) -> None:
 @Client.on_message(filters=Filter.command("channelplay"))
 async def set_channel_id(c: Client, msg: types.Message) -> None:
     chat_id = msg.chat_id
-    reply = await msg.getRepliedMessage() if msg.reply_to_message_id else None
-    if not reply or isinstance(reply, types.Error):
-        await msg.reply_text("⚠️ Reply to a channel to set it as the channel to play from. (with forward tag)")
-        return
-
-    if reply.forward_info is None:
-        await msg.reply_text("⚠️ Reply to a channel to set it as the channel to play from. (with forward tag)")
-        return
-
-    forward_info = reply.forward_info
-    if forward_info.origin is None:
-        await msg.reply_text("⚠️ Reply to a channel to set it as the channel to play from. (with forward tag)")
-        return
-
-    if forward_info.origin.getType() != types.MessageOriginChannel().getType():
-        await msg.reply_text("⚠️ Reply to a channel to set it as the channel to play from. (with forward tag)")
-        return
-
-    channel_id = reply.forward_info.origin.chat_id
     user_id = msg.from_id
+    reply = await msg.getRepliedMessage() if msg.reply_to_message_id else None
 
-    # MAKE SURE USER IS OWNER OF CHAT OR CHANNEL
-    if not await is_owner(chat_id, user_id):
-        await msg.reply_text("You must be an owner of this chat to set the channel to play from this chat\n\nIf you are use /reload")
+    # Ensure the message is a reply with a forwarded channel message
+    if not reply or not reply.forward_info:
+        text = "⚠️ Reply to a forwarded message from a channel to set it as the play channel."
+        if channel_id := await db.get_channel_id(chat_id):
+            text += f"\n\nCurrent channel: <code>{channel_id}</code>"
+            text += f"\nChat ID: <code>{chat_id}</code>"
+        await msg.reply_text(text)
         return
 
-    # TODO: Remove this
-    await load_admin_cache(c, channel_id)
+    origin = reply.forward_info.origin
+    if not origin or origin.getType() != types.MessageOriginChannel().getType():
+        await msg.reply_text("⚠️ The forwarded message must be from a channel.")
+        return
+
+    channel_id = origin.chat_id
+
+    # bot admin checks
+    if not await is_admin(chat_id, c.me.id):
+        await msg.reply_text("❌ I must be an admin of this chat to set a play channel.\nUse /reload if i'm admin.")
+        return
+
+    if not await is_admin(channel_id, c.me.id):
+        await msg.reply_text("❌ I must also be an admin of the channel to link it.\nUse /creload if i'm admin.")
+        return
+
+    # Owner checks
+    if not await is_owner(chat_id, user_id):
+        await msg.reply_text("❌ You must be the owner of this chat to set a play channel.\nUse /reload if you are.")
+        return
 
     if not await is_owner(channel_id, user_id):
-        await msg.reply_text("You must be an owner of the channel to set it as the channel to play from this chat\n\nIf you are use /creload")
+        await msg.reply_text("❌ You must also be the owner of the channel to link it.\nUse /creload if you are.")
         return
 
     await db.set_channel_id(chat_id, channel_id)
-    await msg.reply_text(f"Channel set to: {channel_id}")
+    await msg.reply_text(f"✅ Channel set to: <code>{channel_id}<code>")
