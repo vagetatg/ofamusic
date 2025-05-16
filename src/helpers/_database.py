@@ -77,7 +77,8 @@ class Database:
 
     async def get_channel_id(self, chat_id: int) -> int:
         chat = await self.get_chat(chat_id)
-        return chat.get("channel_id", chat_id) if chat else chat_id # Default to chat_id
+        channel_id = chat.get("channel_id") if chat else None
+        return channel_id if channel_id is not None else chat_id
 
     async def set_channel_id(self, chat_id: int, channel_id: Union[int, None]) -> None:
         await self._update_chat_field(chat_id, "channel_id", channel_id)
