@@ -222,19 +222,18 @@ async def set_channel_id(c: Client, msg: types.Message) -> None:
         return
 
     channel_id = origin.chat_id
+    reload, _ = await load_admin_cache(c, channel_id, True)
+    if not reload:
+        await msg.reply_text("❌ I must be an admin of the channel to link it.")
+        return
 
     # bot admin checks
     if not await is_admin(chat_id, c.me.id):
         await msg.reply_text("❌ I must be an admin of this chat to set a play channel.\nUse /reload if i'm admin.")
         return
 
-    reload, _  = await load_admin_cache(c, channel_id)
-    if not reload:
-        await msg.reply_text("❌ I must be an admin of the channel to link it.")
-        return
-
     if not await is_admin(channel_id, c.me.id):
-        await msg.reply_text("❌ I must also be an admin of the channel to link it.\nUse /creload if i'm admin.")
+        await msg.reply_text("❌ I must also be an admin of the channel to link it.")
         return
 
     # Owner checks

@@ -316,18 +316,30 @@ async def _handle_telegram_file(
     """
     lang = await db.get_lang(channel.chat_id)
     telegram = Telegram(reply)
-    docs_vid = isinstance(reply.content, types.Document) and reply.content.mime_type.startswith("video/") or isinstance(reply.content, types.MessageDocument) and reply.content.document.mime_type.startswith("video/")
-    is_video = isinstance(reply.content, types.MessageVideo) or docs_vid
 
+    # Determine if the message contains a video (Document or Video type)
+    content = reply.content
+    docs_vid = (
+        isinstance(content, types.Document) and content.mime_type.startswith("video/")
+    ) or (
+        isinstance(content, types.MessageDocument)
+        and content.document.mime_type.startswith("video/")
+    )
+    is_video = isinstance(content, types.MessageVideo) or docs_vid
+
+    # Download the file
     file_path, file_name = await telegram.dl(reply_message)
     if isinstance(file_path, types.Error):
         return await edit_text(
             reply_message,
             text=get_string("telegram_file_download_failed", lang).format(
-                file=file_name, error=str(file_path.message)
+                file=file_name, error=file_path.message
             ),
         )
 
+    duration = await get_audio_duration(file_path.path)
+
+    # Wrap in a consistent track structure
     _song = PlatformTracks(
         tracks=[
             MusicTrack(
@@ -336,7 +348,7 @@ async def _handle_telegram_file(
                 id=reply.remote_unique_file_id,
                 year=0,
                 cover="",
-                duration=await get_audio_duration(file_path.path),
+                duration=duration,
                 url="",
                 platform="telegram",
             )

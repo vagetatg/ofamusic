@@ -113,11 +113,11 @@ If you have any questions or concerns about our privacy policy, feel free to con
 
 rate_limit_cache = TTLCache(maxsize=100, ttl=180)
 
-@Client.on_message(filters=Filter.command(["reload", "creload"]))
+@Client.on_message(filters=Filter.command(["reload"]))
 async def reload_cmd(c: Client, message: types.Message) -> None:
     """Handle the /reload command to reload the bot."""
     user_id = message.from_id
-    chat_id = await db.get_channel_id(message.chat_id) if is_channel_cmd(message.text) else message.chat_id
+    chat_id = message.chat_id
     if chat_id > 0:
         reply = await message.reply_text(
             "🚫 This command can only be used in SuperGroups only."
