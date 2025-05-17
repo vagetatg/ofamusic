@@ -316,9 +316,7 @@ async def _handle_telegram_file(
     """
     lang = await db.get_lang(channel.chat_id)
     telegram = Telegram(reply)
-    docs_vid = isinstance(
-        reply.content, types.Document
-    ) and reply.content.mime_type.startswith("video/")
+    docs_vid = isinstance(reply.content, types.Document) and reply.content.mime_type.startswith("video/") or isinstance(reply.content, types.MessageDocument) and reply.content.document.mime_type.startswith("video/")
     is_video = isinstance(reply.content, types.MessageVideo) or docs_vid
 
     file_path, file_name = await telegram.dl(reply_message)
