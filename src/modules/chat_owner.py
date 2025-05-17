@@ -246,4 +246,4 @@ async def set_channel_id(c: Client, msg: types.Message) -> None:
         return
 
     await db.set_channel_id(chat_id, channel_id)
-    await msg.reply_text(f"✅ Channel set to: <code>{channel_id}<code>")
+    await msg.reply_text(f"✅ Channel set to: <code>{channel_id}</code>")
