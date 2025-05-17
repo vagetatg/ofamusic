@@ -22,6 +22,8 @@ from pytgcalls.types import (
     UpdatedGroupCallParticipant,
     VideoQuality,
     stream,
+    GroupCallConfig,
+    CallConfig,
 )
 
 from src import config
@@ -204,8 +206,9 @@ class MusicBot:
             ffmpeg_parameters=ffmpeg_parameters,
         )
 
+        call_config = GroupCallConfig(auto_start=False) if chat_id < 0 else CallConfig(timeout=50)
         try:
-            await self.calls[client_name].play(chat_id, _stream)
+            await self.calls[client_name].play(chat_id, _stream, call_config)
             # Send playback log if enabled
             if await db.get_logger_status(self.bot.me.id):
                 self.bot.loop.create_task(
@@ -232,6 +235,9 @@ class MusicBot:
                 code=502,
                 message="Telegram server issues detected. Please try again later.",
             )
+        except errors.RPCError as e:
+            LOGGER.error("Playback failed in chat %s: %s", chat_id, str(e))
+            return types.Error(code=e.CODE or 500, message=f"Playback error: {str(e)}")
         except Exception as e:
             LOGGER.error(
                 "Playback failed in chat %s: %s", chat_id, str(e), exc_info=True
