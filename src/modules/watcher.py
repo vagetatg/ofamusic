@@ -69,10 +69,11 @@ async def handle_bot_join(client: Client, chat_id: int) -> None:
         await client.leaveChat(chat_id)
         await db.remove_chat(chat_id)
         client.logger.info("Bot left chat %s due to insufficient members (only %d present).", chat_id, chat_info.member_count)
-    else:
-        if chat_info.invite_link is None or chat_info.invite_link.invite_link is None:
-            return
-        chat_invite_cache[chat_id] = chat_info.invite_link.invite_link
+
+    elif chat_info.invite_link is None or chat_info.invite_link.invite_link is None:
+        return
+
+    chat_invite_cache[chat_id] = chat_info.invite_link.invite_link
 
 
 @Client.on_updateChatMember()

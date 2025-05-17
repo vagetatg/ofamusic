@@ -1,6 +1,6 @@
 [project]
 name = "tgmusicbot"
-version = "1.2.0dev0"
+version = "1.2.0.dev0"
 description = "Telegram Music Bot with full playback support using PyTdBot and PyTgCalls"
 readme = "README.md"
 license = {file = "LICENSE"}

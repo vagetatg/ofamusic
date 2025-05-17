@@ -45,6 +45,7 @@ class Call:
         self.client_counter: int = 1
         self.available_clients: list[str] = []
         self.bot: Optional[Client] = None
+        self._client_assignment_lock = asyncio.Lock()
 
     async def add_bot(self, client: Client) -> types.Ok:
         """Register the main bot client.
@@ -59,34 +60,22 @@ class Call:
         return types.Ok()
 
     async def _get_client_name(self, chat_id: int) -> Union[str, types.Error]:
-        """Get an available client session for a chat.
-
-        Args:
-            chat_id: Target chat ID
-
-        Returns:
-            Client name string or types.Error if no clients available
-        """
+        """Get an available client session for a chat."""
         if not self.available_clients:
-            return types.Error(
-                code=503,
-                message="No available client sessions.\n"
-                "Please try again later or report this issue.",
-            )
+            return types.Error(code=500, message="No clients available\nReport this issue")
 
-        if chat_id == 1:  # Special case for testing
+        if chat_id == 1:
             return random.choice(self.available_clients)
 
-        # Try to get previously assigned assistant
-        assistant = await db.get_assistant(chat_id)
-        if assistant and assistant in self.available_clients:
-            return assistant
+        async with self._client_assignment_lock:
+            assistant = await db.get_assistant(chat_id)
+            if assistant and assistant in self.available_clients:
+                return assistant
 
-        # Assign new random client
-        new_client = random.choice(self.available_clients)
-        await db.set_assistant(chat_id, assistant=new_client)
-        LOGGER.info(f"Assigned client {new_client} to chat {chat_id}")
-        return new_client
+            new_client = random.choice(self.available_clients)
+            await db.set_assistant(chat_id, assistant=new_client)
+            LOGGER.info("Set assistant for %s to %s", chat_id, new_client)
+            return new_client
 
     async def _group_assistant(self, chat_id: int) -> Union[PyTgCalls, types.Error]:
         client_name = await self._get_client_name(chat_id)
@@ -152,16 +141,15 @@ class Call:
         for _call in self.calls.values():
 
             @_call.on_update()
-            async def general_handler(_, update: Update):
+            async def general_handler(_, update: Update, _call=_call):
                 try:
-                    LOGGER.debug("Received update: %s", update)
-
+                    # LOGGER.debug("Received update from call %s: %s", _call, update)
                     if isinstance(update, stream.StreamEnded):
                         await self.play_next(update.chat_id)
                     elif isinstance(update, UpdatedGroupCallParticipant):
                         return
                     elif isinstance(update, ChatUpdate) and (
-                        update.status.KICKED or update.status.LEFT_GROUP
+                            update.status.KICKED or update.status.LEFT_GROUP
                     ):
                         LOGGER.debug(
                             "Cleaning up chat %s after leaving", update.chat_id
