@@ -389,7 +389,7 @@ async def _handle_text_search(
     return None
 
 
-async def handle_play_command(c: Client, msg: types.Message, is_video: bool = False, play_in_channel=False):
+async def handle_play_command(c: Client, msg: types.Message, is_video: bool = False):
     """
     Generic handler for /play and /vplay.
     """
@@ -510,12 +510,12 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
 
 @Client.on_message(filters=Filter.command(["play", "cplay"]))
 async def play_audio(c: Client, msg: types.Message) -> None:
-    await handle_play_command(c, msg, False, is_channel_cmd(msg.text))
+    await handle_play_command(c, msg, False)
 
 
 @Client.on_message(filters=Filter.command(["vplay", "cvplay"]))
 async def play_video(c: Client, msg: types.Message) -> None:
-    await handle_play_command(c, msg, True, is_channel_cmd(msg.text))
+    await handle_play_command(c, msg, True)
 
 @Client.on_message(filters=Filter.command(["direct", "cdirect"]))
 async def play_file(_: Client, msg: types.Message) -> None:

@@ -9,7 +9,7 @@ from pytdbot import Client, types
 from src.helpers import db, get_string
 from src.logger import LOGGER
 from src.modules.utils import Filter
-from src.modules.utils.admins import is_admin, is_owner
+from src.modules.utils.admins import is_admin, is_owner, load_admin_cache
 from src.modules.utils.play_helpers import extract_argument
 
 
@@ -226,6 +226,11 @@ async def set_channel_id(c: Client, msg: types.Message) -> None:
     # bot admin checks
     if not await is_admin(chat_id, c.me.id):
         await msg.reply_text("❌ I must be an admin of this chat to set a play channel.\nUse /reload if i'm admin.")
+        return
+
+    reload, _  = await load_admin_cache(c, channel_id)
+    if not reload:
+        await msg.reply_text("❌ I must be an admin of the channel to link it.")
         return
 
     if not await is_admin(channel_id, c.me.id):
