@@ -70,6 +70,8 @@ async def handle_bot_join(client: Client, chat_id: int) -> None:
         await db.remove_chat(chat_id)
         client.logger.info("Bot left chat %s due to insufficient members (only %d present).", chat_id, chat_info.member_count)
     else:
+        if chat_info.invite_link is None or chat_info.invite_link.invite_link is None:
+            return
         chat_invite_cache[chat_id] = chat_info.invite_link.invite_link
 
 
@@ -175,7 +177,8 @@ async def _handle_promotion_demotion(
 
     await load_admin_cache(client, chat_id, True)
     await asyncio.sleep(1)
-    await handle_bot_join(client, chat_id)
+    if is_promoted:
+        await handle_bot_join(client, chat_id)
 
 async def _update_user_status_cache(chat_id: int, user_id: int, status: ChatMemberStatus) -> None:
     """Update the user status cache if the user is the bot."""
