@@ -7,6 +7,7 @@ from typing import Union
 
 from pydantic import BaseModel
 
+
 class ChannelPlay(BaseModel):
     chat_id: int
     is_channel: bool

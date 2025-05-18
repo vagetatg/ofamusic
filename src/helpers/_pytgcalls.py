@@ -469,7 +469,7 @@ class Call:
     async def seek_stream(
         self,
         chat_id: int,
-        file_path_or_url: str,
+        file_path_or_url: Union[str, Path],
         to_seek: int,
         duration: int,
         is_video: bool,

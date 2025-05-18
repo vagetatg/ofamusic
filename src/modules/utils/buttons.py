@@ -4,6 +4,7 @@
 from typing import Literal
 
 from pytdbot import types
+
 from src import config
 
 

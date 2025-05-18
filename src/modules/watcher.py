@@ -72,8 +72,7 @@ async def handle_bot_join(client: Client, chat_id: int) -> None:
         client.logger.info("Bot left chat %s due to insufficient members (only %d present).", chat_id, chat_info.member_count)
         return
 
-    invite_link = getattr(chat_info.invite_link, "invite_link", None)
-    if invite_link:
+    if invite_link := getattr(chat_info.invite_link, "invite_link", None):
         chat_invite_cache[chat_id] = invite_link
 
 
