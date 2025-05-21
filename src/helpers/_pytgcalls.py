@@ -195,6 +195,7 @@ class Call:
             media_path=file_path,
             audio_parameters=AudioQuality.HIGH if video else AudioQuality.STUDIO,
             video_parameters=VideoQuality.FHD_1080p if video else VideoQuality.SD_360p,
+            audio_flags=MediaStream.Flags.REQUIRED,
             video_flags=(
                 MediaStream.Flags.AUTO_DETECT if video else MediaStream.Flags.IGNORE
             ),

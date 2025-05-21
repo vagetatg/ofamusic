@@ -592,6 +592,7 @@ async def yt(_: Client, msg: types.Message) -> None:
                 link,
                 AudioQuality.HIGH,
                 VideoQuality.HD_720p,
+                audio_flags=MediaStream.Flags.REQUIRED,
                 ytdlp_parameters=f'--proxy {PROXY}',
             ),
         )
