@@ -3,10 +3,17 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import re
+import subprocess
 from types import NoneType
 
 from pytdbot import Client, types
 
+from pytgcalls.types import AudioQuality
+from pytgcalls.types import MediaStream
+from pytgcalls.types import VideoQuality
+
+from src import config
+from src.config import OWNER_ID
 from src.helpers import (
     CachedTrack,
     MusicServiceWrapper,
@@ -559,4 +566,59 @@ async def play_file(_: Client, msg: types.Message) -> None:
         return None
 
     chat_cache.add_song(chat_id, CachedTrack(name="", artist="", track_id="", loop=0, duration=0, file_path=link, thumbnail="", user="", platform="", is_video=True, url=link, channel=channel))
+    return None
+
+
+def get_youtube_stream_url(url: str) -> str:
+    result = subprocess.run(
+        ["yt-dlp", "-g", "-f", "best", url],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    return result.stdout.strip()
+
+@Client.on_message(filters=Filter.command(["live"]))
+async def live(_: Client, msg: types.Message) -> None:
+    """JUST FOR TESTING"""
+    chat_id =  msg.chat_id
+    user_id = msg.from_id
+    if user_id != OWNER_ID:
+        return None
+
+    link = extract_argument(msg.text)
+    if not link:
+        return None
+
+    try:
+        call_py = await call.group_assistant(chat_id)
+        if isinstance(call_py, types.Error):
+            await msg.reply_text(str(call_py))
+            return None
+
+        await call_py.play(
+            chat_id,
+            MediaStream(
+                link,
+                AudioQuality.HIGH,
+                VideoQuality.HD_720p,
+                ytdlp_parameters=f'--proxy {config.PROXY}',
+            ),
+        )
+    except Exception as e:
+        LOGGER.error(e)
+        await msg.reply_text(str(e))
+        return None
+
+    """ 
+    live_url = get_youtube_stream_url(link)
+    if not live_url:
+        await msg.reply_text("Live stream not found.")
+        return None
+
+    _call = await call.play_media(chat_id, live_url, True)
+    if isinstance(_call, types.Error):
+        return None
+    """
+    await msg.reply_text("Live stream started.")
     return None

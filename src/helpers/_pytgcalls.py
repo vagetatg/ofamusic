@@ -77,7 +77,7 @@ class Call:
             LOGGER.info("Set assistant for %s to %s", chat_id, new_client)
             return new_client
 
-    async def _group_assistant(self, chat_id: int) -> Union[PyTgCalls, types.Error]:
+    async def group_assistant(self, chat_id: int) -> Union[PyTgCalls, types.Error]:
         client_name = await self._get_client_name(chat_id)
         if isinstance(client_name, types.Error):
             return client_name
@@ -93,7 +93,7 @@ class Call:
         Returns:
             PyroClient instance or types.Error if unavailable
         """
-        client = await self._group_assistant(chat_id)
+        client = await self.group_assistant(chat_id)
         if isinstance(client, types.Error):
             return client
 
@@ -180,7 +180,7 @@ class Call:
             "Playing media for chat %s: %s (video=%s)", chat_id, file_path, video
         )
 
-        client = await self._group_assistant(chat_id)
+        client = await self.group_assistant(chat_id)
         if isinstance(client, types.Error):
             return client
 
@@ -448,7 +448,7 @@ class Call:
         """
         LOGGER.info("Ending playback for chat %s", chat_id)
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -551,7 +551,7 @@ class Call:
             None on success or types.Error on failure
         """
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -576,7 +576,7 @@ class Call:
             types.Ok on success or types.Error on failure
         """
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -596,7 +596,7 @@ class Call:
             types.Ok on success or types.Error on failure
         """
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -618,7 +618,7 @@ class Call:
             types.Ok on success or types.Error on failure
         """
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -640,7 +640,7 @@ class Call:
             types.Ok on success or types.Error on failure
         """
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -660,7 +660,7 @@ class Call:
             Current position in seconds or types.Error on failure
         """
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -686,7 +686,7 @@ class Call:
             List of participants or types.Error on failure
         """
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -716,7 +716,7 @@ class Call:
             Tuple of (ping, cpu_usage) or types.Error on failure
         """
         try:
-            client = await self._group_assistant(chat_id)
+            client = await self.group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
