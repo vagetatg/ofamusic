@@ -212,13 +212,6 @@ class Call:
                 )
 
             return types.Ok()
-
-        except errors.ChatAdminRequired:
-            return types.Error(
-                code=403,
-                message="No active voice chat found.\n\n"
-                "Please start a voice chat and try again.",
-            )
         except (exceptions.NoActiveGroupCall, ConnectionNotFound):
             return types.Error(
                 code=404,
@@ -231,6 +224,9 @@ class Call:
                 code=502,
                 message="Telegram server issues detected. Please try again later.",
             )
+        except exceptions.NoAudioSourceFound as e:
+            LOGGER.error("Audio source not found in chat %s: %s", chat_id, str(e))
+            return types.Error(code=404, message="Audio source not found.")
         except errors.RPCError as e:
             LOGGER.error("Playback failed in chat %s: %s", chat_id, str(e))
             return types.Error(code=e.CODE or 500, message=f"Playback error: {str(e)}")
