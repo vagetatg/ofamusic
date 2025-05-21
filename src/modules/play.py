@@ -3,16 +3,10 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import re
-import subprocess
 from types import NoneType
 
 from pytdbot import Client, types
 
-from pytgcalls.types import AudioQuality
-from pytgcalls.types import MediaStream
-from pytgcalls.types import VideoQuality
-
-from src.config import OWNER_ID, PROXY
 from src.helpers import (
     CachedTrack,
     MusicServiceWrapper,
