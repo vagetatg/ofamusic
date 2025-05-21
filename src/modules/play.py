@@ -568,6 +568,42 @@ async def play_file(_: Client, msg: types.Message) -> None:
     return None
 
 
+@Client.on_message(filters=Filter.command(["yt"]))
+async def yt(_: Client, msg: types.Message) -> None:
+    """JUST FOR TESTING"""
+    chat_id =  msg.chat_id
+    user_id = msg.from_id
+    if user_id != OWNER_ID:
+        return None
+
+    link = extract_argument(msg.text)
+    if not link:
+        return None
+
+    try:
+        call_py = await call.group_assistant(chat_id)
+        if isinstance(call_py, types.Error):
+            await msg.reply_text(str(call_py))
+            return None
+
+        await call_py.play(
+            chat_id,
+            MediaStream(
+                link,
+                AudioQuality.HIGH,
+                VideoQuality.HD_720p,
+                ytdlp_parameters=f'--proxy {PROXY}',
+            ),
+        )
+    except Exception as e:
+        LOGGER.error(e)
+        await msg.reply_text(str(e))
+        return None
+
+    await msg.reply_text("Live stream started.")
+    return None
+
+
 def get_youtube_stream_url(url: str) -> str:
     command = ["yt-dlp", "-g", "-f", "best", url]
 
@@ -582,13 +618,13 @@ def get_youtube_stream_url(url: str) -> str:
     )
 
     if result.returncode != 0:
-        print(f"Error getting stream URL: {result.stderr.strip()}")
+        LOGGER.error(f"Error getting stream URL: {result.stderr.strip() or result.stdout.strip()}")
         return ""
 
     return result.stdout.strip()
 
-@Client.on_message(filters=Filter.command(["live"]))
-async def live(_: Client, msg: types.Message) -> None:
+@Client.on_message(filters=Filter.command(["yt2"]))
+async def yt2(_: Client, msg: types.Message) -> None:
     """JUST FOR TESTING"""
     chat_id =  msg.chat_id
     user_id = msg.from_id
@@ -599,26 +635,6 @@ async def live(_: Client, msg: types.Message) -> None:
     if not link:
         return None
 
-    # try:
-    #     call_py = await call.group_assistant(chat_id)
-    #     if isinstance(call_py, types.Error):
-    #         await msg.reply_text(str(call_py))
-    #         return None
-    #
-    #     await call_py.play(
-    #         chat_id,
-    #         MediaStream(
-    #             link,
-    #             AudioQuality.HIGH,
-    #             VideoQuality.HD_720p,
-    #             ytdlp_parameters=f'--proxy {PROXY}',
-    #         ),
-    #     )
-    # except Exception as e:
-    #     LOGGER.error(e)
-    #     await msg.reply_text(str(e))
-    #     return None
-
     live_url = get_youtube_stream_url(link)
     if not live_url:
         await msg.reply_text("Live stream not found.")
@@ -628,6 +644,5 @@ async def live(_: Client, msg: types.Message) -> None:
     if isinstance(_call, types.Error):
         await msg.reply_text(str(_call))
         return None
-
     await msg.reply_text("Live stream started.")
     return None
