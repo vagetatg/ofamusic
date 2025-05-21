@@ -605,10 +605,11 @@ async def yt(_: Client, msg: types.Message) -> None:
 
 
 def get_youtube_stream_url(url: str) -> str:
-    command = ["yt-dlp", "-g", "-f", "best", url]
+    command = ["yt-dlp", "-g", "-f", "b", url]
 
     if PROXY:
-        command.extend(["--proxy",PROXY])
+        command.extend(["--proxy", PROXY])
+    command.extend(["--retries", "2", "--ignore-errors"])
 
     result = subprocess.run(
         command,
@@ -620,7 +621,6 @@ def get_youtube_stream_url(url: str) -> str:
     if result.returncode != 0:
         LOGGER.error(f"Error getting stream URL: {result.stderr.strip() or result.stdout.strip()}")
         return ""
-
     return result.stdout.strip()
 
 @Client.on_message(filters=Filter.command(["yt2"]))
