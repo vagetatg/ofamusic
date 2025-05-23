@@ -35,5 +35,5 @@ __all__ = [
     "start_clients",
     "Telegram",
     "YouTubeData",
-    "ChannelPlay"
+    "ChannelPlay",
 ]

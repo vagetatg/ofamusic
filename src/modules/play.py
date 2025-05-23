@@ -19,8 +19,14 @@ from src.helpers import (
 )
 from src.helpers import chat_cache, ChannelPlay
 from src.logger import LOGGER
-from src.modules.utils import Filter, SupportButton, get_audio_duration, sec_to_min, is_channel_cmd, \
-    control_buttons
+from src.modules.utils import (
+    Filter,
+    SupportButton,
+    get_audio_duration,
+    sec_to_min,
+    is_channel_cmd,
+    control_buttons,
+)
 from src.modules.utils.admins import is_admin, load_admin_cache, is_owner
 from src.modules.utils.play_helpers import (
     del_msg,
@@ -166,7 +172,11 @@ async def _handle_single_track(
             msg,
             text,
             thumb,
-            control_buttons("play", song.channel.is_channel) if await db.get_buttons_status(chat_id) else None,
+            (
+                control_buttons("play", song.channel.is_channel)
+                if await db.get_buttons_status(chat_id)
+                else None
+            ),
         )
         return None
 
@@ -190,7 +200,11 @@ async def _handle_single_track(
         msg,
         text,
         thumb,
-        control_buttons("play", channel.is_channel) if await db.get_buttons_status(chat_id) else None,
+        (
+            control_buttons("play", channel.is_channel)
+            if await db.get_buttons_status(chat_id)
+            else None
+        ),
     )
     if isinstance(reply, types.Error):
         LOGGER.info("sending reply: %s", reply)
@@ -198,7 +212,9 @@ async def _handle_single_track(
     return None
 
 
-async def _handle_multiple_tracks(msg: types.Message, tracks: list[MusicTrack], user_by: str, channel: ChannelPlay):
+async def _handle_multiple_tracks(
+    msg: types.Message, tracks: list[MusicTrack], user_by: str, channel: ChannelPlay
+):
     """
     Handle multiple tracks (playlist/album).
     """
@@ -211,7 +227,6 @@ async def _handle_multiple_tracks(msg: types.Message, tracks: list[MusicTrack], 
         + get_string("added_to_queue", lang)
         + ":</b>\n<blockquote expandable>\n"
     )
-
 
     for index, track in enumerate(tracks):
         position = len(queue) + index
@@ -350,7 +365,9 @@ async def _handle_telegram_file(
         ]
     )
 
-    await play_music(c, reply_message, _song, user_by, channel, file_path.path, is_video)
+    await play_music(
+        c, reply_message, _song, user_by, channel, file_path.path, is_video
+    )
     return None
 
 
@@ -458,7 +475,9 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
             )
 
         if song := await wrapper.get_info():
-            return await play_music(c, reply_message, song, user_by, channel, is_video=is_video)
+            return await play_music(
+                c, reply_message, song, user_by, channel, is_video=is_video
+            )
 
         return await edit_text(
             reply_message,
@@ -477,7 +496,9 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
             )
 
         if song := await MusicServiceWrapper(search.tracks[0].url).get_info():
-            return await play_music(c, reply_message, song, user_by, channel, is_video=True)
+            return await play_music(
+                c, reply_message, song, user_by, channel, is_video=True
+            )
 
         return await edit_text(
             reply_message,
@@ -497,6 +518,7 @@ async def play_audio(c: Client, msg: types.Message) -> None:
 async def play_video(c: Client, msg: types.Message) -> None:
     await handle_play_command(c, msg, True)
 
+
 @Client.on_message(filters=Filter.command(["direct", "cdirect"]))
 async def play_file(_: Client, msg: types.Message) -> None:
     """Play a direct link. JUST FOR TESTING"""
@@ -513,7 +535,9 @@ async def play_file(_: Client, msg: types.Message) -> None:
         return None
 
     if chat_cache.is_active(chat_id):
-        await msg.reply_text(f"first stop (/end) the song: {chat_cache.get_queue(chat_id)[0].name}")
+        await msg.reply_text(
+            f"first stop (/end) the song: {chat_cache.get_queue(chat_id)[0].name}"
+        )
         return None
 
     if not await is_owner(msg.chat_id, msg.from_id):
@@ -530,6 +554,22 @@ async def play_file(_: Client, msg: types.Message) -> None:
         await msg.reply_text(text=f"⚠️ {_call.message}")
         return None
 
-    chat_cache.add_song(chat_id, CachedTrack(name="", artist="", track_id="", loop=0, duration=0, file_path=link, thumbnail="", user="", platform="", is_video=True, url=link, channel=channel))
+    chat_cache.add_song(
+        chat_id,
+        CachedTrack(
+            name="",
+            artist="",
+            track_id="",
+            loop=0,
+            duration=0,
+            file_path=link,
+            thumbnail="",
+            user="",
+            platform="",
+            is_video=True,
+            url=link,
+            channel=channel,
+        ),
+    )
     await msg.reply_text("✅ Direct link played.")
     return None

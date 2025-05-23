@@ -111,6 +111,7 @@ If you have any questions or concerns about our privacy policy, feel free to con
 
 rate_limit_cache = TTLCache(maxsize=100, ttl=180)
 
+
 @Client.on_message(filters=Filter.command(["reload"]))
 async def reload_cmd(c: Client, message: types.Message) -> None:
     """Handle the /reload command to reload the bot."""

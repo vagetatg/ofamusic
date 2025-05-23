@@ -28,10 +28,20 @@ from pytgcalls.types import (
 
 from src import config
 from src.logger import LOGGER
-from src.modules.utils import get_audio_duration, sec_to_min, send_logger, control_buttons
+from src.modules.utils import (
+    get_audio_duration,
+    sec_to_min,
+    send_logger,
+    control_buttons,
+)
 from src.modules.utils.thumbnails import gen_thumb
 from ._api import ApiData
-from ._cacher import chat_cache, chat_invite_cache, user_status_cache, ChatMemberStatusResult
+from ._cacher import (
+    chat_cache,
+    chat_invite_cache,
+    user_status_cache,
+    ChatMemberStatusResult,
+)
 from ._database import db
 from ._dataclass import CachedTrack
 from ._downloader import MusicServiceWrapper
@@ -62,7 +72,9 @@ class Call:
     async def _get_client_name(self, chat_id: int) -> Union[str, types.Error]:
         """Get an available client session for a chat."""
         if not self.available_clients:
-            return types.Error(code=500, message="No clients available\nReport this issue")
+            return types.Error(
+                code=500, message="No clients available\nReport this issue"
+            )
 
         if chat_id == 1:
             return random.choice(self.available_clients)
@@ -149,7 +161,7 @@ class Call:
                     elif isinstance(update, UpdatedGroupCallParticipant):
                         return
                     elif isinstance(update, ChatUpdate) and (
-                            update.status.KICKED or update.status.LEFT_GROUP
+                        update.status.KICKED or update.status.LEFT_GROUP
                     ):
                         LOGGER.debug(
                             "Cleaning up chat %s after leaving", update.chat_id
@@ -206,7 +218,9 @@ class Call:
             ffmpeg_parameters=ffmpeg_parameters,
         )
 
-        call_config = GroupCallConfig(auto_start=False) if chat_id < 0 else CallConfig(timeout=50)
+        call_config = (
+            GroupCallConfig(auto_start=False) if chat_id < 0 else CallConfig(timeout=50)
+        )
         try:
             await client.play(chat_id, _stream, call_config)
             # Send playback log if enabled
@@ -336,7 +350,9 @@ class Call:
                     message_id=reply.id,
                     input_message_content=input_content,
                     reply_markup=(
-                        control_buttons("play", song.channel.is_channel) if await db.get_buttons_status(chat_id) else None
+                        control_buttons("play", song.channel.is_channel)
+                        if await db.get_buttons_status(chat_id)
+                        else None
                     ),
                 )
             else:
@@ -348,7 +364,9 @@ class Call:
                         link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                     ),
                     reply_markup=(
-                        control_buttons("play", song.channel.is_channel) if await db.get_buttons_status(chat_id) else None
+                        control_buttons("play", song.channel.is_channel)
+                        if await db.get_buttons_status(chat_id)
+                        else None
                     ),
                 )
 
@@ -731,7 +749,9 @@ class Call:
             )
             return types.Error(code=500, message=f"Failed to get stats: {str(e)}")
 
-    async def check_user_status(self, chat_id: int) -> Union[ChatMemberStatusResult, types.Error]:
+    async def check_user_status(
+        self, chat_id: int
+    ) -> Union[ChatMemberStatusResult, types.Error]:
         client = await self.get_client(chat_id)
         if isinstance(client, types.Error):
             LOGGER.error(f"Failed to get client for chat {chat_id}")
@@ -741,7 +761,9 @@ class Call:
         cache_key = f"{chat_id}:{user_id}"
         user_status = user_status_cache.get(cache_key)
         if not user_status:
-            user = await self.bot.getChatMember(chat_id=chat_id, member_id=types.MessageSenderUser(user_id))
+            user = await self.bot.getChatMember(
+                chat_id=chat_id, member_id=types.MessageSenderUser(user_id)
+            )
             if isinstance(user, types.Error):
                 return types.ChatMemberStatusLeft() if user.code == 400 else user
 
@@ -808,7 +830,9 @@ class Call:
             user_status_cache[cache_key] = types.ChatMemberStatusMember()
             return types.Ok()
         except errors.InviteRequestSent:
-            ok = await self.bot.processChatJoinRequest(chat_id=chat_id, user_id=user_id, approve=True)
+            ok = await self.bot.processChatJoinRequest(
+                chat_id=chat_id, user_id=user_id, approve=True
+            )
             if isinstance(ok, types.Error):
                 return ok
             user_status_cache[cache_key] = types.ChatMemberStatusMember()
@@ -817,7 +841,10 @@ class Call:
             user_status_cache[cache_key] = types.ChatMemberStatusMember()
             return types.Ok()
         except errors.InviteHashExpired:
-            return types.Error(code=400, message=f"Invite link has expired or my assistant ({user_id}) is banned from this group.")
+            return types.Error(
+                code=400,
+                message=f"Invite link has expired or my assistant ({user_id}) is banned from this group.",
+            )
         except Exception as e:
             return types.Error(code=400, message=f"Failed to join {user_id}: {e}")
 
