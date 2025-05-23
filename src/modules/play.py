@@ -3,7 +3,6 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import re
-from types import NoneType
 
 from pytdbot import Client, types
 
@@ -28,7 +27,6 @@ from src.modules.utils.play_helpers import (
     edit_text,
     extract_argument,
     get_url,
-    unban_ub,
 )
 from src.modules.utils.thumbnails import gen_thumb
 
@@ -430,27 +428,6 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
     if isinstance(reply_message, types.Error):
         LOGGER.warning("Error sending reply: %s", reply_message)
         return None
-
-    # Assistant checks
-    ub = await call.get_client(chat_id)
-    if isinstance(ub, (types.Error, NoneType)):
-        return await edit_text(reply_message, text=ub.message)
-
-    # User status check
-    user_status = await call.check_user_status(chat_id)
-    if isinstance(user_status, types.Error):
-        return await edit_text(reply_message, f"❌ {str(user_status)}")
-
-    if user_status.getType() in {
-        types.ChatMemberStatusLeft().getType(),
-        types.ChatMemberStatusBanned().getType(),
-        types.ChatMemberStatusRestricted().getType(),
-    }:
-        if user_status == types.ChatMemberStatusBanned().getType():
-            await unban_ub(c, chat_id, ub.me.id)
-        join = await call.join_ub(chat_id)
-        if isinstance(join, types.Error):
-            return await edit_text(reply_message, f"❌ {join.message}")
 
     await del_msg(msg)
     wrapper = (YouTubeData if is_video else MusicServiceWrapper)(url or args)

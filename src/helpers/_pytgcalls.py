@@ -190,6 +190,10 @@ class Call:
                 code=404, message="Media file not found. It may have been deleted."
             )
 
+        join = await self._join_assistant(chat_id)
+        if isinstance(join, types.Error):
+            return join
+
         _stream = MediaStream(
             audio_path=file_path,
             media_path=file_path,
@@ -227,11 +231,6 @@ class Call:
         except exceptions.NoAudioSourceFound as e:
             LOGGER.error("Audio source not found in chat %s: %s", chat_id, str(e))
             return types.Error(code=404, message="Audio source not found.")
-        except errors.ChannelPrivate:
-            join = await self.join_ub(chat_id)
-            if isinstance(join, types.Error):
-                return join
-            return await self.play_media(chat_id, file_path, video, ffmpeg_parameters)
         except errors.RPCError as e:
             LOGGER.error("Playback failed in chat %s: %s", chat_id, str(e))
             return types.Error(code=e.CODE or 500, message=f"Playback error: {str(e)}")
@@ -732,7 +731,59 @@ class Call:
             )
             return types.Error(code=500, message=f"Failed to get stats: {str(e)}")
 
-    async def join_ub(self,  chat_id: int) -> Union[types.Ok, types.Error]:
+    async def check_user_status(self, chat_id: int) -> Union[ChatMemberStatusResult, types.Error]:
+        client = await self.get_client(chat_id)
+        if isinstance(client, types.Error):
+            LOGGER.error(f"Failed to get client for chat {chat_id}")
+            return client
+
+        user_id = client.me.id
+        cache_key = f"{chat_id}:{user_id}"
+        user_status = user_status_cache.get(cache_key)
+        if not user_status:
+            user = await self.bot.getChatMember(chat_id=chat_id, member_id=types.MessageSenderUser(user_id))
+            if isinstance(user, types.Error):
+                if user.code == 400:
+                    return types.ChatMemberStatusLeft()
+                return user
+
+            if user.status is None:
+                return types.ChatMemberStatusLeft()
+
+            user_status = user.status
+            user_status_cache[cache_key] = user_status
+
+        return user_status
+
+    async  def _join_assistant(self, chat_id: int) -> Union[types.Ok, types.Error]:
+        user_status = await self.check_user_status(chat_id)
+        if isinstance(user_status, types.Error):
+            return user_status
+
+        if user_status.getType() in {
+            types.ChatMemberStatusLeft().getType(),
+            types.ChatMemberStatusBanned().getType(),
+            types.ChatMemberStatusRestricted().getType(),
+        }:
+            if user_status == types.ChatMemberStatusBanned().getType():
+                ub = await call.get_client(chat_id)
+                if isinstance(ub, types.Error):
+                    return ub
+                user_id = ub.me.id
+                await self.bot.setChatMemberStatus(
+                    chat_id=chat_id,
+                    member_id=types.MessageSenderUser(user_id),
+                    status=types.ChatMemberStatusMember(),
+                )
+
+            join = await self._join_ub(chat_id)
+            if isinstance(join, types.Error):
+                return join
+
+            return types.Ok()
+        return types.Ok()
+
+    async def _join_ub(self, chat_id: int) -> Union[types.Ok, types.Error]:
         """
         Handles the userbot joining a chat via invite link or approval.
         """
@@ -773,30 +824,6 @@ class Call:
             return types.Error(code=400, message=f"Invite link has expired or my assistant ({user_id}) is banned from this group.")
         except Exception as e:
             return types.Error(code=400, message=f"Failed to join {user_id}: {e}")
-
-    async def check_user_status(self, chat_id: int) -> Union[ChatMemberStatusResult, types.Error]:
-        client = await self.get_client(chat_id)
-        if isinstance(client, types.Error):
-            LOGGER.error(f"Failed to get client for chat {chat_id}")
-            return client
-
-        user_id = client.me.id
-        cache_key = f"{chat_id}:{user_id}"
-        user_status = user_status_cache.get(cache_key)
-        if not user_status:
-            user = await self.bot.getChatMember(chat_id=chat_id, member_id=types.MessageSenderUser(user_id))
-            if isinstance(user, types.Error):
-                if user.code == 400:
-                    return types.ChatMemberStatusLeft()
-                return user
-
-            if user.status is None:
-                return types.ChatMemberStatusLeft()
-
-            user_status = user.status
-            user_status_cache[cache_key] = user_status
-
-        return user_status
 
 
 async def start_clients() -> None:
