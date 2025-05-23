@@ -771,7 +771,7 @@ class Call:
         except Exception as e:
             return types.Error(code=400, message=f"Failed to join {user_id}: {e}")
 
-    async def check_user_status(self, chat_id: int) -> ChatMemberStatusResult:
+    async def check_user_status(self, chat_id: int) -> Union[ChatMemberStatusResult, types.Error]:
         client = await self.get_client(chat_id)
         if isinstance(client, types.Error):
             LOGGER.error(f"Failed to get client for chat {chat_id}")
