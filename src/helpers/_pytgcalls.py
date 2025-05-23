@@ -743,9 +743,7 @@ class Call:
         if not user_status:
             user = await self.bot.getChatMember(chat_id=chat_id, member_id=types.MessageSenderUser(user_id))
             if isinstance(user, types.Error):
-                if user.code == 400:
-                    return types.ChatMemberStatusLeft()
-                return user
+                return types.ChatMemberStatusLeft() if user.code == 400 else user
 
             if user.status is None:
                 return types.ChatMemberStatusLeft()
@@ -755,7 +753,7 @@ class Call:
 
         return user_status
 
-    async  def _join_assistant(self, chat_id: int) -> Union[types.Ok, types.Error]:
+    async def _join_assistant(self, chat_id: int) -> Union[types.Ok, types.Error]:
         user_status = await self.check_user_status(chat_id)
         if isinstance(user_status, types.Error):
             return user_status
@@ -766,9 +764,10 @@ class Call:
             types.ChatMemberStatusRestricted().getType(),
         }:
             if user_status == types.ChatMemberStatusBanned().getType():
-                ub = await call.get_client(chat_id)
+                ub = await self.get_client(chat_id)
                 if isinstance(ub, types.Error):
                     return ub
+
                 user_id = ub.me.id
                 await self.bot.setChatMemberStatus(
                     chat_id=chat_id,
@@ -777,10 +776,7 @@ class Call:
                 )
 
             join = await self._join_ub(chat_id)
-            if isinstance(join, types.Error):
-                return join
-
-            return types.Ok()
+            return join if isinstance(join, types.Error) else types.Ok()
         return types.Ok()
 
     async def _join_ub(self, chat_id: int) -> Union[types.Ok, types.Error]:
