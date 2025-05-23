@@ -762,7 +762,10 @@ class Call:
             return types.Ok()
         except errors.InviteRequestSent:
             ok = await self.bot.processChatJoinRequest(chat_id=chat_id, user_id=user_id, approve=True)
-            return ok if isinstance(ok, types.Error) else None
+            if isinstance(ok, types.Error):
+                return ok
+            user_status_cache[cache_key] = types.ChatMemberStatusMember()
+            return ok
         except errors.UserAlreadyParticipant:
             user_status_cache[cache_key] = types.ChatMemberStatusMember()
             return types.Ok()
@@ -785,7 +788,7 @@ class Call:
             if isinstance(user, types.Error):
                 if user.code == 400:
                     return types.ChatMemberStatusLeft()
-                raise user
+                return user
 
             if user.status is None:
                 return types.ChatMemberStatusLeft()
