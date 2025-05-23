@@ -20,9 +20,8 @@ from src.helpers import (
 )
 from src.helpers import chat_cache, ChannelPlay
 from src.logger import LOGGER
-from src.modules.utils import Filter, SupportButton, get_audio_duration, sec_to_min, check_user_status, is_channel_cmd, \
+from src.modules.utils import Filter, SupportButton, get_audio_duration, sec_to_min, is_channel_cmd, \
     control_buttons
-from src.modules.utils import user_status_cache, join_ub
 from src.modules.utils.admins import is_admin, load_admin_cache, is_owner
 from src.modules.utils.play_helpers import (
     del_msg,
@@ -438,11 +437,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
         return await edit_text(reply_message, text=ub.message)
 
     # User status check
-    user_key = f"{chat_id}:{ub.me.id}"
-    user_status = user_status_cache.get(user_key) or await check_user_status(
-        c, chat_id, ub.me.id
-    )
-
+    user_status = await call.check_user_status(chat_id)
     if isinstance(user_status, types.Error):
         return await edit_text(reply_message, f"❌ {str(user_status)}")
 
@@ -453,7 +448,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
     }:
         if user_status == types.ChatMemberStatusBanned().getType():
             await unban_ub(c, chat_id, ub.me.id)
-        join = await join_ub(chat_id, c, ub)
+        join = await call.join_ub(chat_id)
         if isinstance(join, types.Error):
             return await edit_text(reply_message, f"❌ {join.message}")
 

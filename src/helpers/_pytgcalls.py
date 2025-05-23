@@ -31,7 +31,7 @@ from src.logger import LOGGER
 from src.modules.utils import get_audio_duration, sec_to_min, send_logger, control_buttons
 from src.modules.utils.thumbnails import gen_thumb
 from ._api import ApiData
-from ._cacher import chat_cache
+from ._cacher import chat_cache, chat_invite_cache, user_status_cache, ChatMemberStatusResult
 from ._database import db
 from ._dataclass import CachedTrack
 from ._downloader import MusicServiceWrapper
@@ -77,7 +77,7 @@ class Call:
             LOGGER.info("Set assistant for %s to %s", chat_id, new_client)
             return new_client
 
-    async def group_assistant(self, chat_id: int) -> Union[PyTgCalls, types.Error]:
+    async def _group_assistant(self, chat_id: int) -> Union[PyTgCalls, types.Error]:
         client_name = await self._get_client_name(chat_id)
         if isinstance(client_name, types.Error):
             return client_name
@@ -93,7 +93,7 @@ class Call:
         Returns:
             PyroClient instance or types.Error if unavailable
         """
-        client = await self.group_assistant(chat_id)
+        client = await self._group_assistant(chat_id)
         if isinstance(client, types.Error):
             return client
 
@@ -180,7 +180,7 @@ class Call:
             "Playing media for chat %s: %s (video=%s)", chat_id, file_path, video
         )
 
-        client = await self.group_assistant(chat_id)
+        client = await self._group_assistant(chat_id)
         if isinstance(client, types.Error):
             return client
 
@@ -227,6 +227,11 @@ class Call:
         except exceptions.NoAudioSourceFound as e:
             LOGGER.error("Audio source not found in chat %s: %s", chat_id, str(e))
             return types.Error(code=404, message="Audio source not found.")
+        except errors.ChannelPrivate:
+            join = await self.join_ub(chat_id)
+            if isinstance(join, types.Error):
+                return join
+            return await self.play_media(chat_id, file_path, video, ffmpeg_parameters)
         except errors.RPCError as e:
             LOGGER.error("Playback failed in chat %s: %s", chat_id, str(e))
             return types.Error(code=e.CODE or 500, message=f"Playback error: {str(e)}")
@@ -445,7 +450,7 @@ class Call:
         """
         LOGGER.info("Ending playback for chat %s", chat_id)
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -548,7 +553,7 @@ class Call:
             None on success or types.Error on failure
         """
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -573,7 +578,7 @@ class Call:
             types.Ok on success or types.Error on failure
         """
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -593,7 +598,7 @@ class Call:
             types.Ok on success or types.Error on failure
         """
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -615,7 +620,7 @@ class Call:
             types.Ok on success or types.Error on failure
         """
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -637,7 +642,7 @@ class Call:
             types.Ok on success or types.Error on failure
         """
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -657,7 +662,7 @@ class Call:
             Current position in seconds or types.Error on failure
         """
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -683,7 +688,7 @@ class Call:
             List of participants or types.Error on failure
         """
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -713,7 +718,7 @@ class Call:
             Tuple of (ping, cpu_usage) or types.Error on failure
         """
         try:
-            client = await self.group_assistant(chat_id)
+            client = await self._group_assistant(chat_id)
             if isinstance(client, types.Error):
                 return client
 
@@ -726,6 +731,69 @@ class Call:
                 "Stats check failed for chat %s: %s", chat_id, str(e), exc_info=True
             )
             return types.Error(code=500, message=f"Failed to get stats: {str(e)}")
+
+    async def join_ub(self,  chat_id: int) -> Union[types.Ok, types.Error]:
+        """
+        Handles the userbot joining a chat via invite link or approval.
+        """
+        client = await self.get_client(chat_id)
+        if isinstance(client, types.Error):
+            return client
+
+        invite_link = chat_invite_cache.get(chat_id)
+        if not invite_link:
+            get_link = await self.bot.createChatInviteLink(chat_id, name="TgMusicBot")
+            if isinstance(get_link, types.Error):
+                return get_link
+            invite_link = get_link.invite_link
+
+        if not invite_link:
+            return types.Error(
+                code=400, message=f"Failed to get invite link for chat {chat_id}"
+            )
+
+        chat_invite_cache[chat_id] = invite_link
+        invite_link = invite_link.replace("https://t.me/+", "https://t.me/joinchat/")
+        user_id = client.me.id
+        cache_key = f"{chat_id}:{user_id}"
+        try:
+            await client.join_chat(invite_link)
+            user_status_cache[cache_key] = types.ChatMemberStatusMember()
+            return types.Ok()
+        except errors.InviteRequestSent:
+            ok = await self.bot.processChatJoinRequest(chat_id=chat_id, user_id=user_id, approve=True)
+            return ok if isinstance(ok, types.Error) else None
+        except errors.UserAlreadyParticipant:
+            user_status_cache[cache_key] = types.ChatMemberStatusMember()
+            return types.Ok()
+        except errors.InviteHashExpired:
+            return types.Error(code=400, message=f"Invite link has expired or my assistant ({user_id}) is banned from this group.")
+        except Exception as e:
+            return types.Error(code=400, message=f"Failed to join {user_id}: {e}")
+
+    async def check_user_status(self, chat_id: int) -> ChatMemberStatusResult:
+        client = await self.get_client(chat_id)
+        if isinstance(client, types.Error):
+            LOGGER.error(f"Failed to get client for chat {chat_id}")
+            return client
+
+        user_id = client.me.id
+        cache_key = f"{chat_id}:{user_id}"
+        user_status = user_status_cache.get(cache_key)
+        if not user_status:
+            user = await self.bot.getChatMember(chat_id=chat_id, member_id=types.MessageSenderUser(user_id))
+            if isinstance(user, types.Error):
+                if user.code == 400:
+                    return types.ChatMemberStatusLeft()
+                raise user
+
+            if user.status is None:
+                return types.ChatMemberStatusLeft()
+
+            user_status = user.status
+            user_status_cache[cache_key] = user_status
+
+        return user_status
 
 
 async def start_clients() -> None:
