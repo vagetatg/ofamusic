@@ -227,7 +227,7 @@ class YouTubeUtils:
         if public_url := await HttpxClient().make_request(f"{API_URL}/yt?id={video_id}"):
             dl_url = public_url.get("results")
             if not dl_url:
-                LOGGER.error(f"Response from API is empty")
+                LOGGER.error("Response from API is empty")
                 return None
 
             info = await client.getMessageLinkInfo(dl_url)

@@ -5,7 +5,6 @@
 import asyncio
 import time
 from datetime import datetime
-from types import NoneType
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -18,6 +17,7 @@ from src.config import AUTO_LEAVE
 from src.helpers import call
 from src.helpers import chat_cache
 
+_concurrency_limiter = asyncio.Semaphore(10)
 
 class InactiveCallManager:
     def __init__(self, bot: Client):
@@ -52,35 +52,36 @@ class InactiveCallManager:
         await call.end(chat_id)
 
     async def end_inactive_calls(self):
-        if isinstance(self.bot, NoneType): return
-        if not await db.get_auto_end(self.bot.me.id): return
+        async with _concurrency_limiter:
+            if self.bot is None: return
+            if not await db.get_auto_end(self.bot.me.id): return
 
-        active_chats = chat_cache.get_active_chats()
-        if not active_chats:
-            self.bot.logger.debug("No active chats found.")
-            return
+            active_chats = chat_cache.get_active_chats()
+            if not active_chats:
+                self.bot.logger.debug("No active chats found.")
+                return
 
-        start_time = datetime.now()
-        start_monotonic = time.monotonic()
-        self.bot.logger.info(
-            f"🔄 Started end_inactive_calls at {start_time.strftime('%Y-%m-%d %H:%M:%S')}"
-        )
-
-        try:
-            self.bot.logger.debug(f"Checking {len(active_chats)} active chats...")
-            tasks = [self._end_inactive_calls(chat_id) for chat_id in active_chats]
-            await asyncio.gather(*tasks)
-        except Exception as e:
-            self.bot.logger.error(
-                f"❗ Exception in end_inactive_calls: {e}", exc_info=True
-            )
-        finally:
-            end_time = datetime.now()
-            duration = time.monotonic() - start_monotonic
+            start_time = datetime.now()
+            start_monotonic = time.monotonic()
             self.bot.logger.info(
-                f"✅ Finished end_inactive_calls at {end_time.strftime('%Y-%m-%d %H:%M:%S')} "
-                f"(Duration: {duration:.2f}s)"
+                f"🔄 Started end_inactive_calls at {start_time.strftime('%Y-%m-%d %H:%M:%S')}"
             )
+
+            try:
+                self.bot.logger.debug(f"Checking {len(active_chats)} active chats...")
+                tasks = [self._end_inactive_calls(chat_id) for chat_id in active_chats]
+                await asyncio.gather(*tasks)
+            except Exception as e:
+                self.bot.logger.error(
+                    f"❗ Exception in end_inactive_calls: {e}", exc_info=True
+                )
+            finally:
+                end_time = datetime.now()
+                duration = time.monotonic() - start_monotonic
+                self.bot.logger.info(
+                    f"✅ Finished end_inactive_calls at {end_time.strftime('%Y-%m-%d %H:%M:%S')} "
+                    f"(Duration: {duration:.2f}s)"
+                )
 
     async def leave_all(self):
         if not AUTO_LEAVE:
