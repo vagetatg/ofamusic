@@ -5,6 +5,7 @@
 import asyncio
 import time
 from datetime import datetime
+from types import NoneType
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -25,69 +26,54 @@ class InactiveCallManager:
             timezone="Asia/Kolkata", event_loop=self.bot.loop
         )
 
-    async def _end_inactive_calls(self, chat_id: int, semaphore: asyncio.Semaphore):
-        async with semaphore:
-            vc_users = await call.vc_users(chat_id)
-            if isinstance(vc_users, types.Error):
-                self.bot.logger.warning(
-                    f"An error occurred while getting vc users: {vc_users.message}"
-                )
-                return
-
-            if len(vc_users) > 1:
-                self.bot.logger.debug(
-                    f"Active users detected in chat {chat_id}. Skipping..."
-                )
-                return
-
-            # Check if the call has been active for more than 20 seconds
-            played_time = await call.played_time(chat_id)
-            if isinstance(played_time, types.Error):
-                self.bot.logger.warning(
-                    f"An error occurred while getting played time: {played_time.message}"
-                )
-                return
-            if played_time < 20:
-                self.bot.logger.debug(
-                    f"Call in chat {chat_id} has been active for less than 20 "
-                    "seconds. Skipping..."
-                )
-                return
-
-            # Notify the chat and end the call
-            _chat_id = await db.get_chat_id_by_channel(chat_id) or chat_id
-            reply = await self.bot.sendTextMessage(
-                _chat_id, "⚠️ No active listeners detected. ⏹️ Leaving voice chat..."
+    async def _end_inactive_calls(self, chat_id: int):
+        vc_users = await call.vc_users(chat_id)
+        if isinstance(vc_users, types.Error):
+            self.bot.logger.warning(
+                f"An error occurred while getting vc users: {vc_users.message}"
             )
-            if isinstance(reply, types.Error):
-                self.bot.logger.warning(f"Error sending message: {reply}")
-            await call.end(chat_id)
+            return
+
+        if len(vc_users) > 1: return
+        played_time = await call.played_time(chat_id)
+        if isinstance(played_time, types.Error):
+            self.bot.logger.warning(
+                f"An error occurred while getting played time: {played_time.message}"
+            )
+            return
+
+        if played_time < 15: return
+        _chat_id = await db.get_chat_id_by_channel(chat_id) or chat_id
+        reply = await self.bot.sendTextMessage(
+            _chat_id, "⚠️ No active listeners detected. ⏹️ Leaving voice chat..."
+        )
+        if isinstance(reply, types.Error):
+            self.bot.logger.warning(f"Error sending message: {reply}")
+        await call.end(chat_id)
 
     async def end_inactive_calls(self):
+        if isinstance(self.bot, NoneType): return
+        if not await db.get_auto_end(self.bot.me.id): return
+
+        active_chats = chat_cache.get_active_chats()
+        if not active_chats:
+            self.bot.logger.debug("No active chats found.")
+            return
+
         start_time = datetime.now()
         start_monotonic = time.monotonic()
-        self.bot.logger.info(f"🔄 Started end_inactive_calls at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        self.bot.logger.info(
+            f"🔄 Started end_inactive_calls at {start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        )
 
         try:
-            if not await db.get_auto_end(self.bot.me.id):
-                self.bot.logger.debug("Auto end is disabled, skipping...")
-                return
-
-            active_chats = chat_cache.get_active_chats()
-            if not active_chats:
-                self.bot.logger.debug("No active chats found.")
-                return
-
             self.bot.logger.debug(f"Checking {len(active_chats)} active chats...")
-            semaphore = asyncio.Semaphore(5)
-            tasks = [
-                self._end_inactive_calls(chat_id, semaphore) for chat_id in active_chats
-            ]
+            tasks = [self._end_inactive_calls(chat_id) for chat_id in active_chats]
             await asyncio.gather(*tasks)
-
         except Exception as e:
-            self.bot.logger.error(f"❗ Exception in end_inactive_calls: {e}", exc_info=True)
-
+            self.bot.logger.error(
+                f"❗ Exception in end_inactive_calls: {e}", exc_info=True
+            )
         finally:
             end_time = datetime.now()
             duration = time.monotonic() - start_monotonic
@@ -95,7 +81,6 @@ class InactiveCallManager:
                 f"✅ Finished end_inactive_calls at {end_time.strftime('%Y-%m-%d %H:%M:%S')} "
                 f"(Duration: {duration:.2f}s)"
             )
-
 
     async def leave_all(self):
         if not AUTO_LEAVE:
@@ -155,7 +140,7 @@ class InactiveCallManager:
             self.end_inactive_calls,
             CronTrigger(minute="*/1"),
             coalesce=True,
-            max_instances=1
+            max_instances=1,
         )
         self.scheduler.add_job(self.leave_all, CronTrigger(hour=0, minute=0))
         self.scheduler.start()
