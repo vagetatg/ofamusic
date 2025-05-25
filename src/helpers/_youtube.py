@@ -231,7 +231,7 @@ class YouTubeUtils:
                 LOGGER.error("Response from API is empty")
                 return None
 
-            if not re.match(r"https:\/\/t\.me\/([a-zA-Z0-9_]{5,})\/(\d+)", dl_url):
+            if not re.fullmatch(r"https:\/\/t\.me\/([a-zA-Z0-9_]{5,})\/(\d+)", dl_url):
                 dl = await HttpxClient().download_file(f"{API_URL}/stream?uuid={dl_url}")
                 return dl.file_path if dl.success else None
 
@@ -249,6 +249,7 @@ class YouTubeUtils:
             if isinstance(file, types.Error):
                 LOGGER.error(f"❌ Failed to download message with ID {info.message.id}; {file}")
                 return None
+
             return file.path
         return None
 
