@@ -96,7 +96,7 @@ async def _update_msg_with_thumb(
     Update a message with thumbnail if available.
     """
     if not thumb:
-        return await edit_text(msg, text=text, reply_markup=button)
+        return await edit_text(msg, text=text, reply_markup=button, disable_web_page_preview=True)
 
     parsed_text = await c.parseTextEntities(text, types.TextParseModeHTML())
     if isinstance(parsed_text, types.Error):
