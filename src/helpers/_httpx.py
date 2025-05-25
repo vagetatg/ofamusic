@@ -26,8 +26,8 @@ class DownloadResult:
 
 
 class HttpxClient:
-    DEFAULT_TIMEOUT = 60
-    DEFAULT_DOWNLOAD_TIMEOUT = 180
+    DEFAULT_TIMEOUT = 120
+    DEFAULT_DOWNLOAD_TIMEOUT = 120
     CHUNK_SIZE = 8192
     MAX_RETRIES = 2
     BACKOFF_FACTOR = 1.0
@@ -141,16 +141,23 @@ class HttpxClient:
                 LOGGER.debug("Request to %s succeeded in %.2fs", url, duration)
                 return response.json()
 
-            except httpx.TooManyRedirects as e:
-                error_msg = f"Redirect loop for {url}: {repr(e)}"
+            except httpx.HTTPStatusError as e:
+                try:
+                    error_response = e.response.json()
+                    if isinstance(error_response, dict) and "error" in error_response:
+                        error_msg = f"API Error {e.response.status_code} for {url}: {error_response['error']}"
+                    else:
+                        error_msg = f"HTTP error {e.response.status_code} for {url}. Body: {e.response.text}"
+                except ValueError:
+                    error_msg = f"HTTP error {e.response.status_code} for {url}. Body: {e.response.text}"
+
                 LOGGER.warning(error_msg)
                 if attempt == max_retries - 1:
                     LOGGER.error(error_msg)
                     return None
 
-            except httpx.HTTPStatusError as e:
-                body = e.response.text if e.response else "No response"
-                error_msg = f"HTTP error {e.response.status_code} for {url}. Body: {body}"
+            except httpx.TooManyRedirects as e:
+                error_msg = f"Redirect loop for {url}: {repr(e)}"
                 LOGGER.warning(error_msg)
                 if attempt == max_retries - 1:
                     LOGGER.error(error_msg)
@@ -164,11 +171,13 @@ class HttpxClient:
                     return None
 
             except ValueError as e:
-                LOGGER.error("Invalid JSON response from %s: %s", url, repr(e))
+                error_msg = f"Invalid JSON response from {url}: {repr(e)}"
+                LOGGER.error(error_msg)
                 return None
 
             except Exception as e:
-                LOGGER.error("Unexpected error for %s: %s", url, repr(e))
+                error_msg = f"Unexpected error for {url}: {repr(e)}"
+                LOGGER.error(error_msg)
                 return None
 
             await asyncio.sleep(backoff_factor * (2 ** attempt))
@@ -181,6 +190,12 @@ class HttpxClient:
         if isinstance(e, httpx.TooManyRedirects):
             return f"Too many redirects for {url}: {repr(e)}"
         elif isinstance(e, httpx.HTTPStatusError):
+            try:
+                error_response = e.response.json()
+                if isinstance(error_response, dict) and "error" in error_response:
+                    return f"HTTP error {e.response.status_code} for {url}: {error_response['error']}"
+            except ValueError:
+                pass
             return f"HTTP error {e.response.status_code} for {url}. Body: {e.response.text}"
         elif isinstance(e, httpx.ReadTimeout):
             return f"Read timeout for {url}: {repr(e)}"
