@@ -14,7 +14,7 @@ from urllib.parse import unquote
 import aiofiles
 import httpx
 
-from src import config
+from src.config import DOWNLOADS_DIR, API_KEY, API_URL
 from src.logger import LOGGER
 
 
@@ -61,9 +61,10 @@ class HttpxClient:
     @staticmethod
     def _get_headers(url: str, base_headers: dict[str, str]) -> dict[str, str]:
         headers = base_headers.copy()
-        if config.API_URL and url.startswith(config.API_URL):
-            headers["X-API-Key"] = config.API_KEY
+        if API_URL and url.startswith(API_URL):
+            headers["X-API-Key"] = API_KEY
         return headers
+
 
     async def download_file(
         self,
@@ -76,29 +77,16 @@ class HttpxClient:
             return DownloadResult(success=False, error="Empty URL provided")
 
         headers = self._get_headers(url, kwargs.pop("headers", {}))
-
         try:
-            # Dynamic timeout override for known slow hosts
-            if "sslip.io" in url:
-                timeout = httpx.Timeout(connect=30.0, read=180.0, write=30.0, pool=60.0)
-            else:
-                timeout = httpx.Timeout(connect=30.0, read=self._download_timeout)
-
-            start = time.monotonic()
-
             async with self._session.stream(
-                "GET", url, timeout=timeout, headers=headers
+                "GET", url, timeout=self._download_timeout, headers=headers
             ) as response:
                 response.raise_for_status()
-
-                # Determine filename
                 if file_path is None:
                     cd = response.headers.get("Content-Disposition", "")
                     match = re.search(r'filename="?([^"]+)"?', cd)
-                    filename = (
-                        unquote(match[1]) if match else (Path(url).name or uuid.uuid4().hex)
-                    )
-                    path = Path(config.DOWNLOADS_DIR) / filename
+                    filename = unquote(match[1]) if match else (Path(url).name or uuid.uuid4().hex)
+                    path = Path(DOWNLOADS_DIR) / filename
                 else:
                     path = Path(file_path) if isinstance(file_path, str) else file_path
 
@@ -110,10 +98,8 @@ class HttpxClient:
                     async for chunk in response.aiter_bytes(self.CHUNK_SIZE):
                         await f.write(chunk)
 
-            duration = time.monotonic() - start
-            LOGGER.debug("Downloaded file to %s in %.2fs", path, duration)
-            return DownloadResult(success=True, file_path=path)
-
+                LOGGER.debug("Successfully downloaded file to %s", path)
+                return DownloadResult(success=True, file_path=path)
         except Exception as e:
             error_msg = self._handle_http_error(e, url)
             LOGGER.error(error_msg)
