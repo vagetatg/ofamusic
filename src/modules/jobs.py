@@ -53,7 +53,7 @@ class InactiveCallManager:
             await call.end(chat_id)
 
     async def end_inactive_calls(self):
-        if self.bot is None: return
+        if self.bot is None or self.bot.me is None: return
         if not await db.get_auto_end(self.bot.me.id): return
 
         active_chats = chat_cache.get_active_chats()
@@ -84,8 +84,7 @@ class InactiveCallManager:
             )
 
     async def leave_all(self):
-        if not AUTO_LEAVE:
-            return
+        if not AUTO_LEAVE: return
 
         for client_name, call_instance in call.calls.items():
             ub: PyroClient = call_instance.mtproto_client
