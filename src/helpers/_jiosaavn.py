@@ -4,18 +4,16 @@
 
 import asyncio
 import re
-import yt_dlp
-
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
-from pytdbot import types
+import yt_dlp
 
 from src import config
 from src.logger import LOGGER
 from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
 from ._downloader import MusicService
-from ._httpx import DownloadResult, HttpxClient
+from ._aiohttp import DownloadResult, AioHttpClient
 
 
 class JiosaavnData(MusicService):
@@ -56,7 +54,7 @@ class JiosaavnData(MusicService):
             query: Search query or URL to process
         """
         self.query = query
-        self.client = HttpxClient(max_redirects=1)
+        self.client = AioHttpClient(max_redirects=1)
         self._ydl_opts = {
             "quiet": True,
             "no_warnings": True,
@@ -215,7 +213,7 @@ class JiosaavnData(MusicService):
             LOGGER.error("Unexpected error getting playlist %s: %s", url, str(e))
         return None
 
-    async def download_track(self, track: TrackInfo, video: bool = False, msg: Union[None, types.Message]= None) -> Optional[Path]:
+    async def download_track(self, track: TrackInfo, video: bool = False) -> Optional[Path]:
         if not track or not track.cdnurl:
             return None
 

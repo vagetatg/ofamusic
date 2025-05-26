@@ -149,7 +149,7 @@ async def _handle_single_track(
     )
 
     if not song.file_path:
-        if file_path := await call.song_download(song, msg):
+        if file_path := await call.song_download(song):
             song.file_path = file_path
         else:
             return await edit_text(

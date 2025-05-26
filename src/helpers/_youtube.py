@@ -15,8 +15,7 @@ from pytdbot import types
 from src.helpers import MusicTrack, PlatformTracks, TrackInfo
 from src.logger import LOGGER
 from ._downloader import MusicService
-from ._telegram import Telegram
-from ._httpx import HttpxClient
+from ._aiohttp import AioHttpClient
 from ..config import API_URL, API_KEY, DOWNLOADS_DIR, PROXY
 
 
@@ -198,7 +197,7 @@ class YouTubeUtils:
 
     @staticmethod
     async def fetch_oembed_data(url: str) -> Optional[dict[str, Any]]:
-        client = HttpxClient()
+        client = AioHttpClient()
         oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
         data = await client.make_request(oembed_url, max_retries=1)
         if data:
@@ -220,19 +219,19 @@ class YouTubeUtils:
         return None
 
     @staticmethod
-    async def download_with_api(video_id: str, reply: Union[None, types.Message]) -> Optional[Path]:
+    async def download_with_api(video_id: str) -> Union[None, Path]:
         """
         Download audio using the API.
         """
         from src import client
-        if public_url := await HttpxClient().make_request(f"{API_URL}/yt?id={video_id}", max_retries=1):
+        if public_url := await AioHttpClient().make_request(f"{API_URL}/yt?id={video_id}", max_retries=1):
             dl_url = public_url.get("results")
             if not dl_url:
                 LOGGER.error("Response from API is empty")
                 return None
 
             if not re.fullmatch(r"https:\/\/t\.me\/([a-zA-Z0-9_]{5,})\/(\d+)", dl_url):
-                dl = await HttpxClient().download_file(f"{API_URL}/stream?uuid={dl_url}")
+                dl = await AioHttpClient().download_file(f"{API_URL}/stream?uuid={dl_url}")
                 return dl.file_path if dl.success else None
 
             info = await client.getMessageLinkInfo(dl_url)
@@ -245,12 +244,11 @@ class YouTubeUtils:
                 LOGGER.error(f"❌ Failed to fetch message with ID {info.message.id}; {msg}")
                 return None
 
-            file, _ = await Telegram(msg).download_msg(reply)
+            file = await msg.download()
             if isinstance(file, types.Error):
                 LOGGER.error(f"❌ Failed to download message with ID {info.message.id}; {file}")
                 return None
-
-            return file.path
+            return Path(file.path)
         return None
 
     @staticmethod
@@ -324,7 +322,7 @@ class YouTubeData(MusicService):
         Args:
             query: The search query or YouTube URL to process
         """
-        self.client = HttpxClient()
+        self.client = AioHttpClient()
         self.query = YouTubeUtils.clean_query(query) if query else None
 
     def is_valid(self, url: Optional[str]) -> bool:
@@ -383,13 +381,13 @@ class YouTubeData(MusicService):
             LOGGER.error(f"Error fetching track {self.query}: {e!r}")
             return None
 
-    async def download_track(self, track: TrackInfo, video: bool = False, msg: Union[None, types.Message]= None) -> Union[Path, str, None]:
+    async def download_track(self, track: TrackInfo, video: bool = False) -> Union[Path, str, None]:
         if not track:
             return None
 
         try:
             if not video and API_URL and API_KEY:
-                if file_path := await YouTubeUtils.download_with_api(track.tc, msg):
+                if file_path := await YouTubeUtils.download_with_api(track.tc):
                     return file_path
 
             return await YouTubeUtils.download_with_yt_dlp(track.tc, video)

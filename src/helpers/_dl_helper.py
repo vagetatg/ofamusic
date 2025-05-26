@@ -12,7 +12,7 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 
 from src import config
-from src.helpers._httpx import HttpxClient
+from src.helpers._aiohttp import AioHttpClient
 from src.logger import LOGGER
 from ._dataclass import TrackInfo
 
@@ -60,7 +60,7 @@ async def rebuild_ogg(filename: str) -> None:
 class SpotifyDownload:
     def __init__(self, track: TrackInfo):
         self.track = track
-        self.client = HttpxClient()
+        self.client = AioHttpClient()
         self.encrypted_file = os.path.join(
             config.DOWNLOADS_DIR, f"{track.tc}.encrypted.ogg"
         )
