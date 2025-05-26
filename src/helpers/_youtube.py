@@ -270,7 +270,7 @@ class YouTubeUtils:
         if video:
             cmd.extend(["-f", "best[ext=mp4][height<=720]"])
         else:
-            cmd.extend(["-f", "bestaudio[ext=m4a]/bestaudio/best"])
+            cmd.extend(["-f", "bestaudio/best"])
         cmd.extend([
             "--no-write-thumbnail",
             "--no-write-info-json",
