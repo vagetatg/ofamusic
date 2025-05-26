@@ -260,25 +260,24 @@ class YouTubeUtils:
             "--no-warnings",
             "--quiet",
             "--geo-bypass",
-            "--retries",
-            "2",
+            "--retries", "2",
             "--continue",
             "--no-part",
-            "-o",
-            output_template,
+            "--concurrent-fragments", "5",
+            "-o", output_template,
         ]
 
         if video:
-            cmd.extend(
-                [
-                    "-f",
-                    "(bestvideo[height<=?720][width<=?1280][ext=mp4])+(bestaudio[ext=m4a])",
-                    "--merge-output-format",
-                    "mp4",
-                ]
-            )
+            cmd.extend(["-f", "best[ext=mp4][height<=720]"])
         else:
             cmd.extend(["-f", "bestaudio[ext=m4a]/bestaudio/best"])
+        cmd.extend([
+            "--no-write-thumbnail",
+            "--no-write-info-json",
+            "--no-embed-metadata",
+            "--no-embed-chapters",
+            "--no-embed-subs",
+        ])
 
         if PROXY:
             cmd.extend(["--proxy", PROXY])
