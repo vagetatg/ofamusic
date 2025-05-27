@@ -46,7 +46,9 @@ async def update(c: Client, message: types.Message) -> None:
 
     if command == "update":
         if not os.path.exists(".git"):
-            await msg.edit_text("⚠️ This instance does not support updates (no .git directory).")
+            await msg.edit_text(
+                "⚠️ This instance does not support updates (no .git directory)."
+            )
             return
 
         git_path = shutil.which("git") or "/usr/bin/git"
@@ -56,16 +58,19 @@ async def update(c: Client, message: types.Message) -> None:
 
         try:
             proc = await asyncio.create_subprocess_exec(
-                git_path, "pull",
+                git_path,
+                "pull",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.STDOUT
+                stderr=asyncio.subprocess.STDOUT,
             )
             stdout, _ = await proc.communicate()
             output = stdout.decode().strip()
 
             if proc.returncode != 0:
                 if "Permission denied" in output or "Authentication failed" in output:
-                    await msg.edit_text("❌ Update failed: Private repo access denied. Please check your credentials or use SSH.")
+                    await msg.edit_text(
+                        "❌ Update failed: Private repo access denied. Please check your credentials or use SSH."
+                    )
                 else:
                     await msg.edit_text(f"⚠️ Git pull failed:\n<pre>{output}</pre>")
                 return
@@ -113,7 +118,9 @@ async def update(c: Client, message: types.Message) -> None:
     await msg.edit_text("♻️ Restarting the bot...")
 
     if is_docker():
-        await msg.edit_text("🚢 Detected Docker — exiting process to let Docker restart it.")
+        await msg.edit_text(
+            "🚢 Detected Docker — exiting process to let Docker restart it."
+        )
         sys.exit(0)
     else:
         tgmusic_path = shutil.which("tgmusic")

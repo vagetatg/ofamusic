@@ -465,7 +465,11 @@ class Call:
 
             try:
                 await client.leave_call(chat_id)
-            except (exceptions.NotInCallError, errors.GroupCallInvalid, exceptions.NoActiveGroupCall):
+            except (
+                exceptions.NotInCallError,
+                errors.GroupCallInvalid,
+                exceptions.NoActiveGroupCall,
+            ):
                 pass  # Already not in call
 
             return types.Ok()

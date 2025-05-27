@@ -53,6 +53,7 @@ def load_translations():
         with open(file_path, "r", encoding="utf-8") as f:
             langs[lang_code] = json.load(f)
 
+
 def generate_lang_buttons() -> types.ReplyMarkupInlineKeyboard:
     buttons = []
     row = []

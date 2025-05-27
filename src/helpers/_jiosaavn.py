@@ -213,7 +213,9 @@ class JiosaavnData(MusicService):
             LOGGER.error("Unexpected error getting playlist %s: %s", url, str(e))
         return None
 
-    async def download_track(self, track: TrackInfo, video: bool = False) -> Optional[Path]:
+    async def download_track(
+        self, track: TrackInfo, video: bool = False
+    ) -> Optional[Path]:
         if not track or not track.cdnurl:
             return None
 

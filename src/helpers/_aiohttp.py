@@ -22,7 +22,7 @@ class DownloadResult:
         self,
         success: bool,
         file_path: Optional[Path] = None,
-        error: Optional[str] = None
+        error: Optional[str] = None,
     ):
         self.success = success
         self.file_path = file_path
@@ -48,10 +48,7 @@ class AioHttpClient:
 
         self._session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(
-                total=timeout,
-                connect=timeout,
-                sock_connect=timeout,
-                sock_read=timeout
+                total=timeout, connect=timeout, sock_connect=timeout, sock_read=timeout
             )
         )
 
@@ -81,16 +78,24 @@ class AioHttpClient:
         headers = self._get_headers(url, kwargs.pop("headers", {}))
 
         try:
-            async with self._session.get(url, headers=headers, timeout=self._download_timeout) as response:
+            async with self._session.get(
+                url, headers=headers, timeout=self._download_timeout
+            ) as response:
                 if response.status != 200:
-                    error_msg = f"Download failed for {url} with status code {response.status}"
+                    error_msg = (
+                        f"Download failed for {url} with status code {response.status}"
+                    )
                     LOGGER.error(error_msg)
                     return DownloadResult(success=False, error=error_msg)
 
                 if file_path is None:
                     cd = response.headers.get("Content-Disposition", "")
                     match = re.search(r'filename="?([^"]+)"?', cd)
-                    filename = unquote(match[1]) if match else (Path(url).name or uuid.uuid4().hex)
+                    filename = (
+                        unquote(match[1])
+                        if match
+                        else (Path(url).name or uuid.uuid4().hex)
+                    )
                     path = Path(DOWNLOADS_DIR) / filename
                 else:
                     path = Path(file_path) if isinstance(file_path, str) else file_path
@@ -127,10 +132,14 @@ class AioHttpClient:
         for attempt in range(max_retries):
             try:
                 start = time.monotonic()
-                async with self._session.get(url, headers=headers, **kwargs) as response:
+                async with self._session.get(
+                    url, headers=headers, **kwargs
+                ) as response:
                     text = await response.text()
                     if response.status != 200:
-                        LOGGER.warning("HTTP %d for %s. Body: %s", response.status, url, text)
+                        LOGGER.warning(
+                            "HTTP %d for %s. Body: %s", response.status, url, text
+                        )
                         continue
 
                     duration = time.monotonic() - start
@@ -145,7 +154,7 @@ class AioHttpClient:
                 LOGGER.error("Unexpected error for %s: %s", url, repr(e))
                 return None
 
-            await asyncio.sleep(backoff_factor * (2 ** attempt))
+            await asyncio.sleep(backoff_factor * (2**attempt))
 
         LOGGER.error("All retries failed for URL: %s", url)
         return None
