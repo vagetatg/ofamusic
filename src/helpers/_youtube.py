@@ -300,8 +300,12 @@ class YouTubeUtils:
             "--retry-sleep",
             "1",
         ]
-        # 
-        format_selector = "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]" if video else "bestaudio/best"
+
+        format_selector = (
+            "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]"
+            if video
+            else "bestaudio/best"
+        )
         ytdlp_params.extend(["-f", format_selector])
 
         # Proxy or cookies
