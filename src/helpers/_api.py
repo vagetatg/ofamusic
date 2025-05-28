@@ -85,7 +85,6 @@ class ApiData(MusicService):
         async with AioHttpClient() as client:
             return await client.make_request(url, params=params)
 
-
     async def get_recommendations(self, limit: int = 4) -> Optional[PlatformTracks]:
         """
         Get recommended tracks.

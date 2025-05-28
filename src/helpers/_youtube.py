@@ -224,16 +224,19 @@ class YouTubeUtils:
         Download audio using the API.
         """
         from src import client
+
         async with AioHttpClient() as c:
             if public_url := await c.make_request(
-                    f"{API_URL}/yt?id={video_id}", max_retries=1
+                f"{API_URL}/yt?id={video_id}",
             ):
                 dl_url = public_url.get("results")
                 if not dl_url:
                     LOGGER.error("Response from API is empty")
                     return None
 
-                if not re.fullmatch(r"https:\/\/t\.me\/([a-zA-Z0-9_]{5,})\/(\d+)", dl_url):
+                if not re.fullmatch(
+                    r"https:\/\/t\.me\/([a-zA-Z0-9_]{5,})\/(\d+)", dl_url
+                ):
                     async with AioHttpClient() as client:
                         dl = await client.download_file(
                             f"{API_URL}/stream?uuid={dl_url}"

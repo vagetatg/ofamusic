@@ -114,7 +114,7 @@ class JiosaavnData(MusicService):
 
         try:
             url = self.API_SEARCH_ENDPOINT.format(query=self.query)
-            async with AioHttpClient(max_redirects=1) as client:
+            async with AioHttpClient() as client:
                 response = await client.make_request(url)
             data = self._parse_search_response(response)
         except Exception as e:
@@ -220,9 +220,9 @@ class JiosaavnData(MusicService):
             return None
 
         download_path = Path(config.DOWNLOADS_DIR) / f"{track.tc}.m4a"
-        async with AioHttpClient(max_redirects=1) as client:
+        async with AioHttpClient() as client:
             dl: DownloadResult = await client.download_file(
-                track.cdnurl, download_path
+                track.cdnurl, download_path, max_redirects=1
             )
             return dl.file_path if dl.success else None
 
