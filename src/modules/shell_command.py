@@ -88,7 +88,7 @@ async def shellrunner(message: types.Message) -> types.Ok | types.Error | types.
             output = "<b>📭 No output was returned</b>"
 
         # Handle large output
-        if len(output) > 4096:
+        if len(output) > 2000:
             filename = f"database/{uuid.uuid4().hex}.txt"
             with open(filename, "w", encoding="utf-8") as file:
                 file.write(output)
