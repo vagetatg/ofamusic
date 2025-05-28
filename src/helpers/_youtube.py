@@ -238,9 +238,7 @@ class YouTubeUtils:
                     r"https:\/\/t\.me\/([a-zA-Z0-9_]{5,})\/(\d+)", dl_url
                 ):
                     async with AioHttpClient() as client:
-                        dl = await client.download_file(
-                            f"{API_URL}/stream?uuid={dl_url}"
-                        )
+                        dl = await client.download_file(dl_url)
                         return dl.file_path if dl.success else None
 
                 info = await client.getMessageLinkInfo(dl_url)
