@@ -23,15 +23,17 @@ class DownloadResult:
         success: bool,
         file_path: Optional[Path] = None,
         error: Optional[str] = None,
+        status_code: Optional[int] = None,
     ):
         self.success = success
         self.file_path = file_path
         self.error = error
+        self.status_code = status_code
 
 
 class AioHttpClient:
-    DEFAULT_TIMEOUT = 120
-    DEFAULT_DOWNLOAD_TIMEOUT = 120
+    DEFAULT_TIMEOUT = 30
+    DEFAULT_DOWNLOAD_TIMEOUT = 100
     CHUNK_SIZE = 8192
     MAX_RETRIES = 2
     BACKOFF_FACTOR = 1.0
@@ -62,6 +64,8 @@ class AioHttpClient:
     def _get_headers(url: str, base_headers: dict[str, str]) -> dict[str, str]:
         headers = base_headers.copy()
         if API_URL and url.startswith(API_URL):
+            if not API_KEY:
+                raise ValueError("API Key is required but not configured")
             headers["X-API-Key"] = API_KEY
         return headers
 
@@ -73,20 +77,25 @@ class AioHttpClient:
         **kwargs: Any,
     ) -> DownloadResult:
         if not url:
-            return DownloadResult(success=False, error="Empty URL provided")
+            return DownloadResult(
+                success=False, error="Empty URL provided", status_code=400
+            )
 
-        headers = self._get_headers(url, kwargs.pop("headers", {}))
+        try:
+            headers = self._get_headers(url, kwargs.pop("headers", {}))
+        except ValueError as e:
+            return DownloadResult(success=False, error=str(e), status_code=401)
 
         try:
             async with self._session.get(
                 url, headers=headers, timeout=self._download_timeout
             ) as response:
                 if response.status != 200:
-                    error_msg = (
-                        f"Download failed for {url} with status code {response.status}"
-                    )
+                    error_msg = await self._get_error_message(response, url)
                     LOGGER.error(error_msg)
-                    return DownloadResult(success=False, error=error_msg)
+                    return DownloadResult(
+                        success=False, error=error_msg, status_code=response.status
+                    )
 
                 if file_path is None:
                     cd = response.headers.get("Content-Disposition", "")
@@ -112,9 +121,37 @@ class AioHttpClient:
                 return DownloadResult(success=True, file_path=path)
 
         except Exception as e:
-            error_msg = f"Failed to download {url}: {repr(e)}"
+            error_msg = f"Failed to download {url}: {str(e)}"
             LOGGER.error(error_msg)
-            return DownloadResult(success=False, error=error_msg)
+            return DownloadResult(success=False, error=error_msg, status_code=500)
+
+    @staticmethod
+    async def _get_error_message(response: aiohttp.ClientResponse, url: str) -> str:
+        try:
+            error_data = await response.json()
+            if isinstance(error_data, dict) and "error" in error_data:
+                return error_data["error"]
+            if isinstance(error_data, dict) and "message" in error_data:
+                return error_data["message"]
+        except:
+            pass
+
+        status_messages = {
+            400: "Bad request",
+            401: "Unauthorized - Missing or invalid API key",
+            403: "Forbidden - API key expired or insufficient permissions",
+            404: "Resource not found",
+            429: "Too many requests - Rate limit exceeded",
+            500: "Internal server error",
+            502: "Bad gateway",
+            503: "Service unavailable",
+            504: "Gateway timeout",
+        }
+
+        return status_messages.get(
+            response.status,
+            f"Request failed ({url}) with status code {response.status}",
+        )
 
     async def make_request(
         self,
@@ -125,9 +162,13 @@ class AioHttpClient:
     ) -> Optional[dict[str, Any]]:
         if not url:
             LOGGER.warning("Empty URL provided")
-            return None
+            return {"error": "Empty URL provided", "status": 400}
 
-        headers = self._get_headers(url, kwargs.pop("headers", {}))
+        try:
+            headers = self._get_headers(url, kwargs.pop("headers", {}))
+        except ValueError as e:
+            LOGGER.error("API key error: %s", str(e))
+            return {"error": str(e), "status": 401}
 
         for attempt in range(max_retries):
             try:
@@ -135,11 +176,17 @@ class AioHttpClient:
                 async with self._session.get(
                     url, headers=headers, **kwargs
                 ) as response:
-                    text = await response.text()
                     if response.status != 200:
+                        error_msg = await self._get_error_message(response, url)
                         LOGGER.warning(
-                            "HTTP %d for %s. Body: %s", response.status, url, text
+                            "HTTP %d for %s: %s", response.status, url, error_msg
                         )
+                        if response.status in (
+                            401,
+                            403,
+                            404,
+                        ):  # Don't retry on these statuses
+                            return {"error": error_msg, "status": response.status}
                         continue
 
                     duration = time.monotonic() - start
@@ -147,17 +194,20 @@ class AioHttpClient:
                     return await response.json()
 
             except aiohttp.ClientError as e:
-                LOGGER.warning("Request failed for %s: %s", url, repr(e))
+                LOGGER.warning("Request failed for %s: %s", url, str(e))
+                error_msg = f"Network error: {str(e)}"
             except asyncio.TimeoutError:
                 LOGGER.warning("Timeout while requesting %s", url)
+                error_msg = "Request timed out"
             except Exception as e:
-                LOGGER.error("Unexpected error for %s: %s", url, repr(e))
-                return None
+                LOGGER.error("Unexpected error for %s: %s", url, str(e))
+                error_msg = f"Internal error: {str(e)}"
+                return {"error": error_msg, "status": 500}
 
             await asyncio.sleep(backoff_factor * (2**attempt))
 
         LOGGER.error("All retries failed for URL: %s", url)
-        return None
+        return {"error": error_msg, "status": 503}  # Service Unavailable
 
     async def __aenter__(self):
         return self

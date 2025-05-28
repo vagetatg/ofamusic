@@ -304,7 +304,7 @@ class YouTubeUtils:
         format_selector = (
             "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]"
             if video
-            else "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio/best"  # webm → m4a → fallback (any)
+            else "bestaudio[ext=m4a]/bestaudio[ext=mp4]/bestaudio/best"
         )
         ytdlp_params.extend(["-f", format_selector])
 
