@@ -41,6 +41,7 @@ class Telegram(Client):
 
     async def start(self) -> None:
         """Start the bot and all associated services."""
+        await load_translations()
         await save_all_cookies(COOKIES_URL)
         await self.db.ping()
         await start_clients()
@@ -78,8 +79,6 @@ class Telegram(Client):
         try:
             if config.IGNORE_BACKGROUND_UPDATES and Path("database").exists():
                 shutil.rmtree("database")
-
-            load_translations()
             Path(DOWNLOADS_DIR).mkdir(parents=True, exist_ok=True)
             Path("database/photos").mkdir(parents=True, exist_ok=True)
         except Exception as e:
