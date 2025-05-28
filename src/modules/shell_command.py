@@ -42,13 +42,12 @@ async def shellrunner(message: types.Message) -> types.Ok | types.Error | types.
     if len(text) <= 1:
         reply = await message.reply_text("Usage: /sh &lt cmd &gt")
         if isinstance(reply, types.Error):
-           LOGGER.warning()
+           LOGGER.warning(reply.message)
         return types.Ok()
 
     command = text[1]
-
-    # Security check - prevent dangerous commands
     """
+    # Security check - prevent dangerous commands
     if any(blocked in command.lower() for blocked in [
         'rm -rf', 'sudo', 'dd ', 'mkfs', 'fdisk',
         ':(){:|:&};:', 'chmod 777', 'wget', 'curl'
