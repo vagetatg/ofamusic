@@ -47,7 +47,6 @@ class AioHttpClient:
         self._timeout = timeout
         self._download_timeout = download_timeout
         self._max_redirects = max_redirects
-
         self._session = aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(
                 total=timeout, connect=timeout, sock_connect=timeout, sock_read=timeout
@@ -129,11 +128,12 @@ class AioHttpClient:
     async def _get_error_message(response: aiohttp.ClientResponse, url: str) -> str:
         try:
             error_data = await response.json()
-            if isinstance(error_data, dict) and "error" in error_data:
-                return error_data["error"]
-            if isinstance(error_data, dict) and "message" in error_data:
-                return error_data["message"]
-        except:
+            if isinstance(error_data, dict):
+                if "error" in error_data:
+                    return error_data["error"]
+                if "message" in error_data:
+                    return error_data["message"]
+        except Exception:
             pass
 
         status_messages = {
@@ -214,10 +214,3 @@ class AioHttpClient:
 
     async def __aexit__(self, *args):
         await self.close()
-
-    def __del__(self):
-        try:
-            if self._session and not self._session.closed:
-                asyncio.create_task(self.close())
-        except RuntimeError:
-            pass

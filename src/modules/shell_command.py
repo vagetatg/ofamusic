@@ -22,27 +22,21 @@ async def run_shell_command(cmd: str, timeout: int = 60) -> tuple[str, str, int]
     )
 
     try:
-        stdout, stderr = await asyncio.wait_for(
-            process.communicate(),
-            timeout=timeout
-        )
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=timeout)
     except asyncio.TimeoutError:
         process.kill()
         await process.wait()
         return "", f"Command timed out after {timeout} seconds", -1
 
-    return (
-        stdout.decode().strip(),
-        stderr.decode().strip(),
-        process.returncode
-    )
+    return (stdout.decode().strip(), stderr.decode().strip(), process.returncode)
+
 
 async def shellrunner(message: types.Message) -> types.Ok | types.Error | types.Message:
     text = message.text.split(None, 1)
     if len(text) <= 1:
         reply = await message.reply_text("Usage: /sh &lt cmd &gt")
         if isinstance(reply, types.Error):
-           LOGGER.warning(reply.message)
+            LOGGER.warning(reply.message)
         return types.Ok()
 
     command = text[1]
@@ -86,29 +80,30 @@ async def shellrunner(message: types.Message) -> types.Ok | types.Error | types.
         if not output.strip():
             output = "<b>📭 No output was returned</b>"
 
-        # Handle large output
-        if len(output) > 2000:
-            filename = f"database/{uuid.uuid4().hex}.txt"
-            with open(filename, "w", encoding="utf-8") as file:
-                file.write(output)
-            reply = await message.reply_document(
-                document=types.InputFileLocal(filename),
-                caption="📁 Output too large, sending as file:",
-                disable_notification=True,
-                parse_mode="html",
-            )
-            if isinstance(reply, types.Error):
-                LOGGER.warning(reply.message)
-
-            if os.path.exists(filename):
-                os.remove(filename)
-
-            return types.Ok()
-        else:
+        if len(output) <= 2000:
             return await message.reply_text(str(output), parse_mode="html")
 
+        filename = f"database/{uuid.uuid4().hex}.txt"
+        with open(filename, "w", encoding="utf-8") as file:
+            file.write(output)
+        reply = await message.reply_document(
+            document=types.InputFileLocal(filename),
+            caption="📁 Output too large, sending as file:",
+            disable_notification=True,
+            parse_mode="html",
+        )
+        if isinstance(reply, types.Error):
+            LOGGER.warning(reply.message)
+
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        return types.Ok()
     except Exception as e:
-        return await message.reply_text(f"⚠️ <b>Error:</b>\n<pre>{str(e)}</pre>", parse_mode="html")
+        return await message.reply_text(
+            f"⚠️ <b>Error:</b>\n<pre>{str(e)}</pre>", parse_mode="html"
+        )
+
 
 @Client.on_message(filters=Filter.command("sh"))
 async def shell_command(_: Client, m: types.Message) -> None:

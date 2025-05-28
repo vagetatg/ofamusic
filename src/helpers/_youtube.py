@@ -197,9 +197,9 @@ class YouTubeUtils:
 
     @staticmethod
     async def fetch_oembed_data(url: str) -> Optional[dict[str, Any]]:
-        client = AioHttpClient()
         oembed_url = f"https://www.youtube.com/oembed?url={url}&format=json"
-        data = await client.make_request(oembed_url, max_retries=1)
+        async with AioHttpClient() as client:
+            data = await client.make_request(oembed_url, max_retries=1)
         if data:
             video_id = url.split("v=")[1]
             return {
@@ -224,42 +224,43 @@ class YouTubeUtils:
         Download audio using the API.
         """
         from src import client
+        async with AioHttpClient() as c:
+            if public_url := await c.make_request(
+                    f"{API_URL}/yt?id={video_id}", max_retries=1
+            ):
+                dl_url = public_url.get("results")
+                if not dl_url:
+                    LOGGER.error("Response from API is empty")
+                    return None
 
-        if public_url := await AioHttpClient().make_request(
-            f"{API_URL}/yt?id={video_id}", max_retries=1
-        ):
-            dl_url = public_url.get("results")
-            if not dl_url:
-                LOGGER.error("Response from API is empty")
-                return None
+                if not re.fullmatch(r"https:\/\/t\.me\/([a-zA-Z0-9_]{5,})\/(\d+)", dl_url):
+                    async with AioHttpClient() as client:
+                        dl = await client.download_file(
+                            f"{API_URL}/stream?uuid={dl_url}"
+                        )
+                        return dl.file_path if dl.success else None
 
-            if not re.fullmatch(r"https:\/\/t\.me\/([a-zA-Z0-9_]{5,})\/(\d+)", dl_url):
-                dl = await AioHttpClient().download_file(
-                    f"{API_URL}/stream?uuid={dl_url}"
-                )
-                return dl.file_path if dl.success else None
+                info = await client.getMessageLinkInfo(dl_url)
+                if isinstance(info, types.Error) or info.message is None:
+                    LOGGER.error(
+                        f"❌ Could not resolve message from link: {dl_url}; {info}"
+                    )
+                    return None
 
-            info = await client.getMessageLinkInfo(dl_url)
-            if isinstance(info, types.Error) or info.message is None:
-                LOGGER.error(
-                    f"❌ Could not resolve message from link: {dl_url}; {info}"
-                )
-                return None
+                msg = await client.getMessage(info.chat_id, info.message.id)
+                if isinstance(msg, types.Error):
+                    LOGGER.error(
+                        f"❌ Failed to fetch message with ID {info.message.id}; {msg}"
+                    )
+                    return None
 
-            msg = await client.getMessage(info.chat_id, info.message.id)
-            if isinstance(msg, types.Error):
-                LOGGER.error(
-                    f"❌ Failed to fetch message with ID {info.message.id}; {msg}"
-                )
-                return None
-
-            file = await msg.download()
-            if isinstance(file, types.Error):
-                LOGGER.error(
-                    f"❌ Failed to download message with ID {info.message.id}; {file}"
-                )
-                return None
-            return Path(file.path)
+                file = await msg.download()
+                if isinstance(file, types.Error):
+                    LOGGER.error(
+                        f"❌ Failed to download message with ID {info.message.id}; {file}"
+                    )
+                    return None
+                return Path(file.path)
         return None
 
     @staticmethod
@@ -274,6 +275,11 @@ class YouTubeUtils:
             Path to downloaded file if successful, None otherwise
         """
         output_template = f"{DOWNLOADS_DIR}/%(id)s.%(ext)s"
+        format_selector = (
+            "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]"
+            if video
+            else "bestaudio[ext=m4a]/bestaudio[ext=mp4]/bestaudio/best"
+        )
         ytdlp_params = [
             "yt-dlp",
             "--no-warnings",
@@ -296,17 +302,10 @@ class YouTubeUtils:
             "--no-embed-subs",
             "--throttled-rate",
             "100K",
-            # "--abort-on-unavailable-fragment",
             "--retry-sleep",
             "1",
+            *["-f", format_selector],
         ]
-
-        format_selector = (
-            "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]"
-            if video
-            else "bestaudio[ext=m4a]/bestaudio[ext=mp4]/bestaudio/best"
-        )
-        ytdlp_params.extend(["-f", format_selector])
 
         # Proxy or cookies
         if PROXY:
@@ -369,7 +368,6 @@ class YouTubeData(MusicService):
         Args:
             query: The search query or YouTube URL to process
         """
-        self.client = AioHttpClient()
         self.query = YouTubeUtils.clean_query(query) if query else None
 
     def is_valid(self, url: Optional[str]) -> bool:

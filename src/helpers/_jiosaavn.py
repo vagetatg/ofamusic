@@ -54,7 +54,6 @@ class JiosaavnData(MusicService):
             query: Search query or URL to process
         """
         self.query = query
-        self.client = AioHttpClient(max_redirects=1)
         self._ydl_opts = {
             "quiet": True,
             "no_warnings": True,
@@ -115,7 +114,8 @@ class JiosaavnData(MusicService):
 
         try:
             url = self.API_SEARCH_ENDPOINT.format(query=self.query)
-            response = await self.client.make_request(url)
+            async with AioHttpClient(max_redirects=1) as client:
+                response = await client.make_request(url)
             data = self._parse_search_response(response)
         except Exception as e:
             LOGGER.error("Search failed for '%s': %s", self.query, str(e))
@@ -220,10 +220,11 @@ class JiosaavnData(MusicService):
             return None
 
         download_path = Path(config.DOWNLOADS_DIR) / f"{track.tc}.m4a"
-        dl: DownloadResult = await self.client.download_file(
-            track.cdnurl, download_path
-        )
-        return dl.file_path if dl.success else None
+        async with AioHttpClient(max_redirects=1) as client:
+            dl: DownloadResult = await client.download_file(
+                track.cdnurl, download_path
+            )
+            return dl.file_path if dl.success else None
 
     @staticmethod
     def format_jiosaavn_url(name_and_id: str) -> str:
