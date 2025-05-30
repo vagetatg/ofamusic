@@ -155,7 +155,7 @@ class ApiData(MusicService):
                 LOGGER.error("No download URL available for track %s", track.tc)
                 return None
 
-            download_path = Path(config.DOWNLOADS_DIR) / f"{track.tc}.mp3"
+            download_path = config.DOWNLOADS_DIR / f"{track.tc}.mp3"
             result = await self.client.download_file(track.cdnurl, download_path)
             if not result.success:
                 LOGGER.error("Download failed for track %s", track.tc)

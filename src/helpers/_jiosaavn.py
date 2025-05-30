@@ -218,8 +218,10 @@ class JiosaavnData(MusicService):
         if not track or not track.cdnurl:
             return None
 
-        download_path = Path(config.DOWNLOADS_DIR) / f"{track.tc}.m4a"
-        dl: DownloadResult = await HttpxClient(max_redirects=1).download_file(track.cdnurl, download_path)
+        download_path = config.DOWNLOADS_DIR / f"{track.tc}.m4a"
+        dl: DownloadResult = await HttpxClient(max_redirects=1).download_file(
+            track.cdnurl, download_path
+        )
         return dl.file_path if dl.success else None
 
     @staticmethod

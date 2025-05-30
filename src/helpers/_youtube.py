@@ -218,13 +218,18 @@ class YouTubeUtils:
         return None
 
     @staticmethod
-    async def download_with_api(video_id: str, is_video: bool = False) -> Union[None, Path]:
+    async def download_with_api(
+        video_id: str, is_video: bool = False
+    ) -> Union[None, Path]:
         """
         Download audio using the API.
         """
         from src import client
+
         httpx = HttpxClient()
-        if public_url := await httpx.make_request(f"{API_URL}/yt?id={video_id}&video={is_video}"):
+        if public_url := await httpx.make_request(
+            f"{API_URL}/yt?id={video_id}&video={is_video}"
+        ):
             dl_url = public_url.get("results")
             if not dl_url:
                 LOGGER.error("Response from API is empty")
@@ -243,12 +248,16 @@ class YouTubeUtils:
 
             msg = await client.getMessage(info.chat_id, info.message.id)
             if isinstance(msg, types.Error):
-                LOGGER.error(f"❌ Failed to fetch message with ID {info.message.id}; {msg}")
+                LOGGER.error(
+                    f"❌ Failed to fetch message with ID {info.message.id}; {msg}"
+                )
                 return None
 
             file = await msg.download()
             if isinstance(file, types.Error):
-                LOGGER.error(f"❌ Failed to download message with ID {info.message.id}; {file}")
+                LOGGER.error(
+                    f"❌ Failed to download message with ID {info.message.id}; {file}"
+                )
                 return None
             return Path(file.path)
         return None
@@ -264,7 +273,7 @@ class YouTubeUtils:
         Returns:
             Path to downloaded file if successful, None otherwise
         """
-        output_template = f"{DOWNLOADS_DIR}/%(id)s.%(ext)s"
+        output_template = f"{str(DOWNLOADS_DIR)}/%(id)s.%(ext)s"
         format_selector = (
             "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]"
             if video
