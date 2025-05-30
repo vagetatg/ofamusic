@@ -844,17 +844,12 @@ class Call:
 
 
 async def start_clients() -> None:
-    """Initialize all client sessions."""
+    """Initialize the client session."""
     try:
-        await asyncio.gather(
-            *[
-                call.start_client(config.API_ID, config.API_HASH, session_str)
-                for session_str in config.SESSION_STRINGS
-            ]
-        )
-        LOGGER.info("✅ All client sessions started successfully")
+        await call.start_client(config.API_ID, config.API_HASH)
+        LOGGER.info("✅ Client session started successfully")
     except Exception as exc:
-        LOGGER.critical("Failed to start clients: %s", exc, exc_info=True)
+        LOGGER.critical("Failed to start client: %s", exc, exc_info=True)
         raise SystemExit(1) from exc
 
 

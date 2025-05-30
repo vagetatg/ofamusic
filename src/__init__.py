@@ -73,9 +73,6 @@ class Telegram(Client):
         if not isinstance(config.MONGO_URI, str):
             raise ValueError("MONGO_URI must be a string")
 
-        if not config.SESSION_STRINGS:
-            raise ValueError("No STRING session provided")
-
         try:
             if config.IGNORE_BACKGROUND_UPDATES and Path("database").exists():
                 shutil.rmtree("database")

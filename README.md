@@ -86,7 +86,7 @@ downloads.
 - **Full Playback Controls** - Skip, Pause, Resume, End, Mute, Unmute, Volume, Loop, Seek.
 - **Group Voice Chats** - Supports Telegram **group voice chats** (requires admin permissions).
 - **Optimized Performance** - Fully **async**, efficient, and lightweight.
-- **Easy Deployment** - Pre-configured **Docker** setup.
+- **Easy Deployment** - Pre-configured **Railway** setup.
 - **Multi-Language Support** - Available in English, Hindi, Spanish, Arabic, and more. Easily extendable with your own translations.
 - **Open-Source & Free** - Built from scratch using **[PyTdBot](https://github.com/pytdbot/client)** & **[PyTgCalls](https://github.com/pytgcalls/pytgcalls)**.
   > 💡 Prefer using Pyrogram instead of PyTdBot? Check out
@@ -177,85 +177,59 @@ tgmusicbot v1.2.1
 </details>
 
 <details>
-
-<summary><strong>📌 Docker Installation (Recommended) (Click to expand)</strong></summary>
-
-### 🐳 Prerequisites
-1. Install Docker:
-   - [Linux](https://docs.docker.com/engine/install/)
-   - [Windows/Mac](https://docs.docker.com/desktop/install/)
+<summary><strong>📌 Railway Deployment (Recommended) (Click to expand)</strong></summary>
 
 ### 🚀 Quick Setup
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/AshokShau/TgMusicBot.git && cd TgMusicBot
-   ```
+1. Fork this repository
+2. Go to [Railway](https://railway.app)
+3. Create a new project
+4. Choose "Deploy from GitHub repo"
+5. Select your forked repository
+6. Add the following environment variables:
+   - `API_ID` - Get from [my.telegram.org](https://my.telegram.org/apps)
+   - `API_HASH` - Get from [my.telegram.org](https://my.telegram.org/apps)
+   - `TOKEN` - Get from [@BotFather](https://t.me/BotFather)
+   - `MONGO_URI` - Get from [MongoDB Cloud](https://cloud.mongodb.com)
+   - `OWNER_ID` - Your Telegram User ID
+   - Other optional variables as needed
 
 ### 🔧 Configuration
-1. Prepare environment file:
-   ```sh
-   cp sample.env .env
-   ```
+The following environment variables are available:
 
-2. Edit configuration (choose one method):
-   - **Beginner-friendly (nano)**:
-     ```sh
-     nano .env
-     ```
-     - Edit values
-     - Save: `Ctrl+O` → Enter → `Ctrl+X`
+#### Required Variables
+- `API_ID` - Telegram API ID
+- `API_HASH` - Telegram API Hash
+- `TOKEN` - Bot Token
+- `MONGO_URI` - MongoDB Connection URI
+- `OWNER_ID` - Your Telegram User ID
 
-   - **Advanced (vim)**:
-     ```sh
-     vi .env
-     ```
-     - Press `i` to edit
-     - Save: `Esc` → `:wq` → Enter
-
-### 🏗️ Build & Run
-1. Build Docker image:
-   ```sh
-   docker build -t tgmusicbot .
-   ```
-
-2. Run container (auto-restarts on crash/reboot):
-   ```sh
-   docker run -d \
-     --name tgmusicbot \
-     --env-file .env \
-     --restart unless-stopped \
-     tgmusicbot
-   ```
+#### Optional Variables
+- `API_URL` - API URL for unlimited downloads
+- `API_KEY` - API Key for unlimited downloads
+- `PROXY` - Proxy URL for yt-dlp
+- `DEFAULT_SERVICE` - Default search platform (youtube, spotify, jiosaavn)
+- `DOWNLOADS_DIR` - Directory for downloads
+- `SUPPORT_GROUP` - Support Group Link
+- `SUPPORT_CHANNEL` - Support Channel Link
+- `IGNORE_BACKGROUND_UPDATES` - Ignore background updates
+- `LOGGER_ID` - Log Group ID
+- `AUTO_LEAVE` - Auto leave chats
+- `MIN_MEMBER_COUNT` - Minimum member count
+- `DEVS` - Developer IDs
+- `COOKIES_URL` - Cookie URLs
 
 ### 🔍 Monitoring
-1. Check logs:
-   ```sh
-   docker logs -f tgmusicbot
-   ```
-   (Exit with `Ctrl+C`)
+- Railway provides built-in monitoring and logs
+- Check the "Deployments" tab for deployment status
+- View logs in the "Logs" tab
 
-### ⚙️ Management Commands
-- **Stop container**:
-  ```sh
-  docker stop tgmusicbot
-  ```
-
-- **Start container**:
-  ```sh
-  docker start tgmusicbot
-  ```
-
-- **Update the bot**:
-  ```sh
-  docker stop tgmusicbot
-  docker rm tgmusicbot
-  git pull origin master
-  docker build -t tgmusicbot .
-  docker run -d --name tgmusicbot --env-file .env --restart unless-stopped tgmusicbot
-  ```
+### ⚙️ Management
+- Automatic deployments on push to main branch
+- Manual deployments available
+- Easy rollback to previous versions
+- Built-in health checks
 
 </details>
-
 
 <details>
 <summary><strong>📌 Step-by-Step Installation Guide (Click to Expand)</strong></summary>
@@ -337,74 +311,6 @@ tmux attach -t musicbot
 # Kill with Ctrl+C
 tgmusic
 ```
-
-</details>
-
-<details>
-  <summary><strong>Deploy on Heroku, Railway<small>(Click to expand)</small></strong></summary>
-
-  <br/>
-
-  <table align="center">
-    <tr>
-      <td align="center">
-        <a href="https://heroku.com/deploy?template=https://github.com/AshokShau/TgMusicBot">
-          <img src="https://img.shields.io/badge/Deploy%20on%20Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white" width="220" height="38.45" alt="Deploy on Heroku">
-        </a>
-      </td>
-      <td align="center">
-        <a href="https://railway.com/template/-APViE?referralCode=ItGdhZ">
-          <img src="https://img.shields.io/badge/Deploy%20on%20Railway-000000?style=for-the-badge&logo=railway&logoColor=white" width="220" height="38.45" alt="Deploy on Railway">
-        </a>
-      </td>
-    </tr>
-  </table>
-
-</details>
-
----
-
-## **Configuration**
-
-<details>
-<summary><strong>📌 Environment Variables (<small>Click to expand</small>)</strong></summary>
-
-### 🔑 Required Variables
-
-- **API_ID** – Get from [my.telegram.org](https://my.telegram.org/apps)
-- **API_HASH** – Get from [my.telegram.org](https://my.telegram.org/apps)
-- **TOKEN** – Get from [@BotFather](https://t.me/BotFather)
-
-### 🔗 String Sessions
-
-- **STRING1** - Pyrogram String Session, STRING2 ... STRING10
-
-> Get from [@StringFatherBot](https://t.me/StringFatherBot)
-
-### 🛠️ Additional Configuration
-
-- **OWNER_ID** – Your Telegram User ID
-- **MONGO_URI** – Get from [MongoDB Cloud](https://cloud.mongodb.com)
-- **API_URL** – Get from [@FallenApiBot](https://t.me/FallenApiBot) (API for unlimited downloads)
-- **API_KEY** – Required for API_URL
-- **DOWNLOADS_DIR** – Directory for downloads and TDLib database
-- **SUPPORT_GROUP** – Support Group Link
-- **SUPPORT_CHANNEL** – Support Channel Link
-- **IGNORE_BACKGROUND_UPDATES** – Ignore background updates
-- **LOGGER_ID** – Log Group ID
-- **AUTO_LEAVE** – Leave all chats for all userbot clients.
-- **MIN_MEMBER_COUNT** – Minimum number of members required for the bot to stay in a group.
-
-### 🎵 Music Download Options
-
-- **PROXY** – Optional; Proxy URL for yt-dlp
-- **DEFAULT_SERVICE** – Default search platform (Options: `youtube`, `spotify`, `jiosaavn`)
-- **DOWNLOADS_DIR** – Directory for downloads and TDLib database
-
-### 🍪 Cookies
-
-- **COOKIES_URL** – URLs for downloading cookies (More
-  info [here](https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md))
 
 </details>
 
