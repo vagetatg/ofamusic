@@ -113,17 +113,17 @@ tgmusicbot v1.2.1
 ├── pillow v11.2.1
 ├── psutil v7.0.0
 ├── py-tgcalls v2.2.0
-│   ├── aiohttp v3.11.18
+│   ├── aiohttp v3.12.6
 │   │   ├── aiohappyeyeballs v2.6.1
 │   │   ├── aiosignal v1.3.2
 │   │   │   └── frozenlist v1.6.0
 │   │   ├── attrs v25.3.0
 │   │   ├── frozenlist v1.6.0
-│   │   ├── multidict v6.4.3
+│   │   ├── multidict v6.4.4
 │   │   ├── propcache v0.3.1
 │   │   └── yarl v1.20.0
 │   │       ├── idna v3.10
-│   │       ├── multidict v6.4.3
+│   │       ├── multidict v6.4.4
 │   │       └── propcache v0.3.1
 │   ├── deprecation v2.1.0
 │   │   └── packaging v25.0
@@ -145,7 +145,7 @@ tgmusicbot v1.2.1
 │   ├── pydantic-core v2.33.2
 │   │   └── typing-extensions v4.13.2
 │   ├── typing-extensions v4.13.2
-│   └── typing-inspection v0.4.0
+│   └── typing-inspection v0.4.1
 │       └── typing-extensions v4.13.2
 ├── pymongo v4.13.0
 │   └── dnspython v2.7.0
@@ -154,10 +154,10 @@ tgmusicbot v1.2.1
 │   │   ├── aiormq v6.8.1
 │   │   │   ├── pamqp v3.3.0
 │   │   │   └── yarl v1.20.0 (*)
-│   │   ├── exceptiongroup v1.2.2
+│   │   ├── exceptiongroup v1.3.0
 │   │   └── yarl v1.20.0 (*)
-│   └── deepdiff v8.4.2
-│       └── orderly-set v5.4.0
+│   └── deepdiff v8.5.0
+│       └── orderly-set v5.4.1
 ├── pytgcrypto v1.2.11
 ├── python-dotenv v1.1.0
 ├── pytz v2025.2
@@ -165,12 +165,12 @@ tgmusicbot v1.2.1
 ├── ujson v5.10.0
 ├── yt-dlp v2025.5.22
 ├── black v25.1.0 (extra: dev)
-│   ├── click v8.1.8
+│   ├── click v8.2.1
 │   ├── mypy-extensions v1.1.0
 │   ├── packaging v25.0
 │   ├── pathspec v0.12.1
-│   └── platformdirs v4.3.7
-├── ruff v0.11.7 (extra: dev)
+│   └── platformdirs v4.3.8
+├── ruff v0.11.12 (extra: dev)
 └── setuptools v78.1.1 (extra: dev)
 ```
 
