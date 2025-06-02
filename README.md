@@ -109,10 +109,10 @@ tgmusicbot v1.2.1
 │   ├── pyaes v1.6.1
 │   └── pysocks v1.7.1
 ├── meval v2.5
-├── ntgcalls v2.0.0
+├── ntgcalls v2.0.1
 ├── pillow v11.2.1
 ├── psutil v7.0.0
-├── py-tgcalls v2.2.0
+├── py-tgcalls v2.2.1
 │   ├── aiohttp v3.12.6
 │   │   ├── aiohappyeyeballs v2.6.1
 │   │   ├── aiosignal v1.3.2
@@ -127,7 +127,7 @@ tgmusicbot v1.2.1
 │   │       └── propcache v0.3.1
 │   ├── deprecation v2.1.0
 │   │   └── packaging v25.0
-│   └── ntgcalls v2.0.0
+│   └── ntgcalls v2.0.1
 ├── py-yt-search v0.3
 │   ├── httpx v0.28.1
 │   │   ├── anyio v4.9.0
@@ -341,7 +341,7 @@ tgmusic
 </details>
 
 <details>
-  <summary><strong>Deploy on Heroku, Railway<small>(Click to expand)</small></strong></summary>
+  <summary><strong>Deploy on Heroku<small>(Click to expand)</small></strong></summary>
 
   <br/>
 
@@ -350,11 +350,6 @@ tgmusic
       <td align="center">
         <a href="https://heroku.com/deploy?template=https://github.com/AshokShau/TgMusicBot">
           <img src="https://img.shields.io/badge/Deploy%20on%20Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white" width="220" height="38.45" alt="Deploy on Heroku">
-        </a>
-      </td>
-      <td align="center">
-        <a href="https://railway.com/template/-APViE?referralCode=ItGdhZ">
-          <img src="https://img.shields.io/badge/Deploy%20on%20Railway-000000?style=for-the-badge&logo=railway&logoColor=white" width="220" height="38.45" alt="Deploy on Railway">
         </a>
       </td>
     </tr>
