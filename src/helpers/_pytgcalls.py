@@ -107,7 +107,7 @@ class Call:
         if isinstance(client, types.Error):
             return client
 
-        ub : PyroClient = client.mtproto_client
+        ub: PyroClient = client.mtproto_client
         if ub is None or not hasattr(ub, "me") or ub.me is None:
             return types.Error(
                 code=500,
@@ -118,8 +118,7 @@ class Call:
         if ub.me.is_bot:
             return types.Error(
                 code=500,
-                message="Client session is a bot account. "
-                "Please report this issue.",
+                message="Client session is a bot account. " "Please report this issue.",
             )
         return ub
 
@@ -474,7 +473,7 @@ class Call:
                 exceptions.NotInCallError,
                 errors.GroupCallInvalid,
                 exceptions.NoActiveGroupCall,
-                ConnectionNotFound
+                ConnectionNotFound,
             ):
                 pass  # Already not in call
 
@@ -602,9 +601,7 @@ class Call:
             await client.mute(chat_id)
             return types.Ok()
         except (exceptions.NotInCallError, ConnectionNotFound):
-            return types.Error(
-                code=400, message="My Assistant is not in a call"
-            )
+            return types.Error(code=400, message="My Assistant is not in a call")
         except Exception as e:
             LOGGER.error("Mute failed for chat %s: %s", chat_id, str(e), exc_info=True)
             return types.Error(code=500, message=f"Mute operation failed: {str(e)}")
@@ -626,9 +623,7 @@ class Call:
             await client.unmute(chat_id)
             return types.Ok()
         except (exceptions.NotInCallError, ConnectionNotFound):
-            return types.Error(
-                code=400, message="My Assistant is not in a call"
-            )
+            return types.Error(code=400, message="My Assistant is not in a call")
         except Exception as e:
             LOGGER.error(
                 "Unmute failed for chat %s: %s", chat_id, str(e), exc_info=True
@@ -652,9 +647,7 @@ class Call:
             await client.resume(chat_id)
             return types.Ok()
         except (exceptions.NotInCallError, ConnectionNotFound):
-            return types.Error(
-                code=400, message="My Assistant is not in a call"
-            )
+            return types.Error(code=400, message="My Assistant is not in a call")
         except Exception as e:
             LOGGER.error(
                 "Resume failed for chat %s: %s", chat_id, str(e), exc_info=True
