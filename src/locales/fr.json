@@ -1,5 +1,5 @@
 {
-  "authors": "AshokShau",
+  "authors": "Ubaynet",
   "PmStartText": "Salut {0}, 🥀\n\nBienvenue sur <b>{1}</b> !\nVersion : <b>v{2}</b>\n\nUn bot musical Telegram rapide, fiable et puissant, doté de fonctionnalités incroyables.\n\n<b>Plateformes prises en charge :</b> YouTube, Spotify, Apple Music et SoundCloud.",
   "StartText": "<b>Bonjour {0}, 🥀</b>\n\n<b>{1}</b> est maintenant actif et prêt à jouer de la musique ! 🔊\n\n───────────────\nBesoin d’aide ou des questions ?\nRejoignez notre <a href='{2}'>chat de support</a> — nous sommes là pour vous ! 💬",
   "UserCommands": "<b>Commandes disponibles pour les utilisateurs :</b>\n\n/start – Démarrer le bot.\n/play [nom de la chanson ou répondre à un audio] – Jouer de la musique en appel vocal.\n/vplay [nom de la vidéo ou répondre à une vidéo] – Jouer une vidéo en appel vocal.\n/privacy – Voir la politique de confidentialité.\n/lang – Changer la langue du bot.",

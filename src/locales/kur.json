@@ -1,5 +1,5 @@
 {
-  "authors": "AshokShau",
+  "authors": "Ubaynet",
   "PmStartText": "Slav {0}, 🥀\n\nBi xêr hatî <b>{1}</b>!\nGuhertoyê: <b>v{2}</b>\n\nBoteke mûzîkê ya Telegramê bi xîzmetên herî baş, serkeftî û hêzdar.\n\n<b>Platformên Piştgirîkirî:</b> YouTube, Spotify, Apple Music û SoundCloud.",
   "StartText": "<b>Slav {0}, 🥀</b>\n\n<b>{1}</b> niha çalak e û amade ye ku mûzîk lê bide! 🔊\n\n───────────────\nHevalê alîkariya te hewce yê?\nBibê ku <a href='{2}'>Grûba Alîkariyê</a> teqez bike — em li vir in bo te! 💬",
   "UserCommands": "<b>Fermanên Bikarhêneran:</b>\n\n/start – Dest pêkirina botê.\n/play [navê stranê an bersiv bidin audio] – Lêdana mûzîkê di sesê de.\n/vplay [navê stranê an bersiv bidin video] – Lêdana vîdyo di sesê de.\n/privacy – Nîşandana siyaseta taybetmendiyê.\n/lang – Guhertina zimanê botê.",

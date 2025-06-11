@@ -31,7 +31,7 @@ class Telegram(Client):
             default_parse_mode="html",
             td_verbosity=2,
             td_log=types.LogStreamEmpty(),
-            plugins=types.plugins.Plugins(folder="src/modules"),
+            plugins=types.plugins.Plugins(folder="src/modules"), # Ensure this line exists
             files_directory="",
             database_encryption_key="",
             options={"ignore_background_updates": config.IGNORE_BACKGROUND_UPDATES},
@@ -86,3 +86,4 @@ class Telegram(Client):
 
 
 client: Telegram = Telegram()
+

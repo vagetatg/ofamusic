@@ -2,7 +2,7 @@
   "authors": "AshokShau",
   "PmStartText": "Hey {0}, 🥀\n\nWelcome to <b>{1}</b>!\nVersion: <b>v{2}</b>\n\nA fast, reliable and powerful Telegram music bot built with amazing features.\n\n<b>Supported Platforms:</b> YouTube, Spotify, Apple Music and SoundCloud.",
   "StartText": "<b>Hello {0}, 🥀</b>\n\n<b>{1}</b> is now active and ready to play music! 🔊\n\n───────────────\nNeed help or got questions?\nJoin our <a href='{2}'>Support Chat</a> — we're here for you! 💬",
-  "UserCommands": "<b>Available Commands for Users:</b>\n\n/start – Start the bot.\n/play [song name or reply to audio] – Play music in voice chat.\n/vplay [song name or reply to video] – Play video in voice chat.\n/privacy – View privacy policy.\n/lang – Change the bot's language.",
+  "UserCommands": "<b>Available Commands for Users:</b>\n\n/start – Start the bot.\n/play [song name or reply to audio] – Play music in voice chat.\n/vplay [song name or reply to video] – Play video in voice chat.\n/privacy – View privacy policy.\n/lang – Change the bot's language.\n/ask [question] - Ask a question to Gemini AI.",
   "AdminCommands": "<b>Available Commands for Admins:</b>\n\n/skip – Skip the current track.\n/pause – Pause the music.\n/resume – Resume playback.\n/end – Stop the stream.\n/remove [x] – Remove the xth song from the queue.\n/seek [seconds] – Seek to a specific time.\n/mute – Mute the stream.\n/unmute – Unmute the stream.\n/volume [1-200] – Adjust volume.\n/loop [1 to 10 or 0] – Loop the current song (0 to disable).\n/queue – Show the song queue.\n/clear – Clear the queue.\n/speed [0.5-4.0] – Adjust playback speed.\n/song [song name or reply to audio] – Download song from YouTube or Spotify.\n/setplaytype [0 or 1] – Set the default play type.",
   "ChatOwnerCommands": "<b>Chat Owner Commands:</b>\n\n/auth [reply] – Authorize a user to use admin commands.\n/unauth [reply] – Revoke a user's authorization.\n/authlist – Show the list of authorized users.\n/reload – Refresh the list of admins in the group.\n/buttons – Toggle playback buttons display.\n/thumb – Toggle thumbnail display.\n/autoend [on/off] – Automatically ends voice chats when no one is listening.\n/channelplay [off | reply to channel message] – Connect Group to a channel.",
   "BotDevsCommands": "<b>Bot Developer Commands:</b>\n\n/stats – Show bot usage statistics.\n/logger – Enable or disable logging.\n/broadcast [reply] – Broadcast a message to all users and chats.\n/activevc – Show currently active voice chats.\n/clearallassistants - clear ALL assistant associations.",
@@ -95,5 +95,9 @@
   "set_play_type_usage": "Usage: /setPlayType 0/1\n\n0 = Directly play the first search result.\n1 = Show a list of songs to choose from.",
   "invalid_play_type": "Invalid option! Please use: /setPlayType 0/1",
   "play_type_set": "✅ Play type set to {0}",
-  "no_channel": "❌ No channel found for this group."
+  "no_channel": "❌ No channel found for this group.",
+  "ask_usage": "Please ask a question after the /ask command. Example: /ask What is AI?",
+  "answer": "Answer from Gemini AI",
+  "gemini_no_response": "Sorry, I couldn't get a response from Gemini AI. Please try again.",
+  "gemini_error": "An error occurred while communicating with Gemini AI"
 }

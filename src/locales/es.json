@@ -1,5 +1,5 @@
 {
-  "authors": "AshokShau",
+  "authors": "Ubaynet",
   "PmStartText": "Hola {0}, 🥀\n\n¡Bienvenido a <b>{1}</b>!\nVersión: <b>v{2}</b>\n\nUn bot de música para Telegram rápido, confiable y potente con funciones increíbles.\n\n<b>Plataformas compatibles:</b> YouTube, Spotify, Apple Music y SoundCloud.",
   "StartText": "<b>Hola {0}, 🥀</b>\n\n<b>{1}</b> ahora está activo y listo para reproducir música. 🔊\n\n───────────────\n¿Necesitas ayuda o tienes preguntas?\nÚnete a nuestro <a href='{2}'>Chat de Soporte</a> — ¡estamos aquí para ayudarte! 💬",
   "UserCommands": "<b>Comandos disponibles para usuarios:</b>\n\n/start – Inicia el bot.\n/play [nombre de canción o responder a audio] – Reproduce música en el chat de voz.\n/vplay [nombre de video o responder a video] – Reproduce video en el chat de voz.\n/privacy – Ver la política de privacidad.\n/lang – Cambiar el idioma del bot.",
