@@ -1,0 +1,38 @@
+name: Update UV Lockfile
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'pyproject.toml'
+
+jobs:
+  update-lockfile:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install UV
+      run: pip install uv
+
+    - name: Update uv.lock
+      run: |
+        uv pip install -e .
+        uv pip compile --upgrade pyproject.toml -o uv.lock
+
+    - name: Commit updated lockfile
+      run: |
+        git config --global user.name "ashokshau"
+        git config --global user.email "114943948+AshokShau@users.noreply.github.com"
+        git add uv.lock
+        git commit -m "chore(deps): update uv.lock" || echo "No changes to commit"
+        git push
