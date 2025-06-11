@@ -3,15 +3,24 @@ name = "tgmusicbot"
 version = "1.2.1"
 description = "Telegram Music Bot with full playback support using PyTdBot and PyTgCalls"
 readme = "README.md"
-license = {file = "LICENSE"}
 requires-python = ">=3.10"
 authors = [
-    { name = "Ashok Shau", email = "ashokshau@t.me" }
+    { name = "Ashok Shau", email = "ashokshau@t.me" },
 ]
 keywords = [
-    "telegram", "music", "bot", "async", "tdlib",
-    "pytgcalls", "voicechat", "spotify", "ytmusic", "opensource",
-    "pytdbot", "py-tgcalls", "yt-dlp"
+    "telegram",
+    "music",
+    "bot",
+    "async",
+    "tdlib",
+    "pytgcalls",
+    "voicechat",
+    "spotify",
+    "ytmusic",
+    "opensource",
+    "pytdbot",
+    "py-tgcalls",
+    "yt-dlp",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -19,7 +28,7 @@ classifiers = [
     "Topic :: Communications :: Chat :: Telegram",
     "Topic :: Multimedia :: Sound/Audio :: Players",
     "Environment :: Console",
-    "Framework :: AsyncIO"
+    "Framework :: AsyncIO",
 ]
 dependencies = [
     "aiofiles~=24.1.0",
@@ -27,7 +36,7 @@ dependencies = [
     "cachetools~=6.0.0",
     "kurigram~=2.2.4",
     "meval~=2.5",
-    "ntgcalls~=2.0.1",
+    "ntgcalls~=2.0.2",
     "pillow~=11.2.1",
     "psutil~=7.0.0",
     "py-yt-search~=0.3",
@@ -39,24 +48,33 @@ dependencies = [
     "python-dotenv~=1.1.0",
     "pytdbot~=0.9.3",
     "pytz~=2025.2",
-    "tdjson~=1.8.49",
+    "tdjson~=1.8.50",
     "ujson~=5.10.0",
-    "yt-dlp~=2025.5.22",
+    "yt-dlp~=2025.6.9",
 ]
 
+[project.license]
+file = "LICENSE"
+
 [project.optional-dependencies]
-dev = ["setuptools~=80.9.0", "black", "ruff"]
+dev = [
+    "setuptools~=80.9.0",
+    "black",
+    "ruff",
+]
 
 [project.scripts]
 tgmusic = "src.__main__:main"
 
 [project.urls]
-"Homepage" = "https://github.com/AshokShau/tgmusicbot"
-"Source" = "https://github.com/AshokShau/tgmusicbot"
+Homepage = "https://github.com/AshokShau/tgmusicbot"
+Source = "https://github.com/AshokShau/tgmusicbot"
 "Issue Tracker" = "https://github.com/AshokShau/tgmusicbot/issues"
 
 [tool.uv]
 package = true
 
 [tool.setuptools]
-packages = ["src"]
+packages = [
+    "src",
+]
