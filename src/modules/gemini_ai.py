@@ -20,26 +20,22 @@ async def ask_gemini(c: Client, message: types.Message) -> None:
     chat_id = message.chat_id
     lang = await c.db.get_lang(chat_id)
 
-    # Extract the user's question from the command arguments
     question = extract_argument(message.text)
     if not question:
         await message.reply_text(get_string("ask_usage", lang))
         return
 
-    # Send a typing indicator while processing
     await c.sendChatAction(chat_id, types.ChatActionTyping())
 
-    # Prepare chat history for Gemini API call
     chat_history = []
     chat_history.append({"role": "user", "parts": [{"text": question}]})
     payload = {"contents": chat_history}
 
     # Gemini API endpoint (assuming gemini-2.0-flash by default)
-    api_key = "" # Leave as is, Canvas will inject the key
+    api_key = "" 
     api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
 
     try:
-        # Make the API call
         response = await asyncio.to_thread(
             lambda: __import__('requests').post(
                 api_url,
@@ -48,7 +44,6 @@ async def ask_gemini(c: Client, message: types.Message) -> None:
             ).json()
         )
 
-        # Check for candidates and content
         if response.get("candidates") and response["candidates"][0].get("content") and \
            response["candidates"][0]["content"].get("parts") and \
            response["candidates"][0]["content"]["parts"][0].get("text"):
