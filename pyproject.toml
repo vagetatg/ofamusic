@@ -27,14 +27,14 @@ dependencies = [
     "cachetools~=6.0.0",
     "kurigram~=2.2.4",
     "meval~=2.5",
-    "ntgcalls~=2.0.0",
+    "ntgcalls~=2.0.1",
     "pillow~=11.2.1",
     "psutil~=7.0.0",
     "py-yt-search~=0.3",
     "pycryptodome~=3.23.0",
     "pydantic~=2.11.5",
     "pymongo~=4.13.0",
-    "py-tgcalls~=2.2.0",
+    "py-tgcalls~=2.2.1",
     "pytgcrypto~=1.2.11",
     "python-dotenv~=1.1.0",
     "pytdbot~=0.9.3",
@@ -45,7 +45,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["setuptools~=78.1.1", "black", "ruff"]
+dev = ["setuptools~=80.9.0", "black", "ruff"]
 
 [project.scripts]
 tgmusic = "src.__main__:main"
