@@ -45,7 +45,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["setuptools~=78.1.1", "black", "ruff"]
+dev = ["setuptools~=80.9.0", "black", "ruff"]
 
 [project.scripts]
 tgmusic = "src.__main__:main"
