@@ -59,7 +59,7 @@ def get_session_strings(prefix: str = "STRING", count: int = 10) -> list[str]:
     Returns:
         list[str]: A list of valid session strings.
     """
-    return [s for i in range(1, count + 1) if (s := os.getenv(f"{prefix}{i}"))]
+    return [s.strip() for i in range(1, count + 1) if (s := os.getenv(f"{prefix}{i}"))]
 
 
 def process_cookie_urls(value: Optional[str]) -> list[str]:

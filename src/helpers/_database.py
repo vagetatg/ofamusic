@@ -34,7 +34,7 @@ class Database:
             raise ConnectionFailure("Database connection failed : Server not available")
         except Exception as e:
             LOGGER.error("Database connection failed: %s", e)
-            raise RuntimeError("Database connection failed." + str(e))
+            raise RuntimeError("Database connection failed." + str(e)) from e
 
     async def get_chat(self, chat_id: int) -> Optional[dict]:
         if chat_id in self.chat_cache:

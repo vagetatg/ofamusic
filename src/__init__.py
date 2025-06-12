@@ -88,7 +88,7 @@ class Telegram(Client):
             DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
             Path("database/photos").mkdir(parents=True, exist_ok=True)
         except Exception as e:
-            raise RuntimeError(f"Failed to create required directories: {e}")
+            raise RuntimeError(f"Failed to create required directories: {e}") from e
 
 
 client: Telegram = Telegram()
