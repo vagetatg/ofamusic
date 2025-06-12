@@ -52,6 +52,9 @@ API_URL: Optional[str] = getenv("API_URL", "https://tgmusic.fallenapi.fun")
 API_KEY: Optional[str] = getenv("API_KEY")
 PROXY: Optional[str] = getenv("PROXY")
 
+#Gemini API Key
+GEMINI_API_KEY: Optional[str] = getenv("GEMINI_API_KEY")
+
 DEFAULT_SERVICE: str = getenv("DEFAULT_SERVICE", "youtube").lower()
 DOWNLOADS_DIR: Path = Path(getenv("DOWNLOADS_DIR", "database/music"))
 SUPPORT_GROUP: str = getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
@@ -78,3 +81,4 @@ devs_env: Optional[str] = getenv("DEVS")
 DEVS: list[int] = list(map(int, devs_env.split())) if devs_env else []
 if OWNER_ID and OWNER_ID not in DEVS:
     DEVS.append(OWNER_ID)
+

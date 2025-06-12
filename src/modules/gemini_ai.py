@@ -7,7 +7,7 @@ import json
 
 from pytdbot import Client, types
 
-from src.config import OWNER_ID
+from src.config import OWNER_ID, GEMINI_API_KEY
 from src.helpers import get_string
 from src.modules.utils import Filter
 from src.modules.utils.play_helpers import extract_argument
@@ -33,7 +33,7 @@ async def ask_gemini(c: Client, message: types.Message) -> None:
 
     # Gemini API endpoint (assuming gemini-2.0-flash by default)
     api_key = "" 
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
     try:
         response = await asyncio.to_thread(
