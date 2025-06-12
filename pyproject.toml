@@ -33,7 +33,7 @@ classifiers = [
 dependencies = [
     "aiofiles~=24.1.0",
     "APScheduler~=3.11.0",
-    "cachetools~=6.0.0",
+    "cachetools~=5.3.2", # Diperbarui dari "~=6.0.0" ke "~=5.3.2"
     "kurigram~=2.2.4",
     "meval~=2.5",
     "ntgcalls~=2.0.2",
@@ -51,6 +51,8 @@ dependencies = [
     "tdjson~=1.8.50",
     "ujson~=5.10.0",
     "yt-dlp~=2025.6.9",
+    "google-generativeai",
+    "requests",
 ]
 
 [project.license]

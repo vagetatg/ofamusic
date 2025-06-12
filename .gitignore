@@ -2,6 +2,7 @@ __pycache__/
 /.idea
 /database
 .env
+coba.env
 /cookies
 /tgmusicbot.egg-info
 *.log
