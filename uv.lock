@@ -459,15 +459,15 @@ wheels = [
 
 [[package]]
 name = "kurigram"
-version = "2.2.4"
+version = "2.2.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pyaes" },
     { name = "pysocks" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/39/e941d49768cb1574aca747d670f4a30a6830273155d17edca56acb570209/kurigram-2.2.4.tar.gz", hash = "sha256:3d00716c969d83e1bd40df9b158707ced3dc15ea082d3df97e1215e1f07dd7c2", size = 505860, upload-time = "2025-05-28T08:06:55.884Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7e/b6/f6bacbdf59181901ef4056506e93363a32b60ccc8b1d637f9be69cfd041f/kurigram-2.2.6.tar.gz", hash = "sha256:15b64199a076c12b2c73915f66fb580294ea4ca6c1cba05f33e19a364a569d3d", size = 484918, upload-time = "2025-06-12T21:26:48.422Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/1d/17e659f118296eb991278fae716f186e702829a44b3dddcb2c10dac8add7/kurigram-2.2.4-py3-none-any.whl", hash = "sha256:c6bbe02075cfa8f27660698c3ebcc5ecfa4801fdc8034a50c14e67e5165739fd", size = 4880764, upload-time = "2025-05-28T08:06:54.445Z" },
+    { url = "https://files.pythonhosted.org/packages/15/88/d7cf7236d222ff92faabe6d581d0e069765cae7bfc7be004c4c6ff3a79ae/kurigram-2.2.6-py3-none-any.whl", hash = "sha256:0fd245a7117e2b6479149995857c81b93cb19979ddadcf3fc8063dca05465847", size = 4885322, upload-time = "2025-06-12T21:26:46.649Z" },
 ]
 
 [[package]]
@@ -901,7 +901,7 @@ wheels = [
 
 [[package]]
 name = "pydantic"
-version = "2.11.5"
+version = "2.11.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-types" },
@@ -909,9 +909,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f0/86/8ce9040065e8f924d642c58e4a344e33163a07f6b57f836d0d734e0ad3fb/pydantic-2.11.5.tar.gz", hash = "sha256:7f853db3d0ce78ce8bbb148c401c2cdd6431b3473c0cdff2755c7690952a7b7a", size = 787102, upload-time = "2025-05-22T21:18:08.761Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ef/8f/9af0f46acc943b8c4592d06523f26a150acf6e6e37e8bd5f0ace925e996d/pydantic-2.11.6.tar.gz", hash = "sha256:12b45cfb4af17e555d3c6283d0b55271865fb0b43cc16dd0d52749dc7abf70e7", size = 787868, upload-time = "2025-06-13T09:00:29.595Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b5/69/831ed22b38ff9b4b64b66569f0e5b7b97cf3638346eb95a2147fdb49ad5f/pydantic-2.11.5-py3-none-any.whl", hash = "sha256:f9c26ba06f9747749ca1e5c94d6a85cb84254577553c8785576fd38fa64dc0f7", size = 444229, upload-time = "2025-05-22T21:18:06.329Z" },
+    { url = "https://files.pythonhosted.org/packages/05/11/7912a9a194ee4ea96520740d1534bc31a03a4a59d62e1d7cac9461d3f379/pydantic-2.11.6-py3-none-any.whl", hash = "sha256:a24478d2be1b91b6d3bc9597439f69ed5e87f68ebd285d86f7c7932a084b72e7", size = 444718, upload-time = "2025-06-13T09:00:27.134Z" },
 ]
 
 [[package]]
@@ -1275,7 +1275,7 @@ requires-dist = [
     { name = "apscheduler", specifier = "~=3.11.0" },
     { name = "black", marker = "extra == 'dev'" },
     { name = "cachetools", specifier = "~=6.0.0" },
-    { name = "kurigram", specifier = "~=2.2.4" },
+    { name = "kurigram", specifier = "~=2.2.6" },
     { name = "meval", specifier = "~=2.5" },
     { name = "ntgcalls", specifier = "~=2.0.2" },
     { name = "pillow", specifier = "~=11.2.1" },
@@ -1283,7 +1283,7 @@ requires-dist = [
     { name = "py-tgcalls", specifier = "~=2.2.2" },
     { name = "py-yt-search", specifier = "~=0.3" },
     { name = "pycryptodome", specifier = "~=3.23.0" },
-    { name = "pydantic", specifier = "~=2.11.5" },
+    { name = "pydantic", specifier = "~=2.11.6" },
     { name = "pymongo", specifier = "~=4.13.1" },
     { name = "pytdbot", specifier = "~=0.9.4" },
     { name = "pytgcrypto", specifier = "~=1.2.11" },
