@@ -435,6 +435,7 @@ async def logs(c: Client, message: types.Message) -> None:
         await del_msg(message)
         return
 
+
     reply = await message.reply_document(
         document=types.InputFileLocal("bot.log"),
         disable_notification=True,

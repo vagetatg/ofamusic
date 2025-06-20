@@ -11,7 +11,7 @@ from pytdbot import Client, types
 
 from src import config
 from src.config import COOKIES_URL, DOWNLOADS_DIR
-from src.helpers import call, db, start_clients, save_all_cookies, load_translations
+from src.helpers import call, db, start_clients, save_all_cookies, i18n
 from src.modules.jobs import InactiveCallManager
 
 __version__ = "1.2.1"
@@ -42,7 +42,7 @@ class Telegram(Client):
 
     async def start(self) -> None:
         """Start the bot and all associated services."""
-        await load_translations()
+        await i18n.load_translations()
         await save_all_cookies(COOKIES_URL)
         await self.db.ping()
         await start_clients()

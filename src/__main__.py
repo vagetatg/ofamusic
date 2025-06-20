@@ -9,5 +9,6 @@ def main() -> None:
     client.logger.info("Starting....")
     client.run()
 
+
 if __name__ == "__main__":
     main()

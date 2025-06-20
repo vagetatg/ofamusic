@@ -7,7 +7,9 @@ import aiofiles
 import json
 import logging
 
+from functools import lru_cache
 from pathlib import Path
+from typing import Dict
 
 from pytdbot import types
 
@@ -29,60 +31,72 @@ LANG_NAMES = {
     "fa": "Persian",
 }
 
-langs = {}
 
+class LanguageSystem:
+    _instance = None
+    langs: Dict[str, Dict[str, str]] = {}
 
-async def load_translation(file_path: Path):
-    lang_code = file_path.stem
-    async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
-        langs[lang_code] = json.loads(await f.read())
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
-
-async def load_translations():
-    await asyncio.gather(
-        *[load_translation(f) for f in Path("src/locales").glob("*.json")]
-    )
-
-
-def get_string(key: str, lang: str = DEFAULT_LANG) -> str:
-    text = langs.get(lang, {}).get(key)
-    if text is not None:
-        return text
-
-    text = langs.get(DEFAULT_LANG, {}).get(key)
-    if text is not None:
-        logger.warning(
-            f"Missing key '{key}' in '{lang}', using fallback from '{DEFAULT_LANG}'."
+    async def load_translations(self, locale_dir: str = "src/locales"):
+        """Load all translation files"""
+        locale_path = Path(locale_dir)
+        await asyncio.gather(
+            *[self._load_lang_file(f) for f in locale_path.glob("*.json")]
         )
-        return text
-    logger.error(
-        f"Missing key '{key}' in both '{lang}' and default language '{DEFAULT_LANG}'."
-    )
-    return key
 
+    async def _load_lang_file(self, file_path: Path):
+        lang_code = file_path.stem
+        try:
+            async with aiofiles.open(file_path, "r", encoding="utf-8") as f:
+                self.langs[lang_code] = json.loads(await f.read())
+        except Exception as e:
+            logger.error(f"Failed to load {lang_code} translation: {e}")
 
-def generate_lang_buttons() -> types.ReplyMarkupInlineKeyboard:
-    buttons = []
-    row = []
+    @lru_cache(maxsize=1024)
+    def get_string(self, key: str, lang: str = DEFAULT_LANG, **kwargs) -> str:
+        """Optimized string lookup with caching"""
+        text = self.langs.get(lang, {}).get(key)
+        if text is not None:
+            return text.format(**kwargs) if kwargs else text
 
-    for lang_code, lang_name in sorted(LANG_NAMES.items()):
-        row.append(
-            types.InlineKeyboardButton(
-                text=lang_name,
-                type=types.InlineKeyboardButtonTypeCallback(
-                    f"lang_{lang_code}".encode()
-                ),
+        text = self.langs.get(DEFAULT_LANG, {}).get(key)
+        if text is not None:
+            logger.warning(f"Missing key '{key}' in '{lang}', using '{DEFAULT_LANG}'.")
+            return text.format(**kwargs) if kwargs else text
+
+        logger.error(f"Missing key '{key}' in both '{lang}' and '{DEFAULT_LANG}'.")
+        return key
+
+    @staticmethod
+    def generate_lang_buttons() -> types.ReplyMarkupInlineKeyboard:
+        """Generate language selection keyboard"""
+        buttons = []
+        row = []
+
+        for lang_code, lang_name in sorted(LANG_NAMES.items()):
+            row.append(
+                types.InlineKeyboardButton(
+                    text=lang_name,
+                    type=types.InlineKeyboardButtonTypeCallback(
+                        f"lang_{lang_code}".encode()
+                    ),
+                )
             )
-        )
 
-        if len(row) == 2:
+            if len(row) == 2:
+                buttons.append(row)
+                row = []
+
+        if row:
             buttons.append(row)
-            row = []
 
-    if row:
-        buttons.append(row)
-
-    return types.ReplyMarkupInlineKeyboard(buttons)
+        return types.ReplyMarkupInlineKeyboard(buttons)
 
 
-LangsButtons = generate_lang_buttons()
+# Initialize language system
+i18n = LanguageSystem()
+LangsButtons = i18n.generate_lang_buttons()
