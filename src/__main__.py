@@ -6,7 +6,7 @@ from src import client
 
 
 def main() -> None:
-    client.logger.info("Starting....")
+    client.logger.info("Starting TgMusicBot...")
     client.run()
 
 
