@@ -37,10 +37,10 @@ from src.modules.utils import (
 from src.modules.utils.thumbnails import gen_thumb
 from ._api import ApiData
 from ._cacher import (
-    chat_cache,
     chat_invite_cache,
     user_status_cache,
     ChatMemberStatusResult,
+    chat_cache,
 )
 from ._database import db
 from ._dataclass import CachedTrack
@@ -269,26 +269,19 @@ class Call:
             - Empty queue scenarios
         """
         LOGGER.info("Playing next song for chat %s", chat_id)
-        try:
-            # Handle loop counts
-            loop = chat_cache.get_loop_count(chat_id)
-            if loop > 0:
-                chat_cache.set_loop_count(chat_id, loop - 1)
-                if current_song := chat_cache.get_current_song(chat_id):
-                    await self._play_song(chat_id, current_song)
-                    return
+        loop = chat_cache.get_loop_count(chat_id)
+        if loop > 0:
+            chat_cache.set_loop_count(chat_id, loop - 1)
+            if current_song := chat_cache.get_current_song(chat_id):
+                await self._play_song(chat_id, current_song)
+                return
 
-            # Get next song from queue
-            if next_song := chat_cache.get_next_song(chat_id):
-                chat_cache.remove_current_song(chat_id)
-                await self._play_song(chat_id, next_song)
-            else:
-                await self._handle_no_songs(chat_id)
-
-        except Exception as e:
-            LOGGER.error(
-                "Error in play_next for chat %s: %s", chat_id, str(e), exc_info=True
-            )
+        # Get next song from queue
+        if next_song := chat_cache.get_next_song(chat_id):
+            chat_cache.remove_current_song(chat_id)
+            await self._play_song(chat_id, next_song)
+        else:
+            await self._handle_no_songs(chat_id)
 
     async def _play_song(self, chat_id: int, song: CachedTrack) -> None:
         """Internal method to play a specific song.

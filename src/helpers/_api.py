@@ -6,18 +6,18 @@ import re
 from pathlib import Path
 from typing import Optional, Union
 
+from pytdbot import types
+
 from src import config
 from src.logger import LOGGER
 from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
-from ._dl_helper import SpotifyDownload
 from ._downloader import MusicService
 from ._httpx import HttpxClient
+from ._spotify_dl_helper import SpotifyDownload
 
 
 class ApiData(MusicService):
     """Handles music data from various streaming platforms through API integration."""
-
-    # URL patterns for supported music services
     URL_PATTERNS = {
         # "apple_music": re.compile(
         #     r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
@@ -33,13 +33,7 @@ class ApiData(MusicService):
         ),
     }
 
-    def __init__(self, query: Optional[str] = None) -> None:
-        """
-        Initialize ApiData with an optional query.
-
-        Args:
-            query: URL or search query to process
-        """
+    def __init__(self, query: Union[str, None] = None) -> None:
         self.query = self._sanitize_query(query) if query else None
         self.api_url = config.API_URL.rstrip("/") if config.API_URL else None
         self.api_key = config.API_KEY
@@ -50,16 +44,7 @@ class ApiData(MusicService):
         """Clean and normalize the input query."""
         return query.strip().split("?")[0].split("#")[0]
 
-    def is_valid(self, url: Optional[str]) -> bool:
-        """
-        Check if the URL is from a supported music service.
-
-        Args:
-            url: The URL to validate
-
-        Returns:
-            bool: True if URL is valid, False otherwise
-        """
+    def is_valid(self, url: Union[str, None]) -> bool:
         if not url or not self.api_url or not self.api_key:
             return False
 
@@ -67,17 +52,7 @@ class ApiData(MusicService):
 
     async def _make_api_request(
         self, endpoint: str, params: Optional[dict] = None
-    ) -> Optional[dict]:
-        """
-        Make authenticated API requests with proper error handling.
-
-        Args:
-            endpoint: API endpoint to call
-            params: Optional query parameters
-
-        Returns:
-            dict: API response or None if failed
-        """
+    ) -> Union[dict, None]:
         if not self.api_url or not self.api_key:
             LOGGER.error("API configuration missing")
             return None
@@ -99,25 +74,13 @@ class ApiData(MusicService):
         return self._parse_tracks_response(data) if data else None
 
     async def get_info(self) -> Optional[PlatformTracks]:
-        """
-        Get track information from a URL.
-
-        Returns:
-            PlatformTracks: Contains track info or None if failed
-        """
         if not self.query or not self.is_valid(self.query):
             return None
 
         data = await self._make_api_request("get_url", {"url": self.query})
         return self._parse_tracks_response(data) if data else None
 
-    async def search(self) -> Optional[PlatformTracks]:
-        """
-        Search for tracks across platforms.
-
-        Returns:
-            PlatformTracks: Contains search results or None if failed
-        """
+    async def search(self) -> Union[PlatformTracks, None]:
         if not self.query:
             return None
 
@@ -128,13 +91,7 @@ class ApiData(MusicService):
         data = await self._make_api_request("search_track", {"q": self.query})
         return self._parse_tracks_response(data) if data else None
 
-    async def get_track(self) -> Optional[TrackInfo]:
-        """
-        Get detailed information about a specific track.
-
-        Returns:
-            TrackInfo: Detailed track information or None if failed
-        """
+    async def get_track(self) -> Union[TrackInfo, None]:
         if not self.query:
             return None
 
@@ -143,44 +100,30 @@ class ApiData(MusicService):
 
     async def download_track(
         self, track: TrackInfo, video: bool = False
-    ) -> Optional[Union[str, Path]]:
+    ) -> Union[Path, types.Error]:
         if not track:
-            return None
+            return types.Error(code=400, message="Track not found")
 
-        try:
-            if track.platform.lower() == "spotify":
-                return await SpotifyDownload(track).process()
+        if track.platform.lower() == "spotify":
+            return await SpotifyDownload(track).process()
 
-            if not track.cdnurl:
-                LOGGER.error("No download URL available for track %s", track.tc)
-                return None
-
-            download_path = config.DOWNLOADS_DIR / f"{track.tc}.mp3"
-            result = await self.client.download_file(track.cdnurl, download_path)
-            if not result.success:
-                LOGGER.error("Download failed for track %s", track.tc)
-                return None
-            return result.file_path
-        except Exception as e:
-            LOGGER.error(
-                "Error downloading track %s: %s",
-                getattr(track, "tc", "unknown"),
-                str(e),
-                exc_info=True,
+        if not track.cdnurl:
+            LOGGER.error("No download URL available for track %s", track.tc)
+            return types.Error(
+                code=400, message=f"No download URL available for track: {track.tc}"
             )
-            return None
+
+        download_path = config.DOWNLOADS_DIR / f"{track.tc}.mp3"
+        result = await self.client.download_file(track.cdnurl, download_path)
+        if not result.success:
+            LOGGER.error("Download failed for track %s", track.tc)
+            return types.Error(
+                code=500, message=result.error or f"Download failed for track: {track.tc}"
+            )
+        return result.file_path
 
     @staticmethod
-    def _parse_tracks_response(data: dict) -> Optional[PlatformTracks]:
-        """
-        Parse API response into PlatformTracks object.
-
-        Args:
-            data: API response data
-
-        Returns:
-            PlatformTracks: Contains parsed tracks or None if invalid
-        """
+    def _parse_tracks_response(data: dict) -> Union[PlatformTracks, None]:
         if not data or not isinstance(data, dict) or "results" not in data:
             return None
 

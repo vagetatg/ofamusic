@@ -45,15 +45,6 @@ class YouTubeUtils:
 
     @staticmethod
     def is_valid_url(url: Optional[str]) -> bool:
-        """
-        Check if the URL is a valid YouTube URL.
-
-        Args:
-            url: The URL to validate
-
-        Returns:
-            bool: True if valid YouTube URL, False otherwise
-        """
         if not url:
             return False
         return any(
@@ -134,7 +125,7 @@ class YouTubeUtils:
         }
 
     @staticmethod
-    async def create_track_info(track_data: Dict[str, Any]) -> TrackInfo:
+    async def create_track_info(track_data: dict[str, Any]) -> TrackInfo:
         """Create TrackInfo from formatted track data."""
         return TrackInfo(
             cdnurl="None",
@@ -379,36 +370,23 @@ class YouTubeUtils:
 
 class YouTubeData(MusicService):
     """A class to handle YouTube music data fetching and processing."""
-
     def __init__(self, query: Optional[str] = None) -> None:
-        """
-        Initialize YouTubeData with an optional query.
-
-        Args:
-            query: The search query or YouTube URL to process
-        """
         self.query = YouTubeUtils.clean_query(query) if query else None
 
     def is_valid(self, url: Optional[str]) -> bool:
         """Check if URL is valid using YouTubeUtils."""
         return YouTubeUtils.is_valid_url(url)
 
-    async def get_info(self) -> Optional[PlatformTracks]:
+    async def get_info(self) -> Union[PlatformTracks, types.Error]:
         """Get track information from YouTube URL."""
         if not self.query or not self.is_valid(self.query):
-            return None
+            return types.Error(code=400, message="Invalid URL provided for get info")
+        data = await self._fetch_data(self.query)
+        return YouTubeUtils.create_platform_tracks(data) if data else types.Error(code=404, message="Track not found")
 
-        try:
-            data = await self._fetch_data(self.query)
-            return YouTubeUtils.create_platform_tracks(data) if data else None
-        except Exception as e:
-            LOGGER.error(f"Error getting info for {self.query}: {e!r}")
-            return None
-
-    async def search(self) -> Optional[PlatformTracks]:
-        """Search for tracks on YouTube."""
+    async def search(self) -> Union[PlatformTracks, types.Error]:
         if not self.query:
-            return None
+            return types.Error(code=400, message="No query provided for search")
 
         if self.is_valid(self.query):
             return await self.get_info()
@@ -417,64 +395,47 @@ class YouTubeData(MusicService):
             search = VideosSearch(self.query, limit=5)
             results = await search.next()
             if not results or not results.get("result"):
-                return None
+                return types.Error(code=404, message="No results found for search query")
 
             tracks = [YouTubeUtils.format_track(video) for video in results["result"]]
             return PlatformTracks(tracks=[MusicTrack(**track) for track in tracks])
         except Exception as e:
             LOGGER.error(f"Error searching for '{self.query}': {e!r}")
-            return None
+            return types.Error(code=500, message=f"Failed to search for '{self.query}: {e!r}'")
 
-    async def get_track(self) -> Optional[TrackInfo]:
-        """Get detailed track information."""
+    async def get_track(self) -> Union[TrackInfo, types.Error]:
         if not self.query:
-            return None
+            return types.Error(code=400, message="No query provided for get track")
 
-        try:
-            url = (
-                self.query
-                if re.match("^https?://", self.query)
-                else f"https://youtube.com/watch?v={self.query}"
-            )
-            data = await self._fetch_data(url)
-            if not data or not data.get("results"):
-                return None
+        url = (
+            self.query
+            if re.match("^https?://", self.query)
+            else f"https://youtube.com/watch?v={self.query}"
+        )
+        data = await self._fetch_data(url)
+        if not data or not data.get("results"):
+            return types.Error(code=404, message="Track not found")
 
-            return await YouTubeUtils.create_track_info(data["results"][0])
-        except Exception as e:
-            LOGGER.error(f"Error fetching track {self.query}: {e!r}")
-            return None
+        return await YouTubeUtils.create_track_info(data["results"][0])
 
-    async def download_track(
-        self, track: TrackInfo, video: bool = False
-    ) -> Union[Path, str, None]:
+    async def download_track(self, track: TrackInfo, video: bool = False) -> Union[Path, types.Error]:
         if not track:
-            return None
+            return types.Error(code=400, message="No track provided for download")
 
-        try:
-            if API_URL and API_KEY:
-                if file_path := await YouTubeUtils.download_with_api(track.tc, video):
-                    return file_path
+        if API_URL and API_KEY:
+            if file_path := await YouTubeUtils.download_with_api(track.tc, video):
+                return file_path
 
-            return await YouTubeUtils.download_with_yt_dlp(track.tc, video)
-        except Exception as e:
-            LOGGER.error(f"Error downloading track {track.name}: {e!r}")
-            return None
+        dl_path = await YouTubeUtils.download_with_yt_dlp(track.tc, video)
+        if not dl_path:
+            return types.Error(code=500, message="Failed to download track")
+        return Path(dl_path)
 
-    async def get_recommendations(self) -> Optional[PlatformTracks]:
-        """Get recommended tracks (not implemented)."""
+    async def get_recommendations(self) -> Union[PlatformTracks, None]:
+        # TODO: Implement recommendations using YouTube API
         return None
 
     async def _fetch_data(self, url: str) -> Optional[Dict[str, Any]]:
-        """
-        Fetch data based on URL type (video or playlist).
-
-        Args:
-            url: YouTube URL to fetch data from
-
-        Returns:
-            dict: Contains track data or None if failed
-        """
         try:
             if YouTubeUtils.YOUTUBE_PLAYLIST_PATTERN.match(url):
                 LOGGER.debug(f"Fetching playlist data: {url}")

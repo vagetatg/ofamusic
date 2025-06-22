@@ -23,16 +23,6 @@ VALID_TARGETS = {"all", "users", "chats"}
 
 
 async def get_broadcast_targets(target: str) -> tuple[list[int], list[int]]:
-    """
-    Get user and chat IDs to broadcast to based on the target.
-
-    Args:
-    target: str, one of "all", "users", or "chats".
-
-    Returns:
-    tuple[list[int], list[int]]: (users, chats) where users is a list of user IDs and
-        chats is a list of chat IDs.
-    """
     users = await db.get_all_users() if target in {"all", "users"} else []
     chats = await db.get_all_chats() if target in {"all", "chats"} else []
     return users, chats
@@ -41,17 +31,6 @@ async def get_broadcast_targets(target: str) -> tuple[list[int], list[int]]:
 async def send_message_with_retry(
     target_id: int, message: types.Message, is_copy: bool
 ) -> int:
-    """
-    Send a message to a target with retrying only on FloodWait (429) errors.
-
-    Args:
-        target_id (int): The target ID to send the message to.
-        message (types.Message): The message to send.
-        is_copy (bool): Whether to copy the message instead of forwarding it.
-
-    Returns:
-        int: 1 on success, 0 on failure.
-    """
     for attempt in range(1, MAX_RETRIES + 1):
         async with semaphore:
             result = await (
@@ -80,10 +59,7 @@ async def send_message_with_retry(
                     "USER_IS_BLOCKED",
                     "Chat not found",
                 }:
-                    if target_id < 0:
-                        await db.remove_chat(target_id)
-                    else:
-                        await db.remove_user(target_id)
+                    await db.remove_chat(target_id) if target_id < 0 else await db.remove_user(target_id)
                     return 0
 
                 LOGGER.warning(
@@ -98,45 +74,15 @@ async def send_message_with_retry(
     return 0
 
 
-async def broadcast_to_targets(
-    targets: list[int], message: types.Message, is_copy: bool
-) -> tuple[int, int]:
-    """
-    Broadcast a message to a list of targets (user or chat IDs).
-
-    Args:
-    targets: list[int], the list of target IDs to broadcast to.
-    message: types.Message, the message to broadcast.
-    is_copy: bool, whether to copy the message instead of forwarding it.
-
-    Returns:
-    tuple[int, int]: (sent, failed), where sent is the number of targets the message
-        was successfully sent to and failed is the number of targets the message
-        failed to be sent to.
-    """
+async def broadcast_to_targets(targets: list[int], message: types.Message, is_copy: bool) -> tuple[int, int]:
     sent = failed = 0
-
     async def process_batch(_batch: list[int], index: int):
-        """
-        Process a batch of target IDs by sending the given message to each one.
-
-        Args:
-        _batch: list[int], the list of target IDs to process in this batch.
-        index: int, the index of this batch in the list of batches.
-
-        Returns:
-        tuple[int, int]: (sent, failed), where sent is the number of targets the message
-            was successfully sent to and failed is the number of targets the message
-            failed to be sent to.
-        """
         results = await asyncio.gather(
             *[send_message_with_retry(tid, message, is_copy) for tid in _batch]
         )
         _batch_sent = sum(results)
         _batch_failed = len(_batch) - _batch_sent
-        LOGGER.info(
-            "Batch %s sent: %s, failed: %s", index + 1, _batch_sent, _batch_failed
-        )
+        LOGGER.info("Batch %s sent: %s, failed: %s", index + 1, _batch_sent, _batch_failed)
         return _batch_sent, _batch_failed
 
     batches = [targets[i : i + BATCH_SIZE] for i in range(0, len(targets), BATCH_SIZE)]
@@ -154,16 +100,6 @@ async def broadcast_to_targets(
 
 @Client.on_message(filters=Filter.command("broadcast"))
 async def broadcast(c: Client, message: types.Message) -> None:
-    """
-    Broadcast a message to all users and/or chats.
-
-    Notes:
-    This function only responds to the owner of the bot.
-    The message to broadcast must be replied to with this command.
-    The mode of broadcast can be specified as "copy" to send the message as a copy
-        instead of forwarding it.
-    The targets of the broadcast can be specified as "all", "users", or "chats".
-    """
     if int(message.from_id) != OWNER_ID:
         await del_msg(message)
         return None
@@ -219,13 +155,12 @@ async def broadcast(c: Client, message: types.Message) -> None:
 
     if isinstance(started, types.Error):
         c.logger.warning("Error starting broadcast: %s", started)
+        await message.reply_text("Failed to start broadcast." + started.message)
         return None
 
     start_time = time.monotonic()
-
     user_sent, user_failed = await broadcast_to_targets(users, reply, is_copy)
     chat_sent, chat_failed = await broadcast_to_targets(chats, reply, is_copy)
-
     end_time = time.monotonic()
 
     reply = await started.edit_text(

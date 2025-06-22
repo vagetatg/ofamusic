@@ -242,4 +242,4 @@ class Database:
         LOGGER.info("Database connection closed.")
 
 
-db: Database = Database()
+db = Database()

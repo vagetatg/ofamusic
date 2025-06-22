@@ -27,7 +27,7 @@ from src.modules.utils import (
     is_channel_cmd,
     control_buttons,
 )
-from src.modules.utils.admins import is_admin, load_admin_cache, is_owner
+from src.modules.utils.admins import is_admin, load_admin_cache
 from src.modules.utils.play_helpers import (
     del_msg,
     edit_text,
@@ -369,9 +369,7 @@ async def _handle_telegram_file(
         ]
     )
 
-    await play_music(
-        c, reply_message, _song, user_by, channel, file_path.path, is_video
-    )
+    await play_music(c, reply_message, _song, user_by, channel, file_path.path, is_video)
     return None
 
 
@@ -389,6 +387,12 @@ async def _handle_text_search(
     lang = await db.get_lang(chat_id)
     play_type = await db.get_play_type(chat_id)
     search = await wrapper.search()
+    if isinstance(search, types.Error):
+        return await edit_text(
+            msg,
+            text=get_string("no_results_bug", lang) + f"\n{search.message}",
+            reply_markup=SupportButton,
+        )
 
     if not search or not search.tracks:
         return await edit_text(
@@ -421,10 +425,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
     """
     is_channel = is_channel_cmd(msg.text)
     chat_id = await db.get_channel_id(msg.chat_id) if is_channel else msg.chat_id
-    channel = ChannelPlay(
-        chat_id=chat_id,
-        is_channel=is_channel and chat_id != msg.chat_id,
-    )
+    channel = ChannelPlay(chat_id=chat_id, is_channel=is_channel and chat_id != msg.chat_id)
 
     lang = await db.get_lang(chat_id)
     if chat_id > 0:
@@ -478,20 +479,26 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
                 reply_markup=SupportButton,
             )
 
-        if song := await wrapper.get_info():
-            return await play_music(
-                c, reply_message, song, user_by, channel, is_video=is_video
+        song = await wrapper.get_info()
+        if isinstance(song, types.Error):
+            return await edit_text(
+                reply_message,
+                get_string("failed_song_info", lang) + "\n\n" + song.message,
+                reply_markup=SupportButton,
             )
 
-        return await edit_text(
-            reply_message,
-            get_string("failed_song_info", lang),
-            reply_markup=SupportButton,
-        )
+        return await play_music(c, reply_message, song, user_by, channel, is_video=is_video)
 
     # Search
     if is_video:
         search = await wrapper.search()
+        if isinstance(search, types.Error):
+            return await edit_text(
+                reply_message,
+                get_string("failed_search", lang) + "\n" + search.message,
+                reply_markup=SupportButton,
+            )
+
         if not search or not search.tracks:
             return await edit_text(
                 reply_message,
@@ -500,6 +507,13 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
             )
 
         if song := await MusicServiceWrapper(search.tracks[0].url).get_info():
+            if isinstance(song, types.Error):
+                return await edit_text(
+                    reply_message,
+                    get_string("failed_song_info", lang) + "\n" + song.message,
+                    reply_markup=SupportButton,
+                )
+
             return await play_music(
                 c, reply_message, song, user_by, channel, is_video=True
             )
@@ -521,59 +535,3 @@ async def play_audio(c: Client, msg: types.Message) -> None:
 @Client.on_message(filters=Filter.command(["vplay", "cvplay"]))
 async def play_video(c: Client, msg: types.Message) -> None:
     await handle_play_command(c, msg, True)
-
-
-@Client.on_message(filters=Filter.command(["direct", "cdirect"]))
-async def play_file(_: Client, msg: types.Message) -> None:
-    """Play a direct link. JUST FOR TESTING"""
-    is_channel = is_channel_cmd(msg.text)
-    chat_id = await db.get_channel_id(msg.chat_id) if is_channel else msg.chat_id
-    channel = ChannelPlay(
-        chat_id=chat_id,
-        is_channel=is_channel and chat_id != msg.chat_id,
-    )
-
-    lang = await db.get_lang(msg.chat_id)
-    if chat_id > 0:
-        await msg.reply_text(get_string("only_supergroup", lang))
-        return None
-
-    if chat_cache.is_active(chat_id):
-        await msg.reply_text(
-            f"first stop (/end) the song: {chat_cache.get_queue(chat_id)[0].name}"
-        )
-        return None
-
-    if not await is_owner(msg.chat_id, msg.from_id):
-        await msg.reply_text(get_string("only_owner", lang))
-        return None
-
-    link = extract_argument(msg.text)
-    if not link:
-        await msg.reply_text("Give me an direct playable link to play.")
-        return None
-
-    _call = await call.play_media(chat_id, link, True)
-    if isinstance(_call, types.Error):
-        await msg.reply_text(text=f"⚠️ {_call.message}")
-        return None
-
-    chat_cache.add_song(
-        chat_id,
-        CachedTrack(
-            name="",
-            artist="",
-            track_id="",
-            loop=0,
-            duration=0,
-            file_path=link,
-            thumbnail="",
-            user="",
-            platform="",
-            is_video=True,
-            url=link,
-            channel=channel,
-        ),
-    )
-    await msg.reply_text("✅ Direct link played.")
-    return None

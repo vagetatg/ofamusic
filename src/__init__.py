@@ -4,7 +4,6 @@
 
 import asyncio
 import shutil
-import platform
 from datetime import datetime
 from pathlib import Path
 
@@ -24,7 +23,6 @@ class Telegram(Client):
 
     def __init__(self) -> None:
         self._validate_config()
-        self._configure_event_loop()
         super().__init__(
             token=config.TOKEN,
             api_id=config.API_ID,
@@ -40,21 +38,6 @@ class Telegram(Client):
 
         self.call_manager = InactiveCallManager(self)
         self.db = db
-
-    @staticmethod
-    def _configure_event_loop() -> None:
-        """Configure the event loop with uvloop if available."""
-        if platform.system() == 'Windows':
-            client.logger.info("uvloop not supported on Windows")
-            return  # uvloop not supported on Windows
-
-        try:
-            import uvloop
-            loop = uvloop.new_event_loop()
-            asyncio.set_event_loop(loop)
-            client.logger.info("Using uvloop event loop")
-        except ImportError:
-            client.logger.info("uvloop not installed; using default event loop")
 
     async def start(self) -> None:
         """Start the bot and all associated services."""

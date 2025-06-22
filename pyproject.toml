@@ -50,7 +50,6 @@ dependencies = [
     "tdjson~=1.8.50",
     "ujson~=5.10.0",
     "yt-dlp~=2025.6.9",
-    "uvloop~=0.21.0; sys_platform != 'win32'",
 ]
 
 [project.license]

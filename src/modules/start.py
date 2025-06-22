@@ -8,14 +8,13 @@ from datetime import datetime
 from cachetools import TTLCache
 from pytdbot import Client, types
 
-from src import __version__, StartTime, db
+from src import __version__, StartTime
 from src.config import SUPPORT_GROUP
 from src.helpers import (
     call,
     chat_invite_cache,
     user_status_cache,
     chat_cache,
-    get_string,
 )
 from src.modules.utils import Filter, sec_to_min, SupportButton
 from src.modules.utils.admins import load_admin_cache
@@ -28,34 +27,51 @@ from src.modules.utils.play_helpers import (
 @Client.on_message(filters=Filter.command(["start", "help"]))
 async def start_cmd(c: Client, message: types.Message):
     """
-    Handle the /start and /help command to welcome users.
+    Welcome users and provide bot information with interactive help menu.
     """
     chat_id = message.chat_id
-    lang = await db.get_lang(chat_id)
     bot_name = c.me.first_name
-    if chat_id < 0:
-        text = get_string("StartText", lang).format(
-            await message.mention(), bot_name, SUPPORT_GROUP
+    mention = await message.mention()
+
+    if chat_id < 0:  # Group chat
+        welcome_text = (
+            f"🎵 <b>Hello {mention}!</b>\n\n"
+            f"<b>{bot_name}</b> is now active in this chat!\n"
+            "──────────────────\n"
+            "• High quality audio streaming\n"
+            "• Multi-platform support (YouTube, Spotify, etc)\n"
+            "• Advanced playback controls\n\n"
+            f"💬 <a href='{SUPPORT_GROUP}'>Support Chat</a> | "
         )
+
         reply = await message.reply_text(
-            text=text,
+            text=welcome_text,
             disable_web_page_preview=True,
             reply_markup=SupportButton,
         )
-        if isinstance(reply, types.Error):
-            c.logger.warning(f"Error sending start message: {reply.message}")
-        return None
+    else:  # Private chat
+        welcome_text = (
+            f"✨ <b>Welcome {mention}!</b>\n\n"
+            f"<b>{bot_name}</b> - Premium Music Experience\n"
+            f"<code>Version: v{__version__}</code>\n\n"
+            "🎧 <b>Features:</b>\n"
+            "• Lossless audio quality\n"
+            "• Instant song searches\n"
+            "• Playlist support\n"
+            "• 24/7 playback\n\n"
+            "🔍 <i>Tap the button below to explore commands</i>"
+        )
 
-    text = get_string("PmStartText", lang).format(
-        await message.mention(), bot_name, __version__
-    )
-    bot_username = c.me.usernames.editable_username
-    reply = await message.reply_text(text, reply_markup=add_me_markup(bot_username))
-    if isinstance(reply, types.Error):
-        c.logger.warning(f"Error sending start message: {reply.message}")
+        bot_username = c.me.usernames.editable_username
+        reply = await message.reply_text(
+            text=welcome_text,
+            reply_markup=add_me_markup(bot_username)
+        )
+
+        if isinstance(reply, types.Error):
+            c.logger.warning(f"⚠️ Failed to send welcome message: {reply.message}")
 
     return None
-
 
 @Client.on_message(filters=Filter.command("privacy"))
 async def privacy_handler(c: Client, message: types.Message):
@@ -212,7 +228,7 @@ async def song_cmd(c: Client, message: types.Message):
     """Handle the /song command."""
     args = extract_argument(message.text)
     reply = await message.reply_text(
-        f"🎶 USE: <code>@SpTubeBot {args or 'song name'}</code>"
+        f"🎶 USE: <code>@FallenSongBot {args or 'song name'}</code>"
     )
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending message: {reply}")
@@ -222,52 +238,107 @@ async def song_cmd(c: Client, message: types.Message):
 
 @Client.on_updateNewCallbackQuery(filters=Filter.regex(r"help_\w+"))
 async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) -> None:
-    """Handle the help_* callback query."""
+    """Handle help menu navigation with rich text formatting."""
     data = message.payload.data.decode()
-    chat_id = message.chat_id
-    lang = await db.get_lang(chat_id)
+    # Main help menu
     if data == "help_all":
         user = await c.getUser(message.sender_user_id)
         if isinstance(user, types.Error):
-            c.logger.warning(f"Error getting user: {user.message}")
-            await message.answer(text="Something went wrong.", show_alert=True)
+            c.logger.warning(f"⚠️ User fetch error: {user.message}")
+            await message.answer(text="❌ Failed to load profile", show_alert=True)
             return None
-        await message.answer(text="Help Menu")
-        text = get_string("PmStartText", lang).format(
-            user.first_name, c.me.first_name, __version__
+
+        await message.answer(text="📚 Loading Help Menu...")
+        welcome_text = (
+            f"👋 <b>Hello {user.first_name}!</b>\n\n"
+            f"🎵 Welcome to <b>{c.me.first_name}</b> Music Bot\n"
+            f"<code>Version: v{__version__}</code>\n\n"
+            "✨ A high-performance music bot with support for:\n"
+            "• YouTube • Spotify • Apple Music • SoundCloud\n\n"
+            "🔍 <i>Select a help category below:</i>"
         )
-        await message.edit_message_text(text=text, reply_markup=HelpMenu)
+        await message.edit_message_text(
+            text=welcome_text,
+            reply_markup=HelpMenu
+        )
         return None
 
-    actions = {
+    # Help category definitions
+    help_categories = {
         "help_user": {
-            "answer": "User Help Menu",
-            "text": get_string("UserCommands", lang),
-            "markup": BackHelpMenu,
+            "title": "🎧 User Commands",
+            "content": (
+                "<b>Basic Controls:</b>\n"
+                "/play [song] - Play audio in VC\n"
+                "/vplay [video] - Play video in VC\n"
+                "/search - Find tracks to play\n"
+                "/lyrics - Get song lyrics\n\n"
+                "<b>Utilities:</b>\n"
+                "/start - Bot introduction\n"
+                "/privacy - View privacy policy\n"
+                "/lang - Change language"
+            ),
+            "markup": BackHelpMenu
         },
         "help_admin": {
-            "answer": "Admin Help Menu",
-            "text": get_string("AdminCommands", lang),
-            "markup": BackHelpMenu,
+            "title": "⚙️ Admin Commands",
+            "content": (
+                "<b>Playback Controls:</b>\n"
+                "/skip - Skip current track\n"
+                "/pause - Pause playback\n"
+                "/resume - Continue playback\n"
+                "/seek [sec] - Jump to position\n"
+                "/volume [1-200] - Adjust volume\n\n"
+                "<b>Queue Management:</b>\n"
+                "/queue - Show playback queue\n"
+                "/remove [x] - Remove track #x\n"
+                "/clear - Empty the queue\n"
+                "/loop [0-10] - Set repeat mode"
+            ),
+            "markup": BackHelpMenu
         },
         "help_owner": {
-            "answer": "Owner Help Menu",
-            "text": get_string("ChatOwnerCommands", lang),
-            "markup": BackHelpMenu,
+            "title": "🔐 Owner Commands",
+            "content": (
+                "<b>Authorization:</b>\n"
+                "/auth [reply] - Grant admin rights\n"
+                "/unauth [reply] - Revoke admin\n"
+                "/authlist - Show authorized users\n\n"
+                "<b>Settings:</b>\n"
+                "/buttons - Toggle control buttons\n"
+                "/thumb - Toggle thumbnails\n"
+                "/autoend - Auto-leave empty VCs\n"
+                "/channelplay - Link to channel"
+            ),
+            "markup": BackHelpMenu
         },
         "help_devs": {
-            "answer": "Developer Help Menu",
-            "text": get_string("BotDevsCommands", lang),
-            "markup": BackHelpMenu,
-        },
+            "title": "🛠 Developer Tools",
+            "content": (
+                "<b>System:</b>\n"
+                "/stats - Usage statistics\n"
+                "/logger - Toggle debug logs\n"
+                "/broadcast - Send announcements\n\n"
+                "<b>Maintenance:</b>\n"
+                "/activevc - Active voice chats\n"
+                "/clearallassistants - Reset assistants"
+            ),
+            "markup": BackHelpMenu
+        }
     }
 
-    if action := actions.get(data):
-        await message.answer(text=action["answer"])
+    if category := help_categories.get(data):
+        await message.answer(text=f"📖 {category['title']}")
+        formatted_text = (
+            f"<b>{category['title']}</b>\n\n"
+            f"{category['content']}\n\n"
+            "🔙 <i>Use buttons to navigate</i>"
+        )
         await message.edit_message_text(
-            text=action["text"], reply_markup=action["markup"]
+            text=formatted_text,
+            reply_markup=category['markup']
         )
         return None
 
-    await message.answer(text=f"Unknown action: {data}")
+    await message.answer(text="⚠️ Unknown command category")
     return None

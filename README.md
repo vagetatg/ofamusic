@@ -251,13 +251,29 @@ tgmusic
 <details>
 <summary><b>🔑 Required Variables (Click to expand)</b></summary>
 
-| Variable | Description | How to Get |
-|----------|-------------|------------|
-| `API_ID` | Telegram App ID | [my.telegram.org](https://my.telegram.org/apps) |
-| `API_HASH` | Telegram App Hash | [my.telegram.org](https://my.telegram.org/apps) |
-| `TOKEN` | Bot Token | [@BotFather](https://t.me/BotFather) |
-| `STRING1-10` | Pyrogram Sessions | [@StringFatherBot](https://t.me/StringFatherBot) |
-| `MONGO_URI` | MongoDB Connection | [MongoDB Atlas](https://cloud.mongodb.com) |
+| Variable     | Description                         | How to Get                                                               |
+|--------------|-------------------------------------|--------------------------------------------------------------------------|
+| `API_ID`     | Telegram App ID                     | [my.telegram.org](https://my.telegram.org/apps)                          |
+| `API_HASH`   | Telegram App Hash                   | [my.telegram.org](https://my.telegram.org/apps)                          |
+| `TOKEN`      | Bot Token                           | [@BotFather](https://t.me/BotFather)                                     |
+| `STRING1-10` | Pyrogram Sessions (Only 1 Required) | [@StringFatherBot](https://t.me/StringFatherBot)                         |
+| `MONGO_URI`  | MongoDB Connection                  | [MongoDB Atlas](https://cloud.mongodb.com)                               |
+| `OWNER_ID`   | User ID of the bot owner            | [@GuardxRobot](https://t.me/GuardxRobot) and type `/id`                  |
+| `LOGGER_ID`  | Group ID of the bot logger          | Add [@GuardxRobot](https://t.me/GuardxRobot) to the group and type `/id` |
+
+#### Optional Variables
+| Variable           | Description                                                       | How to Get                                                                                                                                                      |
+|--------------------|-------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `API_URL`          | API URL                                                           | Start [@FallenApiBot](https://t.me/FallenApiBot)                                                                                                                |
+| `API_KEY`          | API Key                                                           | Start [@FallenApiBot](https://t.me/FallenApiBot) and type `/apikey`                                                                                             |
+| `MIN_MEMBER_COUNT` | Minimum number of members required to use the bot                 | Default: 50                                                                                                                                                     |
+| `PROXY`            | Proxy URL for the bot if you want to use it for yt-dlp (Optional) | Any online service                                                                                                                                              |
+| `COOKIES_URL`      | Cookies URL for the bot                                           | [![Cookie Guide](https://img.shields.io/badge/Guide-Read%20Here-blue?style=flat-square)](https://github.com/AshokShau/TgMusicBot/blob/master/cookies/README.md) |
+| `DEFAULT_SERVICE`  | Default search platform (Options: youtube, spotify, jiosaavn)     | Default: youtube                                                                                                                                                |
+| `SUPPORT_GROUP`    | Telegram Group Link                                               | Default: https://t.me/GuardxSupport                                                                                                                             |
+| `SUPPORT_CHANNEL`  | Telegram Channel Link                                             | Default: https://t.me/FallenProjects                                                                                                                            |
+| `AUTO_LEAVE`       | Leave all chats for all userbot clients                           | Default: True                                                                                                                                                   |
+| `DEVS`             | User ID of the bot owner                                          | [@GuardxRobot](https://t.me/GuardxRobot) and type `/id`: eg `5938660179, 5956803759`                                                                            |
 
 </details>
 

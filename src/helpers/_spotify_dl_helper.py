@@ -5,16 +5,18 @@
 import asyncio
 import os
 import subprocess
-from typing import Optional
+from pathlib import Path
+from typing import Union
 
 import aiofiles
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
+from pytdbot import types
 
 from src import config
 from src.logger import LOGGER
-from ._httpx import HttpxClient
 from ._dataclass import TrackInfo
+from ._httpx import HttpxClient
 
 
 async def rebuild_ogg(filename: str) -> None:
@@ -126,18 +128,20 @@ class SpotifyDownload:
             except Exception as e:
                 LOGGER.warning("Error removing %s: %s", file, e)
 
-    async def process(self) -> Optional[str]:
+    async def process(self) -> Union[Path, types.Error]:
         """
         Main function to download, decrypt, and fix audio.
         """
         if os.path.exists(self.output_file):
             LOGGER.info("✅ Found existing file: %s", self.output_file)
-            return self.output_file
+            return Path(self.output_file)
 
         _track_id = self.track.tc
         if not self.track.cdnurl or not self.track.key:
             LOGGER.warning("Missing CDN URL or key for track: %s", _track_id)
-            return None
+            return types.Error(
+                code=400, message=f"Missing CDN URL or key for track: {_track_id}"
+            )
 
         try:
             await HttpxClient().download_file(self.track.cdnurl, self.encrypted_file)
@@ -146,8 +150,10 @@ class SpotifyDownload:
             await self.fix_audio()
             await self._cleanup()
             LOGGER.info("✅ Successfully processed track: %s", self.output_file)
-            return self.output_file
+            return Path(self.output_file)
         except Exception as e:
             LOGGER.error("Error processing track %s: %s", _track_id, e)
             await self._cleanup()
-            return None
+            return types.Error(
+                code=500, message=f"Error processing track: {_track_id}"
+            )
