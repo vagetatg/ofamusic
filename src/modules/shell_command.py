@@ -8,7 +8,7 @@ import uuid
 
 from pytdbot import Client, types
 
-from src.config import OWNER_ID
+from src import config
 from src.logger import LOGGER
 from src.modules.utils import Filter
 
@@ -28,7 +28,7 @@ async def run_shell_command(cmd: str, timeout: int = 60) -> tuple[str, str, int]
         await process.wait()
         return "", f"Command timed out after {timeout} seconds", -1
 
-    return (stdout.decode().strip(), stderr.decode().strip(), process.returncode)
+    return stdout.decode().strip(), stderr.decode().strip(), process.returncode
 
 
 async def shellrunner(message: types.Message) -> types.Ok | types.Error | types.Message:
@@ -107,7 +107,7 @@ async def shellrunner(message: types.Message) -> types.Ok | types.Error | types.
 
 @Client.on_message(filters=Filter.command("sh"))
 async def shell_command(_: Client, m: types.Message) -> None:
-    if int(m.from_id) != OWNER_ID:
+    if int(m.from_id) != config.OWNER_ID:
         return None
     done = await shellrunner(m)
     if isinstance(done, types.Error):

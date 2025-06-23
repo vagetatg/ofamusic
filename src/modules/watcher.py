@@ -6,9 +6,10 @@ import asyncio
 
 from pytdbot import Client, types
 
-from src import call, db
-from src.config import MIN_MEMBER_COUNT
+from src import config
 from src.helpers import (
+    db,
+    call,
     chat_invite_cache,
     ChatMemberStatus,
     user_status_cache,
@@ -62,11 +63,11 @@ async def handle_bot_join(client: Client, chat_id: int) -> None:
         )
         return
 
-    if chat_info.member_count < MIN_MEMBER_COUNT:
+    if chat_info.member_count < config.MIN_MEMBER_COUNT:
         text = (
             f"⚠️ This group has too few members ({chat_info.member_count}).\n\n"
             "To prevent spam and ensure proper functionality, "
-            f"this bot only works in groups with at least {MIN_MEMBER_COUNT} members.\n"
+            f"this bot only works in groups with at least {config.MIN_MEMBER_COUNT} members.\n"
             "Please grow your community and add me again later.\n"
             "If you have any questions, join our support group:"
         )

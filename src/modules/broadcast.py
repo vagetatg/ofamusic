@@ -7,7 +7,7 @@ import time
 
 from pytdbot import Client, types
 
-from src.config import OWNER_ID
+from src import config
 from src.helpers import db
 from src.logger import LOGGER
 from src.modules.utils import Filter
@@ -100,7 +100,7 @@ async def broadcast_to_targets(targets: list[int], message: types.Message, is_co
 
 @Client.on_message(filters=Filter.command("broadcast"))
 async def broadcast(c: Client, message: types.Message) -> None:
-    if int(message.from_id) != OWNER_ID:
+    if int(message.from_id) != config.OWNER_ID:
         await del_msg(message)
         return None
 

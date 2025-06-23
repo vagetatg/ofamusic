@@ -12,9 +12,8 @@ from pyrogram import Client as PyroClient
 from pyrogram import errors
 from pytdbot import Client, types
 
-from src import db
-from src.config import AUTO_LEAVE
-from src.helpers import call
+from src import config
+from src.helpers import call, db
 from src.helpers import chat_cache
 
 _concurrency_limiter = asyncio.Semaphore(10)
@@ -89,7 +88,7 @@ class InactiveCallManager:
             )
 
     async def leave_all(self):
-        if not AUTO_LEAVE:
+        if not config.AUTO_LEAVE:
             return
 
         for client_name, call_instance in call.calls.items():

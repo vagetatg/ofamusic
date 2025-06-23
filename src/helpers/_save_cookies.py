@@ -50,7 +50,7 @@ async def save_bin_content(session: aiohttp.ClientSession, url: str) -> str | No
         .split("#")[0]
     )
     filename += ".txt"
-    filepath = os.path.join("cookies", filename)
+    filepath = os.path.join("src/cookies", filename)
 
     content = await fetch_content(session, url)
     if content:

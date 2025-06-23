@@ -19,10 +19,10 @@ from ._spotify_dl_helper import SpotifyDownload
 class ApiData(MusicService):
     """Handles music data from various streaming platforms through API integration."""
     URL_PATTERNS = {
-        # "apple_music": re.compile(
-        #     r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
-        #     re.IGNORECASE,
-        # ),
+        "apple_music": re.compile(
+            r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
+            re.IGNORECASE,
+        ),
         "spotify": re.compile(
             r"^(https?://)?(open\.spotify\.com/(track|playlist|album|artist)/[a-zA-Z0-9]+)(\?.*)?$",
             re.IGNORECASE,

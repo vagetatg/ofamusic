@@ -16,7 +16,7 @@ from src.helpers import MusicTrack, PlatformTracks, TrackInfo
 from src.logger import LOGGER
 from ._downloader import MusicService
 from ._httpx import HttpxClient
-from ..config import API_URL, API_KEY, DOWNLOADS_DIR, PROXY
+from .. import config
 
 
 class YouTubeUtils:
@@ -167,7 +167,7 @@ class YouTubeUtils:
     @staticmethod
     async def get_cookie_file() -> Optional[str]:
         """Get a random cookie file from the 'cookies' directory."""
-        cookie_dir = "cookies"
+        cookie_dir = "src/cookies"
         try:
             if not os.path.exists(cookie_dir):
                 LOGGER.warning("Cookie directory '%s' does not exist.", cookie_dir)
@@ -219,7 +219,7 @@ class YouTubeUtils:
 
         httpx = HttpxClient()
         if public_url := await httpx.make_request(
-            f"{API_URL}/yt?id={video_id}&video={is_video}"
+            f"{config.API_URL}/yt?id={video_id}&video={is_video}"
         ):
             dl_url = public_url.get("results")
             if not dl_url:
@@ -258,7 +258,7 @@ class YouTubeUtils:
         video_id: str, video: bool, cookie_file: Optional[str]
     ) -> list[str]:
         """Construct yt-dlp parameters based on video/audio requirements."""
-        output_template = str(DOWNLOADS_DIR / "%(id)s.%(ext)s")
+        output_template = str(config.DOWNLOADS_DIR / "%(id)s.%(ext)s")
 
         format_selector = (
             "bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4][height<=1080]"
@@ -297,8 +297,8 @@ class YouTubeUtils:
         if video:
             ytdlp_params += ["--merge-output-format", "mp4"]
 
-        if PROXY:
-            ytdlp_params += ["--proxy", PROXY]
+        if config.PROXY:
+            ytdlp_params += ["--proxy", config.PROXY]
         elif cookie_file:
             ytdlp_params += ["--cookies", cookie_file]
 
@@ -422,7 +422,7 @@ class YouTubeData(MusicService):
         if not track:
             return types.Error(code=400, message="No track provided for download")
 
-        if API_URL and API_KEY:
+        if config.API_URL and config.API_KEY:
             if file_path := await YouTubeUtils.download_with_api(track.tc, video):
                 return file_path
 

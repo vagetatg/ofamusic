@@ -11,7 +11,7 @@ from os import execvp
 
 from pytdbot import Client, types
 
-from src.config import DEVS
+from src import config
 from src.helpers import chat_cache, call
 from src.logger import LOGGER
 from src.modules.utils import Filter
@@ -35,7 +35,7 @@ def is_docker():
 @Client.on_message(filters=Filter.command(["update", "restart"]))
 async def update(c: Client, message: types.Message) -> None:
     """Handle /update and /restart commands."""
-    if message.from_id not in DEVS:
+    if message.from_id not in config.DEVS:
         await del_msg(message)
         return
 

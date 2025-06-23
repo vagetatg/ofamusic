@@ -8,13 +8,14 @@ from cachetools import TTLCache
 from pymongo import AsyncMongoClient
 from pymongo.errors import ConnectionFailure
 
-from src.config import MONGO_URI
+from src import config
+from src.logger import LOGGER
 from src.logger import LOGGER
 
 
 class Database:
     def __init__(self):
-        self.mongo_client = AsyncMongoClient(MONGO_URI)
+        self.mongo_client = AsyncMongoClient(config.MONGO_URI)
         _db = self.mongo_client["MusicBot"]
         self.chat_db = _db["chats"]
         self.users_db = _db["users"]

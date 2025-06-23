@@ -3,26 +3,23 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 import asyncio
-import shutil
 from datetime import datetime
-from pathlib import Path
 
 from pytdbot import Client, types
 
-from src import config
-from src.config import COOKIES_URL, DOWNLOADS_DIR
-from src.helpers import call, db, start_clients, save_all_cookies, i18n
+from src.config import config
 from src.modules.jobs import InactiveCallManager
+from src.helpers import call, db, start_clients, save_all_cookies, i18n
 
 __version__ = "1.2.1"
+
 StartTime = datetime.now()
+
 
 
 class Telegram(Client):
     """Main Telegram bot client with extended functionality."""
-
     def __init__(self) -> None:
-        self._validate_config()
         super().__init__(
             token=config.TOKEN,
             api_id=config.API_ID,
@@ -42,14 +39,13 @@ class Telegram(Client):
     async def start(self) -> None:
         """Start the bot and all associated services."""
         await i18n.load_translations()
-        await save_all_cookies(COOKIES_URL)
+        await save_all_cookies(config.COOKIES_URL)
         await self.db.ping()
         await start_clients()
         await call.add_bot(self)
         await call.register_decorators()
         await super().start()
         await self.call_manager.start_scheduler()
-
         uptime = (datetime.now() - StartTime).total_seconds()
         self.logger.info(f"Bot started in {uptime:.2f} seconds")
         self.logger.info(f"Version: {__version__}")
@@ -61,33 +57,6 @@ class Telegram(Client):
             self.call_manager.stop_scheduler(),
             super().stop(),
         )
-
-    @staticmethod
-    def _validate_config() -> None:
-        """Validate all required environment configuration values."""
-        missing = [
-            name for name in ("API_ID", "API_HASH", "TOKEN", "MONGO_URI", "LOGGER_ID")
-            if not getattr(config, name)
-        ]
-        if missing:
-            raise ValueError(f"Missing required config: {', '.join(missing)}")
-
-        if not isinstance(config.MONGO_URI, str):
-            raise ValueError("MONGO_URI must be a string")
-
-        if not config.SESSION_STRINGS:
-            raise ValueError("At least one session string (STRING1–10) is required")
-
-        if config.IGNORE_BACKGROUND_UPDATES:
-            db_path = Path("database")
-            if db_path.exists():
-                shutil.rmtree(db_path)
-
-        try:
-            DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
-            Path("database/photos").mkdir(parents=True, exist_ok=True)
-        except Exception as e:
-            raise RuntimeError(f"Failed to create required directories: {e}") from e
 
 
 client: Telegram = Telegram()

@@ -24,8 +24,7 @@ from pytdbot import Client, types
 from pytdbot import __version__ as py_td_ver
 from pytgcalls import __version__ as pytgver
 
-from src import StartTime
-from src.config import OWNER_ID, DEVS, LOGGER_ID
+from src import StartTime, config
 from src.helpers import call
 from src.helpers import chat_cache, get_string
 from src.helpers import db
@@ -62,7 +61,7 @@ async def exec_eval(c: Client, m: types.Message) -> None:
     """
     Run python code.
     """
-    if int(m.from_id) != OWNER_ID:
+    if int(m.from_id) != config.OWNER_ID:
         return None
 
     text = m.text.split(None, 1)
@@ -172,7 +171,7 @@ async def exec_eval(c: Client, m: types.Message) -> None:
 @Client.on_message(filters=Filter.command("stats"))
 async def sys_stats(client: Client, message: types.Message) -> None:
     """Get comprehensive bot and system statistics including hardware, software, and performance metrics."""
-    if message.from_id not in DEVS:
+    if message.from_id not in config.DEVS:
         await del_msg(message)
         return None
 
@@ -292,7 +291,7 @@ async def active_vc(c: Client, message: types.Message) -> None:
     """
     Get active voice chats.
     """
-    if message.from_id not in DEVS:
+    if message.from_id not in config.DEVS:
         await del_msg(message)
         return None
 
@@ -334,11 +333,11 @@ async def logger(c: Client, message: types.Message) -> None:
     """
     Enable or disable logging.
     """
-    if message.from_id not in DEVS:
+    if message.from_id not in config.DEVS:
         await del_msg(message)
         return
 
-    if not LOGGER_ID or LOGGER_ID == 0:
+    if not config.LOGGER_ID or config.LOGGER_ID == 0:
         reply = await message.reply_text("Please set LOGGER_ID in .env first.")
         if isinstance(reply, types.Error):
             c.logger.warning(reply.message)
@@ -378,7 +377,7 @@ async def logger(c: Client, message: types.Message) -> None:
 
 @Client.on_message(filters=Filter.command(["autoend", "auto_end"]))
 async def auto_end(c: Client, message: types.Message) -> None:
-    if message.from_id not in DEVS:
+    if message.from_id not in config.DEVS:
         await del_msg(message)
         return
 
@@ -415,7 +414,7 @@ async def auto_end(c: Client, message: types.Message) -> None:
 
 @Client.on_message(filters=Filter.command(["clearass", "clearallassistants"]))
 async def clear_all_assistants(c: Client, message: types.Message) -> None:
-    if message.from_id not in DEVS:
+    if message.from_id not in config.DEVS:
         await del_msg(message)
         return
 
@@ -431,7 +430,7 @@ async def clear_all_assistants(c: Client, message: types.Message) -> None:
 
 @Client.on_message(filters=Filter.command("logs"))
 async def logs(c: Client, message: types.Message) -> None:
-    if message.from_id not in DEVS:
+    if message.from_id not in config.DEVS:
         await del_msg(message)
         return
 

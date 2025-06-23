@@ -6,6 +6,7 @@
 #  Configure environment variables using a `.env` file instead.
 
 import os
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -15,100 +16,138 @@ from src.logger import LOGGER
 load_dotenv()
 
 
-def get_env_int(name: str, default: Optional[int] = None) -> Optional[int]:
+class BotConfig:
     """
-    Retrieve an environment variable and convert it to an integer.
-
-    Args:
-        name (str): Environment variable name.
-        default (Optional[int]): Fallback value if parsing fails.
-
-    Returns:
-        Optional[int]: Parsed integer or the default value.
+    A class to manage and validate all bot configuration settings from environment variables.
     """
-    value = os.getenv(name)
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        LOGGER.warning("Invalid value for %s: %s (default: %s)", name, value, default)
-        return default
+
+    def __init__(self):
+        # Core Bot Configuration
+        self.API_ID: Optional[int] = self._get_env_int("API_ID")
+        self.API_HASH: Optional[str] = os.getenv("API_HASH")
+        self.TOKEN: Optional[str] = os.getenv("TOKEN")
+
+        self.SESSION_STRINGS: list[str] = self._get_session_strings()
+        self.MONGO_URI: Optional[str] = os.getenv("MONGO_URI")
+        self.API_URL: str = os.getenv("API_URL", "https://tgmusic.fallenapi.fun")
+        self.API_KEY: Optional[str] = os.getenv("API_KEY")
+
+        # Owner and Logger
+        self.OWNER_ID: int = self._get_env_int("OWNER_ID", 5938660179)
+        self.LOGGER_ID: int = self._get_env_int("LOGGER_ID", -1002166934878)
+
+        # Optional Settings
+        self.PROXY: Optional[str] = os.getenv("PROXY")
+        self.DEFAULT_SERVICE: str = os.getenv("DEFAULT_SERVICE", "youtube").lower()
+        self.MIN_MEMBER_COUNT: int = self._get_env_int("MIN_MEMBER_COUNT", 50)
+
+        self.DOWNLOADS_DIR: Path = Path(os.getenv("DOWNLOADS_DIR", "database/music"))
+
+        self.SUPPORT_GROUP: str = os.getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
+        self.SUPPORT_CHANNEL: str = os.getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
+
+        self.IGNORE_BACKGROUND_UPDATES: bool = self._get_env_bool("IGNORE_BACKGROUND_UPDATES", True)
+        self.AUTO_LEAVE: bool = self._get_env_bool("AUTO_LEAVE", True)
+
+        # Cookies
+        self.COOKIES_URL: list[str] = self._process_cookie_urls(os.getenv("COOKIES_URL"))
+
+        # Developer
+        devs_env: Optional[str] = os.getenv("DEVS")
+        self.DEVS: list[int] = list(map(int, devs_env.split())) if devs_env else []
+        if self.OWNER_ID and self.OWNER_ID not in self.DEVS:
+            self.DEVS.append(self.OWNER_ID)
+
+        # Validate configuration
+        self._validate_config()
+
+    @staticmethod
+    def _get_env_int(name: str, default: Optional[int] = None) -> Optional[int]:
+        """
+        Retrieve an environment variable and convert it to an integer.
+
+        Args:
+            name (str): Environment variable name.
+            default (Optional[int]): Fallback value if parsing fails.
+
+        Returns:
+            Optional[int]: Parsed integer or the default value.
+        """
+        value = os.getenv(name)
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            LOGGER.warning("Invalid value for %s: %s (default: %s)", name, value, default)
+            return default
+
+    @staticmethod
+    def _get_env_bool(name: str, default: bool = False) -> bool:
+        """
+        Retrieve an environment variable and interpret it as a boolean.
+
+        Args:
+            name (str): Environment variable name.
+            default (bool): Default boolean value.
+
+        Returns:
+            bool: Parsed boolean value.
+        """
+        return os.getenv(name, str(default)).lower() == "true"
+
+    @staticmethod
+    def _get_session_strings(prefix: str = "STRING", count: int = 10) -> list[str]:
+        """
+        Retrieve multiple session strings from the environment.
+
+        Args:
+            prefix (str): Prefix of the environment variable.
+            count (int): Number of session keys to check.
+
+        Returns:
+            list[str]: A list of valid session strings.
+        """
+        return [s.strip() for i in range(1, count + 1) if (s := os.getenv(f"{prefix}{i}"))]
+
+    @staticmethod
+    def _process_cookie_urls(value: Optional[str]) -> list[str]:
+        """
+        Parse space- or comma-separated URLs into a list.
+
+        Args:
+            value (Optional[str]): Raw COOKIES_URL env value.
+
+        Returns:
+            List[str]: List of cleaned URL strings.
+        """
+        if not value:
+            return []
+        return [url.strip() for url in value.replace(",", " ").split() if url.strip()]
+
+    def _validate_config(self) -> None:
+        """Validate all required environment configuration values."""
+        missing = [
+            name for name in ("API_ID", "API_HASH", "TOKEN", "MONGO_URI", "LOGGER_ID")
+            if not getattr(self, name)
+        ]
+        if missing:
+            raise ValueError(f"Missing required config: {', '.join(missing)}")
+
+        if not isinstance(self.MONGO_URI, str):
+            raise ValueError("MONGO_URI must be a string")
+
+        if not self.SESSION_STRINGS:
+            raise ValueError("At least one session string (STRING1–10) is required")
+
+        if self.IGNORE_BACKGROUND_UPDATES:
+            db_path = Path("database")
+            if db_path.exists():
+                shutil.rmtree(db_path)
+
+        try:
+            self.DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
+            Path("database/photos").mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            raise RuntimeError(f"Failed to create required directories: {e}") from e
 
 
-def get_env_bool(name: str, default: bool = False) -> bool:
-    """
-    Retrieve an environment variable and interpret it as a boolean.
-
-    Args:
-        name (str): Environment variable name.
-        default (bool): Default boolean value.
-
-    Returns:
-        bool: Parsed boolean value.
-    """
-    return os.getenv(name, str(default)).lower() == "true"
-
-
-def get_session_strings(prefix: str = "STRING", count: int = 10) -> list[str]:
-    """
-    Retrieve multiple session strings from the environment.
-
-    Args:
-        prefix (str): Prefix of the environment variable.
-        count (int): Number of session keys to check.
-
-    Returns:
-        list[str]: A list of valid session strings.
-    """
-    return [s.strip() for i in range(1, count + 1) if (s := os.getenv(f"{prefix}{i}"))]
-
-
-def process_cookie_urls(value: Optional[str]) -> list[str]:
-    """
-    Parse space- or comma-separated URLs into a list.
-
-    Args:
-        value (Optional[str]): Raw COOKIES_URL env value.
-
-    Returns:
-        list[str]: List of cleaned URL strings.
-    """
-    if not value:
-        return []
-    return [url.strip() for url in value.replace(",", " ").split() if url.strip()]
-
-
-# Core Bot Configuration
-API_ID: Optional[int] = get_env_int("API_ID")
-API_HASH: Optional[str] = os.getenv("API_HASH")
-TOKEN: Optional[str] = os.getenv("TOKEN")
-
-SESSION_STRINGS: list[str] = get_session_strings()
-MONGO_URI: Optional[str] = os.getenv("MONGO_URI")
-API_URL: str = os.getenv("API_URL", "https://tgmusic.fallenapi.fun")
-API_KEY: Optional[str] = os.getenv("API_KEY")
-
-# Owner and Logger
-OWNER_ID: int = get_env_int("OWNER_ID", 5938660179)
-LOGGER_ID: int = get_env_int("LOGGER_ID", -1002166934878)
-
-# Optional Settings
-PROXY: Optional[str] = os.getenv("PROXY")
-DEFAULT_SERVICE: str = os.getenv("DEFAULT_SERVICE", "youtube").lower()
-MIN_MEMBER_COUNT: int = get_env_int("MIN_MEMBER_COUNT", 50)
-
-DOWNLOADS_DIR: Path = Path(os.getenv("DOWNLOADS_DIR", "database/music"))
-
-SUPPORT_GROUP: str = os.getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
-SUPPORT_CHANNEL: str = os.getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
-
-IGNORE_BACKGROUND_UPDATES: bool = get_env_bool("IGNORE_BACKGROUND_UPDATES", True)
-AUTO_LEAVE: bool = get_env_bool("AUTO_LEAVE", True)
-
-# Cookies
-COOKIES_URL: list[str] = process_cookie_urls(os.getenv("COOKIES_URL"))
-
-# Developers
-devs_env: Optional[str] = os.getenv("DEVS")
-DEVS: list[int] = list(map(int, devs_env.split())) if devs_env else []
-if OWNER_ID and OWNER_ID not in DEVS:
-    DEVS.append(OWNER_ID)
+config = BotConfig()

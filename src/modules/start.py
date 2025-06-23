@@ -8,8 +8,7 @@ from datetime import datetime
 from cachetools import TTLCache
 from pytdbot import Client, types
 
-from src import __version__, StartTime
-from src.config import SUPPORT_GROUP
+from src import __version__, StartTime, config
 from src.helpers import (
     call,
     chat_invite_cache,
@@ -41,7 +40,7 @@ async def start_cmd(c: Client, message: types.Message):
             "• High quality audio streaming\n"
             "• Multi-platform support (YouTube, Spotify, etc)\n"
             "• Advanced playback controls\n\n"
-            f"💬 <a href='{SUPPORT_GROUP}'>Support Chat</a> | "
+            f"💬 <a href='{config.SUPPORT_GROUP}'>Support Chat</a> | "
         )
 
         reply = await message.reply_text(
@@ -68,8 +67,8 @@ async def start_cmd(c: Client, message: types.Message):
             reply_markup=add_me_markup(bot_username)
         )
 
-        if isinstance(reply, types.Error):
-            c.logger.warning(f"⚠️ Failed to send welcome message: {reply.message}")
+    if isinstance(reply, types.Error):
+        c.logger.warning(f"⚠️ Failed to send welcome message: {reply.message}")
 
     return None
 

@@ -13,8 +13,9 @@ from urllib.parse import unquote
 
 import aiofiles
 import httpx
+from aiofiles import os
 
-from src.config import DOWNLOADS_DIR, API_KEY, API_URL
+from src import config
 from src.logger import LOGGER
 
 
@@ -62,8 +63,8 @@ class HttpxClient:
     @staticmethod
     def _get_headers(url: str, base_headers: Dict[str, str]) -> Dict[str, str]:
         headers = base_headers.copy()
-        if API_URL and url.startswith(API_URL):
-            headers["X-API-Key"] = API_KEY
+        if config.API_URL and url.startswith(config.API_URL):
+            headers["X-API-Key"] = config.API_KEY
         return headers
 
     @staticmethod
@@ -117,7 +118,7 @@ class HttpxClient:
                         if match
                         else Path(url).name or f"{uuid.uuid4().hex}.tmp"
                     )
-                    path = DOWNLOADS_DIR / self._sanitize_filename(filename)
+                    path = config.DOWNLOADS_DIR / self._sanitize_filename(filename)
                 else:
                     path = Path(file_path) if isinstance(file_path, str) else file_path
 
@@ -135,7 +136,7 @@ class HttpxClient:
                             await f.write(chunk)
                 except Exception as e:
                     if temp_path.exists():
-                        await aiofiles.os.remove(temp_path)
+                        await os.remove(temp_path)
                     raise e
 
                 temp_path.rename(path)
