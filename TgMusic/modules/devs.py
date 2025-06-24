@@ -24,11 +24,8 @@ from pytdbot import Client, types
 from pytdbot import __version__ as py_td_ver
 from pytgcalls import __version__ as pytgver
 
-from TgMusic import StartTime, config
-from TgMusic.helpers import call
-from TgMusic.helpers import chat_cache, get_string
-from TgMusic.helpers import db
-from TgMusic.modules.utils import Filter
+from TgMusic import StartTime, config, call, db
+from TgMusic.core import Filter, chat_cache
 from TgMusic.modules.utils.play_helpers import del_msg, extract_argument
 
 
@@ -348,12 +345,8 @@ async def logger(c: Client, message: types.Message) -> None:
     enabled = await db.get_logger_status(c.me.id)
 
     if not args:
-        status = (
-            get_string("enabled", lang) if enabled else get_string("disabled", lang)
-        )
-        reply = await message.reply_text(
-            get_string("logger_usage_status", lang).format(status=status)
-        )
+        status = "enabled ✅" if enabled else "disabled ❌"
+        reply = await message.reply_text("Usage: /logger [enable|disable|on|off]\n\nCurrent status: {status}".format(status=status))
         if isinstance(reply, types.Error):
             c.logger.warning(reply.message)
         return
@@ -361,18 +354,18 @@ async def logger(c: Client, message: types.Message) -> None:
     arg = args.lower()
     if arg in ["on", "enable"]:
         await db.set_logger_status(c.me.id, True)
-        reply = await message.reply_text(get_string("logger_enabled", lang))
+        reply = await message.reply_text( "Logger enabled.")
         if isinstance(reply, types.Error):
             c.logger.warning(reply.message)
         return
     if arg in ["off", "disable"]:
         await db.set_logger_status(c.me.id, False)
-        reply = await message.reply_text(get_string("logger_disabled", lang))
+        reply = await message.reply_text("Logger disabled.")
         if isinstance(reply, types.Error):
             c.logger.warning(reply.message)
         return
 
-    await message.reply_text(get_string("logger_invalid_usage", lang).format(arg=args))
+    await message.reply_text("Usage: /logger [enable|disable]\n\nYour argument is {arg}".format(arg=args))
 
 
 @Client.on_message(filters=Filter.command(["autoend", "auto_end"]))

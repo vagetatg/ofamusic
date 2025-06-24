@@ -7,18 +7,18 @@ import asyncio
 from pytdbot import Client, types
 
 from TgMusic import config
-from TgMusic.helpers import (
-    db,
-    call,
+from TgMusic.core import (
     chat_invite_cache,
     ChatMemberStatus,
     user_status_cache,
     chat_cache,
+    call,
+    db,
+   SupportButton,
 )
 from TgMusic.logger import LOGGER
-from TgMusic.modules.utils import SupportButton
-from TgMusic.modules.utils.admins import load_admin_cache
-from TgMusic.modules.utils.buttons import add_me_markup
+from TgMusic.core.admins import load_admin_cache
+from TgMusic.core.buttons import add_me_markup
 
 
 async def handle_non_supergroup(client: Client, chat_id: int) -> None:

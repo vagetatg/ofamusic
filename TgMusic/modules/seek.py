@@ -5,10 +5,11 @@
 
 from pytdbot import Client, types
 
-from TgMusic.helpers import call, db, chat_cache
-from TgMusic.modules.utils import Filter, sec_to_min
-from .utils.admins import is_admin
+from TgMusic.core import Filter, chat_cache
+from TgMusic.core.admins import is_admin
+from .utils import sec_to_min
 from .utils.play_helpers import extract_argument
+from .. import call
 
 
 @Client.on_message(filters=Filter.command("seek"))

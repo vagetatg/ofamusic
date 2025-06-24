@@ -8,8 +8,7 @@ from cachetools import TTLCache
 from pymongo import AsyncMongoClient
 from pymongo.errors import ConnectionFailure
 
-from TgMusic import config
-from TgMusic.logger import LOGGER
+from ._config import config
 from TgMusic.logger import LOGGER
 
 
@@ -241,6 +240,5 @@ class Database:
     async def close(self) -> None:
         await self.mongo_client.close()
         LOGGER.info("Database connection closed.")
-
 
 db = Database()

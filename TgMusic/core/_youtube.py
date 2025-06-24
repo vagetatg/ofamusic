@@ -12,11 +12,11 @@ from typing import Any, Optional, Dict, Union
 from py_yt import Playlist, VideosSearch
 from pytdbot import types
 
-from TgMusic.helpers import MusicTrack, PlatformTracks, TrackInfo
+from ._config import config
+from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
 from TgMusic.logger import LOGGER
 from ._downloader import MusicService
 from ._httpx import HttpxClient
-from .. import config
 
 
 class YouTubeUtils:
@@ -430,10 +430,6 @@ class YouTubeData(MusicService):
         if not dl_path:
             return types.Error(code=500, message="Failed to download track")
         return Path(dl_path)
-
-    async def get_recommendations(self) -> Union[PlatformTracks, None]:
-        # TODO: Implement recommendations using YouTube API
-        return None
 
     async def _fetch_data(self, url: str) -> Optional[Dict[str, Any]]:
         try:

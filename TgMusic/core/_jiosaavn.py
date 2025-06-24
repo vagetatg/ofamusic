@@ -10,9 +10,10 @@ from typing import Any, Optional, Union
 import yt_dlp
 from pytdbot import types
 
-from TgMusic import config
+from ._config import config
 from TgMusic.logger import LOGGER
-from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
+
+from ._dataclass import PlatformTracks, MusicTrack, TrackInfo
 from ._downloader import MusicService
 from ._httpx import DownloadResult, HttpxClient
 
@@ -74,10 +75,6 @@ class JiosaavnData(MusicService):
 
         data = {"results": [self._format_track(track) for track in response["songs"]["data"] if track]}
         return self._create_platform_tracks(data)
-
-    async def get_recommendations(self) -> Union[PlatformTracks, None]:
-        # TODO: Implement recommendations using JioSaavn API
-        return None
 
     async def get_info(self) -> Union[PlatformTracks, types.Error]:
         if not self.query or not self.is_valid(self.query):

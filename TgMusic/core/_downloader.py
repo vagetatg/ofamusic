@@ -8,7 +8,7 @@ from typing import Optional, Union
 
 from pytdbot import types
 
-from TgMusic import config
+from ._config import config
 from ._dataclass import PlatformTracks, TrackInfo
 
 
@@ -26,10 +26,6 @@ class MusicService(ABC):
         pass
 
     @abstractmethod
-    async def get_recommendations(self) -> Union[PlatformTracks, None]:
-        pass
-
-    @abstractmethod
     async def get_track(self) -> Union[TrackInfo, types.Error]:
         pass
 
@@ -38,17 +34,16 @@ class MusicService(ABC):
         pass
 
 
-class MusicServiceWrapper(MusicService):
+class DownloaderWrapper(MusicService):
     def __init__(self, query: Optional[str] = None) -> None:
         self.query = query
         self.service = self._get_service()
 
     def _get_service(self) -> MusicService:
+        query = self.query
+        from ._youtube import YouTubeData
         from ._api import ApiData
         from ._jiosaavn import JiosaavnData
-        from ._youtube import YouTubeData
-
-        query = self.query
         if YouTubeData().is_valid(query):
             return YouTubeData(query)
         elif JiosaavnData().is_valid(query):
@@ -73,9 +68,6 @@ class MusicServiceWrapper(MusicService):
 
     async def search(self) -> Union[PlatformTracks, types.Error]:
         return await self.service.search()
-
-    async def get_recommendations(self) -> Union[PlatformTracks, None]:
-        return await self.service.get_recommendations()
 
     async def get_track(self) -> Union[TrackInfo, types.Error]:
         return await self.service.get_track()

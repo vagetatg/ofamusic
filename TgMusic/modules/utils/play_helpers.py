@@ -5,7 +5,7 @@
 import asyncio
 from typing import Any, Union
 
-from pytdbot import Client, types
+from pytdbot import types
 
 from TgMusic.logger import LOGGER
 
@@ -35,7 +35,6 @@ async def get_url(
             offset = entity.offset
             length = entity.length
             url = text_content[offset : offset + length]
-            LOGGER.info("Extracted URL: %s", url)
             return url
     return None
 

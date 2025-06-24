@@ -15,7 +15,7 @@ import aiofiles
 import httpx
 from aiofiles import os
 
-from TgMusic import config
+from ._config import config
 from TgMusic.logger import LOGGER
 
 

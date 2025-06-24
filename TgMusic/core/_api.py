@@ -8,12 +8,13 @@ from typing import Optional, Union
 
 from pytdbot import types
 
-from TgMusic import config
 from TgMusic.logger import LOGGER
-from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
+
+from ._config import config
 from ._downloader import MusicService
 from ._httpx import HttpxClient
 from ._spotify_dl_helper import SpotifyDownload
+from ._dataclass import PlatformTracks, MusicTrack, TrackInfo
 
 
 class ApiData(MusicService):
@@ -59,19 +60,6 @@ class ApiData(MusicService):
 
         url = f"{self.api_url}/{endpoint.lstrip('/')}"
         return await self.client.make_request(url, params=params)
-
-    async def get_recommendations(self, limit: int = 4) -> Optional[PlatformTracks]:
-        """
-        Get recommended tracks.
-
-        Args:
-            limit: Number of recommendations to fetch
-
-        Returns:
-            PlatformTracks: Contains recommended tracks or None if failed
-        """
-        data = await self._make_api_request("recommend_songs", {"lim": limit})
-        return self._parse_tracks_response(data) if data else None
 
     async def get_info(self) -> Optional[PlatformTracks]:
         if not self.query or not self.is_valid(self.query):

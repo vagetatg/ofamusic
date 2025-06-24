@@ -8,7 +8,7 @@ from typing import Any, Optional, TypeAlias, Union
 from cachetools import TTLCache
 from pytdbot import types
 
-from ._dataclass import CachedTrack
+from TgMusic.core._dataclass import CachedTrack
 
 chat_invite_cache = TTLCache(maxsize=1000, ttl=1000)
 

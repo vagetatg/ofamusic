@@ -6,10 +6,10 @@ from typing import Union
 
 from pytdbot import Client, types
 
-from TgMusic.helpers import db
+from TgMusic import db
 from TgMusic.logger import LOGGER
-from TgMusic.modules.utils import Filter
-from TgMusic.modules.utils.admins import is_admin, is_owner, load_admin_cache
+from TgMusic.core import Filter
+from TgMusic.core.admins import is_admin, is_owner, load_admin_cache
 from TgMusic.modules.utils.play_helpers import extract_argument
 
 

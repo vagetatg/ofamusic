@@ -4,8 +4,9 @@
 
 from pytdbot import Client, types
 
-from TgMusic.helpers import chat_cache, call
-from TgMusic.modules.utils import Filter, sec_to_min
+from TgMusic import call
+from TgMusic.core import Filter, chat_cache
+from TgMusic.modules.utils import sec_to_min
 
 
 @Client.on_message(filters=Filter.command("queue"))

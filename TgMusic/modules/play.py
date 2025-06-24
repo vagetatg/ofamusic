@@ -6,35 +6,29 @@ import re
 
 from pytdbot import Client, types
 
-from TgMusic.helpers import (
+from TgMusic import db, call, tg
+from TgMusic.core import YouTubeData, DownloaderWrapper
+from TgMusic.core import (
     CachedTrack,
-    MusicServiceWrapper,
     MusicTrack,
     PlatformTracks,
-    Telegram,
-    YouTubeData,
-    call,
-    db,
-    get_string,
+    chat_cache,
 )
-from TgMusic.helpers import chat_cache, ChannelPlay
 from TgMusic.logger import LOGGER
-from TgMusic.modules.utils import (
+from TgMusic.core import (
     Filter,
     SupportButton,
-    get_audio_duration,
-    sec_to_min,
-    is_channel_cmd,
     control_buttons,
 )
-from TgMusic.modules.utils.admins import is_admin, load_admin_cache
+from TgMusic.core.admins import is_admin, load_admin_cache
+from TgMusic.modules.utils import sec_to_min, get_audio_duration
 from TgMusic.modules.utils.play_helpers import (
     del_msg,
     edit_text,
     extract_argument,
     get_url,
 )
-from TgMusic.modules.utils.thumbnails import gen_thumb
+from TgMusic.core.thumbnails import gen_thumb
 
 
 def _get_jiosaavn_url(track_id: str) -> str:
@@ -64,9 +58,7 @@ def _get_platform_url(platform: str, track_id: str) -> str:
     return url_map.get(platform, "")
 
 
-def build_song_selection_message(
-    user_by: str, tracks: list[MusicTrack]
-) -> tuple[str, types.ReplyMarkupInlineKeyboard]:
+def build_song_selection_message(user_by: str, tracks: list[MusicTrack]) -> tuple[str, types.ReplyMarkupInlineKeyboard]:
     """
     Build a message and inline keyboard for song selection.
     """
@@ -124,7 +116,6 @@ async def _update_msg_with_thumb(
 async def _handle_single_track(
     c: Client,
     msg: types.Message,
-    channel: ChannelPlay,
     track: MusicTrack,
     user_by: str,
     file_path: str = None,
@@ -133,8 +124,7 @@ async def _handle_single_track(
     """
     Handle playback of a single track.
     """
-    chat_id = channel.chat_id
-    lang = await db.get_lang(msg.chat_id)
+    chat_id = msg.chat_id
     song = CachedTrack(
         name=track.name,
         artist=track.artist,
@@ -147,41 +137,29 @@ async def _handle_single_track(
         platform=track.platform,
         is_video=is_video,
         url=track.url,
-        channel=channel,
     )
 
     if not song.file_path:
-        if file_path := await call.song_download(song):
-            song.file_path = file_path
-        else:
-            return await edit_text(
-                msg, f"❌ {get_string('error_downloading_song', lang)}"
-            )
+        file_path = await call.song_download(song)
+        if isinstance(file_path, types.Error):
+            return await edit_text(msg, f"❌ {file_path.message}")
+
+        song.file_path = file_path
+        if not file_path:
+            return await edit_text(msg, f"❌ Error downloading the song.")
 
     song.duration = song.duration or await get_audio_duration(song.file_path)
     if chat_cache.is_active(chat_id):
         queue = chat_cache.get_queue(chat_id)
         chat_cache.add_song(chat_id, song)
         text = (
-            f"<b>➻ {get_string('added_to_queue_at', lang)} #{len(queue)}:</b>\n\n"
-            f"‣ <b>{get_string('title', lang)}:</b> <a href='{song.url}'>{song.name}</a>\n"
-            f"‣ <b>{get_string('duration', lang)}:</b> {sec_to_min(song.duration)}\n"
-            f"‣ <b>{get_string('requested_by', lang)}:</b> {song.user}"
+            f"<b>➻ Added to Queue at #{len(queue)}:</b>\n\n"
+            f"‣ <b>Title:</b> <a href='{song.url}'>{song.name}</a>\n"
+            f"‣ <b>Duration:</b> {sec_to_min(song.duration)}\n"
+            f"‣ <b>Requested by:</b> {song.user}"
         )
-        thumb = (
-            ""  # await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
-        )
-        await _update_msg_with_thumb(
-            c,
-            msg,
-            text,
-            thumb,
-            (
-                control_buttons("play", song.channel.is_channel)
-                if await db.get_buttons_status(chat_id)
-                else None
-            ),
-        )
+        thumb = ""  # await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
+        await _update_msg_with_thumb(c, msg, text, thumb, control_buttons("play") if await db.get_buttons_status(chat_id) else None)
         return None
 
     chat_cache.set_active(chat_id, True)
@@ -193,42 +171,29 @@ async def _handle_single_track(
 
     thumb = await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
     text = (
-        f"🎵 <b>{get_string('now_playing', lang)}:</b>\n\n"
-        f"‣ <b>{get_string('title', lang)}:</b> <a href='{song.url}'>{song.name}</a>\n"
-        f"‣ <b>{get_string('duration', lang)}:</b> {sec_to_min(song.duration)}\n"
-        f"‣ <b>{get_string('requested_by', lang)}:</b> {song.user}"
+        f"🎵 <b>Now playing:</b>\n\n"
+        f"‣ <b>Title:</b> <a href='{song.url}'>{song.name}</a>\n"
+        f"‣ <b>Duration:</b> {sec_to_min(song.duration)}\n"
+        f"‣ <b>Requested by:</b> {song.user}"
     )
 
-    reply = await _update_msg_with_thumb(
-        c,
-        msg,
-        text,
-        thumb,
-        (
-            control_buttons("play", channel.is_channel)
-            if await db.get_buttons_status(chat_id)
-            else None
-        ),
-    )
+    reply = await _update_msg_with_thumb(c, msg, text, thumb, control_buttons("play") if await db.get_buttons_status(chat_id) else None)
     if isinstance(reply, types.Error):
         LOGGER.info("sending reply: %s", reply)
         return None
     return None
 
 
-async def _handle_multiple_tracks(
-    msg: types.Message, tracks: list[MusicTrack], user_by: str, channel: ChannelPlay
-):
+async def _handle_multiple_tracks(msg: types.Message, tracks: list[MusicTrack], user_by: str):
     """
     Handle multiple tracks (playlist/album).
     """
-    chat_id = channel.chat_id
-    lang = await db.get_lang(msg.chat_id)
+    chat_id = msg.chat_id
     is_active = chat_cache.is_active(chat_id)
     queue = chat_cache.get_queue(chat_id)
     text = (
         "<b>➻ "
-        + get_string("added_to_queue", lang)
+        + "Added to Queue at"
         + ":</b>\n<blockquote expandable>\n"
     )
 
@@ -248,30 +213,29 @@ async def _handle_multiple_tracks(
                 platform=track.platform,
                 is_video=False,
                 url=track.url,
-                channel=channel,
             ),
         )
-        text += f"<b>{position}.</b> {track.name}\n└ {get_string('duration', lang)}: {sec_to_min(track.duration)}\n"
+        text += f"<b>{position}.</b> {track.name}\n└ Duration: {sec_to_min(track.duration)}\n"
 
     text += "</blockquote>\n"
     total_dur = sum(t.duration for t in tracks)
     text += (
-        f"<b>📋 {get_string('total_queue', lang)}:</b> {len(chat_cache.get_queue(chat_id))}\n"
-        f"<b>⏱️ {get_string('total_duration', lang)}:</b> {sec_to_min(total_dur)}\n"
-        f"<b>👤 {get_string('requested_by', lang)}:</b> {user_by}"
+        f"<b>📋 Total Queue:</b> {len(chat_cache.get_queue(chat_id))}\n"
+        f"<b>⏱️ Total Duration:</b> {sec_to_min(total_dur)}\n"
+        f"<b>👤 Requested by:</b> {user_by}"
     )
 
     if len(text) > 4096:
         text = (
-            f"<b>📋 {get_string('total_queue', lang)}:</b> {len(chat_cache.get_queue(chat_id))}\n"
-            f"<b>⏱️ {get_string('total_duration', lang)}:</b> {sec_to_min(total_dur)}\n"
-            f"<b>👤 {get_string('requested_by', lang)}:</b> {user_by}"
+            f"<b>📋 Total Queue:</b> {len(chat_cache.get_queue(chat_id))}\n"
+            f"<b>⏱️ Total Duration:</b> {sec_to_min(total_dur)}\n"
+            f"<b>👤 Requested by:</b> {user_by}"
         )
 
     if not is_active:
         await call.play_next(chat_id)
 
-    await edit_text(msg, text, reply_markup=control_buttons("play", channel.is_channel))
+    await edit_text(msg, text, reply_markup=control_buttons("play"))
 
 
 async def play_music(
@@ -279,58 +243,24 @@ async def play_music(
     msg: types.Message,
     url_data: PlatformTracks,
     user_by: str,
-    channel: ChannelPlay,
     tg_file_path: str = None,
     is_video: bool = False,
 ):
     """
     Handle playing music from a given URL or file.
     """
-    lang = await db.get_lang(msg.chat_id)
     if not url_data or not url_data.tracks:
-        return await edit_text(msg, get_string("unable_to_retrieve_song_info", lang))
+        return await edit_text(msg, "Unable to retrieve song info.")
 
-    await edit_text(msg, text=get_string("song_found_downloading", lang))
+    await edit_text(msg, text="🎶 Song found. Downloading...")
     if len(url_data.tracks) == 1:
-        return await _handle_single_track(
-            c, msg, channel, url_data.tracks[0], user_by, tg_file_path, is_video
-        )
-    return await _handle_multiple_tracks(msg, url_data.tracks, user_by, channel)
+        return await _handle_single_track(c, msg, url_data.tracks[0], user_by, tg_file_path, is_video)
+    return await _handle_multiple_tracks(msg, url_data.tracks, user_by)
 
-
-async def _handle_recommendations(
-    _: Client, msg: types.Message, wrapper: MusicServiceWrapper
-):
-    """
-    Show music recommendations when no query is provided.
-    """
-    lang = await db.get_lang(msg.chat_id)
-    recommendations = await wrapper.get_recommendations()
-
-    text = get_string("usage_play_song_name", lang)
-    if not recommendations:
-        await edit_text(msg, text=text, reply_markup=SupportButton)
-        return
-
-    text, keyboard = build_song_selection_message("", recommendations.tracks)
-    await edit_text(
-        msg, text=text, reply_markup=keyboard, disable_web_page_preview=True
-    )
-
-
-async def _handle_telegram_file(
-    c: Client,
-    channel: ChannelPlay,
-    reply: types.Message,
-    reply_message: types.Message,
-    user_by: str,
-):
+async def _handle_telegram_file(c: Client, reply: types.Message, reply_message: types.Message, user_by: str):
     """
     Handle Telegram audio/video files.
     """
-    lang = await db.get_lang(channel.chat_id)
-    telegram = Telegram(reply)
-
     # Determine if the message contains a video (Document or Video type)
     content = reply.content
     docs_vid = (
@@ -342,18 +272,13 @@ async def _handle_telegram_file(
     is_video = isinstance(content, types.MessageVideo) or docs_vid
 
     # Download the file
-    file_path, file_name = await telegram.download_msg(reply_message)
+    file_path, file_name = await tg.download_msg(reply, reply_message)
     if isinstance(file_path, types.Error):
         return await edit_text(
             reply_message,
-            text=get_string("telegram_file_download_failed", lang).format(
-                file=file_name, error=file_path.message
-            ),
-        )
+            text="<b>Download Failed</b>\n\n🎶 <b>File:</b> <code>{file}</code>\n💬 <b>Error:</b> <code>{error}</code>".format(file=file_name, error=file_path.message))
 
     duration = await get_audio_duration(file_path.path)
-
-    # Wrap in a consistent track structure
     _song = PlatformTracks(
         tracks=[
             MusicTrack(
@@ -369,48 +294,42 @@ async def _handle_telegram_file(
         ]
     )
 
-    await play_music(c, reply_message, _song, user_by, channel, file_path.path, is_video)
+    await play_music(c, reply_message, _song, user_by, file_path.path, is_video)
     return None
 
 
 async def _handle_text_search(
     c: Client,
     msg: types.Message,
-    channel: ChannelPlay,
-    wrapper: MusicServiceWrapper,
+    wrapper: DownloaderWrapper,
     user_by: str,
 ):
     """
     Handle text-based music search.
     """
-    chat_id = channel.chat_id
-    lang = await db.get_lang(chat_id)
+    chat_id = msg.chat_id
     play_type = await db.get_play_type(chat_id)
     search = await wrapper.search()
     if isinstance(search, types.Error):
-        return await edit_text(
-            msg,
-            text=get_string("no_results_bug", lang) + f"\n{search.message}",
-            reply_markup=SupportButton,
-        )
+        return await edit_text(msg, text=search.message, reply_markup=SupportButton)
 
     if not search or not search.tracks:
         return await edit_text(
             msg,
-            text=get_string("no_results_bug", lang),
+            text="No results found. Please report if you think it's a bug.",
             reply_markup=SupportButton,
         )
 
     if play_type == 0:
         url = search.tracks[0].url
-        if song := await MusicServiceWrapper(url).get_info():
-            return await play_music(c, msg, song, user_by, channel)
-
-        return await edit_text(
-            msg,
-            text=get_string("failed_song_info", lang),
-            reply_markup=SupportButton,
-        )
+        song = await DownloaderWrapper(url).get_info()
+        if isinstance(song, types.Error):
+            return await edit_text(
+                msg,
+                text=song.message,
+                reply_markup=SupportButton,
+            )
+        return await play_music(c, msg, song, user_by)
 
     text, keyboard = build_song_selection_message(user_by, search.tracks)
     await edit_text(
@@ -423,59 +342,50 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
     """
     Generic handler for /play and /vplay.
     """
-    is_channel = is_channel_cmd(msg.text)
-    chat_id = await db.get_channel_id(msg.chat_id) if is_channel else msg.chat_id
-    channel = ChannelPlay(chat_id=chat_id, is_channel=is_channel and chat_id != msg.chat_id)
-
-    lang = await db.get_lang(chat_id)
+    chat_id = msg.chat_id
     if chat_id > 0:
-        return await msg.reply_text(get_string("only_supergroup", lang))
+        return await msg.reply_text("This command is only available in supergroups.")
 
     # Queue limit
     queue = chat_cache.get_queue(chat_id)
     if len(queue) > 10:
-        return await msg.reply_text(
-            get_string("queue_limit", lang).format(count=len(queue))
-        )
+        return await msg.reply_text("❌ Queue limit reached! You have {count} tracks. Use /end to reset.".format(count=len(queue)))
 
     await load_admin_cache(c, chat_id)
     if not await is_admin(chat_id, c.me.id):
-        return await msg.reply_text(get_string("need_admin_reload", lang))
+        text = "I need admin with invite user permission if group is private.\n\nAfter promoting me, try again or use /reload."
+        return await msg.reply_text(text)
 
     reply = await msg.getRepliedMessage() if msg.reply_to_message_id else None
     url = await get_url(msg, reply)
     args = extract_argument(msg.text)
 
-    reply_message = await msg.reply_text(get_string("searching", lang))
+    reply_message = await msg.reply_text("🔎")
     if isinstance(reply_message, types.Error):
         LOGGER.warning("Error sending reply: %s", reply_message)
         return None
 
     await del_msg(msg)
-    wrapper = (YouTubeData if is_video else MusicServiceWrapper)(url or args)
-
+    wrapper = (YouTubeData if is_video else DownloaderWrapper)(url or args)
     # No args or reply
-    if not args and not url and not (reply and Telegram(reply).is_valid()):
+    if not args and not url and not (reply and tg.is_valid(reply)):
         if is_video:
-            return await edit_text(
-                reply_message,
-                text=get_string("usage_video", lang),
-                reply_markup=SupportButton,
-            )
+            return await edit_text(reply_message, text="Usage: /play song_name or YouTube link", reply_markup=SupportButton)
         else:
-            return await _handle_recommendations(c, reply_message, wrapper)
+            text = "ᴜsᴀɢᴇ: /play song_name\n\nSupported platforms are: YouTube, SoundCloud, Spotify, Apple Music & Jiosaavn."
+            return await edit_text(reply_message, text=text, reply_markup=SupportButton)
+
 
     user_by = await msg.mention()
-
     # Telegram file support
-    if reply and Telegram(reply).is_valid():
-        return await _handle_telegram_file(c, channel, reply, reply_message, user_by)
+    if reply and tg.is_valid(reply):
+        return await _handle_telegram_file(c, reply, reply_message, user_by)
 
     if url:
         if not wrapper.is_valid(url):
             return await edit_text(
                 reply_message,
-                get_string("invalid_url", lang),
+                text="Invalid URL! Provide a valid link.\nSupported platforms are: YouTube, SoundCloud, Spotify, Apple Music & Jiosaavn.",
                 reply_markup=SupportButton,
             )
 
@@ -483,11 +393,11 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
         if isinstance(song, types.Error):
             return await edit_text(
                 reply_message,
-                get_string("failed_song_info", lang) + "\n\n" + song.message,
+                "Unable to retrieve song info." + "\n\n" + song.message,
                 reply_markup=SupportButton,
             )
 
-        return await play_music(c, reply_message, song, user_by, channel, is_video=is_video)
+        return await play_music(c, reply_message, song, user_by, is_video=is_video)
 
     # Search
     if is_video:
@@ -495,43 +405,43 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
         if isinstance(search, types.Error):
             return await edit_text(
                 reply_message,
-                get_string("failed_search", lang) + "\n" + search.message,
+                text=search.message,
                 reply_markup=SupportButton,
             )
 
         if not search or not search.tracks:
             return await edit_text(
                 reply_message,
-                get_string("no_results", lang),
+                text="No results found.",
                 reply_markup=SupportButton,
             )
 
-        if song := await MusicServiceWrapper(search.tracks[0].url).get_info():
+        if song := await DownloaderWrapper(search.tracks[0].url).get_info():
             if isinstance(song, types.Error):
                 return await edit_text(
                     reply_message,
-                    get_string("failed_song_info", lang) + "\n" + song.message,
+                    text=song.message,
                     reply_markup=SupportButton,
                 )
 
             return await play_music(
-                c, reply_message, song, user_by, channel, is_video=True
+                c, reply_message, song, user_by, is_video=True
             )
 
         return await edit_text(
             reply_message,
-            get_string("failed_song_info", lang),
+            text="Unable to retrieve song info.",
             reply_markup=SupportButton,
         )
     else:
-        return await _handle_text_search(c, reply_message, channel, wrapper, user_by)
+        return await _handle_text_search(c, reply_message, wrapper, user_by)
 
 
-@Client.on_message(filters=Filter.command(["play", "cplay"]))
+@Client.on_message(filters=Filter.command("play"))
 async def play_audio(c: Client, msg: types.Message) -> None:
     await handle_play_command(c, msg, False)
 
 
-@Client.on_message(filters=Filter.command(["vplay", "cvplay"]))
+@Client.on_message(filters=Filter.command("vplay"))
 async def play_video(c: Client, msg: types.Message) -> None:
     await handle_play_command(c, msg, True)

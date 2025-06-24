@@ -4,9 +4,11 @@
 
 from typing import Union
 from pytdbot import Client, types
-from TgMusic.helpers import call, db, chat_cache
-from TgMusic.modules.utils import Filter
-from TgMusic.modules.utils.admins import is_admin
+
+from TgMusic import call, db
+
+from TgMusic.core import Filter, chat_cache
+from TgMusic.core.admins import is_admin
 from TgMusic.modules.utils.play_helpers import extract_argument
 
 @Client.on_message(filters=Filter.command(["playtype", "setPlayType"]))

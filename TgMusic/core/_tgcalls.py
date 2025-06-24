@@ -2,7 +2,6 @@
 #  Licensed under the GNU AGPL v3.0: https://www.gnu.org/licenses/agpl-3.0.html
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
-import asyncio
 import os
 import random
 import re
@@ -26,27 +25,20 @@ from pytgcalls.types import (
     CallConfig,
 )
 
-from TgMusic import config
+from ._cacher import chat_cache, ChatMemberStatusResult, user_status_cache, chat_invite_cache
+from ._database import db
+from .buttons import control_buttons
+from ._api import ApiData
+from ._jiosaavn import JiosaavnData
+from ._youtube import YouTubeData
+from ._dataclass import CachedTrack
+from .utills import send_logger
 from TgMusic.logger import LOGGER
 from TgMusic.modules.utils import (
     get_audio_duration,
     sec_to_min,
-    send_logger,
-    control_buttons,
 )
-from TgMusic.modules.utils.thumbnails import gen_thumb
-from ._api import ApiData
-from ._cacher import (
-    chat_invite_cache,
-    user_status_cache,
-    ChatMemberStatusResult,
-    chat_cache,
-)
-from ._database import db
-from ._dataclass import CachedTrack
-from ._downloader import MusicServiceWrapper
-from ._jiosaavn import JiosaavnData
-from ._youtube import YouTubeData
+from TgMusic.core.thumbnails import gen_thumb
 
 
 class Calls:
@@ -56,16 +48,8 @@ class Calls:
         self.available_clients: list[str] = []
         self.bot: Optional[Client] = None
 
-    async def add_bot(self, client: Client) -> types.Ok:
-        """Register the main bot client.
-
-        Args:
-            client: The main bot client instance
-
-        Returns:
-            types.Ok on success
-        """
-        self.bot = client
+    async def add_bot(self, bot: Client) -> types.Ok:
+        self.bot = bot
         return types.Ok()
 
     async def _get_client_name(self, chat_id: int) -> Union[str, types.Error]:
@@ -147,7 +131,6 @@ class Calls:
 
             await calls.start()
             LOGGER.info("Client %s started successfully", client_name)
-            # asyncio.create_task(calls.play(config.LOGGER_ID, "https://docs.evostream.com/sample_content/assets/sintel1m720p.mp4"))
         except Exception as e:
             LOGGER.error("Error starting client %s: %s", client_name, e)
             raise RuntimeError(f"Failed to start client {client_name}: {str(e)}") from e
@@ -346,7 +329,7 @@ class Calls:
                     message_id=reply.id,
                     input_message_content=input_content,
                     reply_markup=(
-                        control_buttons("play", song.channel.is_channel)
+                        control_buttons("play")
                         if await db.get_buttons_status(chat_id)
                         else None
                     ),
@@ -360,7 +343,7 @@ class Calls:
                         link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                     ),
                     reply_markup=(
-                        control_buttons("play", song.channel.is_channel)
+                        control_buttons("play")
                         if await db.get_buttons_status(chat_id)
                         else None
                     ),
@@ -372,7 +355,7 @@ class Calls:
             )
 
     @staticmethod
-    async def song_download(song: CachedTrack) -> Optional[Path]:
+    async def song_download(song: CachedTrack) -> Union[Path, types.Error]:
         platform_handlers = {
             "youtube": YouTubeData(song.track_id),
             "jiosaavn": JiosaavnData(song.url),
@@ -383,19 +366,11 @@ class Calls:
 
         handler = platform_handlers.get(song.platform.lower())
         if not handler:
-            LOGGER.warning(
-                "Unsupported platform: %s for track: %s", song.platform, song.track_id
-            )
-            return None
+            LOGGER.warning("Unsupported platform: %s for track: %s", song.platform, song.track_id)
+            return types.Error(code=400, message=f"Unsupported platform: {song.platform} for track: {song.track_id}")
 
-        try:
-            track = await handler.get_track()
-            return await handler.download_track(track, song.is_video) if track else None
-        except Exception as e:
-            LOGGER.error(
-                "Download failed for %s: %s", song.track_id, str(e), exc_info=True
-            )
-            return None
+        track = await handler.get_track()
+        return await handler.download_track(track, song.is_video) if track else None
 
     async def _handle_no_songs(self, chat_id: int) -> None:
         """Handle an empty queue scenario.
@@ -403,46 +378,10 @@ class Calls:
         Args:
             chat_id: Target chat ID
         """
-        try:
-            await self.end(chat_id)
-            _chat_id = await db.get_chat_id_by_channel(chat_id) or chat_id
-            # Try to get recommendations
-            try:
-                recommendations = await MusicServiceWrapper().get_recommendations()
-                if recommendations and recommendations.tracks:
-                    buttons = [
-                        [
-                            types.InlineKeyboardButton(
-                                text=f"{track.name[:18]} - {track.artist}",
-                                type=types.InlineKeyboardButtonTypeCallback(
-                                    f"play_{track.platform}_{track.id}".encode()
-                                ),
-                            )
-                        ]
-                        for track in recommendations.tracks
-                    ]
-
-                    await self.bot.sendTextMessage(
-                        _chat_id,
-                        text="🎵 Queue finished. Try these recommendations:\n",
-                        reply_markup=types.ReplyMarkupInlineKeyboard(buttons),
-                    )
-                    return
-            except Exception as e:
-                LOGGER.warning("Failed to get recommendations: %s", e)
-
-            # Fallback message
-            await self.bot.sendTextMessage(
-                _chat_id, text="🎵 Queue finished.\nUse /play to add more songs!"
-            )
-
-        except Exception as e:
-            LOGGER.error(
-                "Error in _handle_no_songs for chat %s: %s",
-                chat_id,
-                str(e),
-                exc_info=True,
-            )
+        await self.end(chat_id)
+        await self.bot.sendTextMessage(
+            chat_id, text="🎵 Queue finished.\nUse /play to add more songs!"
+        )
 
     async def end(self, chat_id: int) -> Union[types.Ok, types.Error]:
         """End playback and clean up for a chat.
@@ -847,20 +786,4 @@ class Calls:
         except Exception as e:
             return types.Error(code=400, message=f"Failed to join {user_id}: {e}")
 
-
-async def start_clients() -> None:
-    """Initialize all client sessions."""
-    try:
-        await asyncio.gather(
-            *[
-                call.start_client(config.API_ID, config.API_HASH, session_str)
-                for session_str in config.SESSION_STRINGS
-            ]
-        )
-        LOGGER.info("✅ All client sessions started successfully")
-    except Exception as exc:
-        LOGGER.critical("Failed to start clients: %s", exc, exc_info=True)
-        raise SystemExit(1) from exc
-
-
-call: Calls = Calls()
+call = Calls()

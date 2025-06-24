@@ -4,9 +4,8 @@
 
 from pytdbot import Client, types
 
-from TgMusic.helpers import db, chat_cache
-from TgMusic.modules.utils import Filter
-from .utils.admins import is_admin
+from TgMusic.core import Filter, chat_cache
+from TgMusic.core.admins import is_admin
 
 
 @Client.on_message(filters=Filter.command("clear"))
@@ -30,9 +29,7 @@ async def clear_queue(c: Client, msg: types.Message) -> None:
         return None
 
     chat_cache.clear_chat(chat_id)
-    reply = await msg.reply_text(
-        f"✅ Queue cleared by {await msg.mention()}"
-    )
+    reply = await msg.reply_text(f"✅ Queue cleared by {await msg.mention()}")
     if isinstance(reply, types.Error):
         c.logger.warning(f"Error sending reply: {reply}")
     return None

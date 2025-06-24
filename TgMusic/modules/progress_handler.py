@@ -7,9 +7,9 @@ import time
 
 from pytdbot import Client, types
 
-from TgMusic.helpers import Telegram
+from TgMusic import tg
 from TgMusic.logger import LOGGER
-from TgMusic.modules.utils.admins import is_admin
+from TgMusic.core.admins import is_admin
 
 download_progress = {}
 
@@ -210,7 +210,6 @@ async def update_file(client: Client, update: types.UpdateFile):
     """
     file = update.file
     unique_id = file.remote.unique_id
-    tg = Telegram(None)
     meta = tg.get_cached_metadata(unique_id)
     if not meta:
         return
@@ -314,7 +313,7 @@ async def _handle_play_c_data(
         return
 
     _, _, file_id = data.split("_", 2)
-    meta = Telegram(None).get_cached_metadata(file_id)
+    meta = tg.get_cached_metadata(file_id)
     if not meta:
         await message.answer(
             "Looks like this file already downloaded.", show_alert=True

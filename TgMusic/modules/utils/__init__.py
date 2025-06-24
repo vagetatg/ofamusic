@@ -3,13 +3,8 @@
 #  Part of the TgMusicBot project. All rights reserved where applicable.
 
 __all__ = [
-    "Filter",
     "sec_to_min",
     "get_audio_duration",
-    "SupportButton",
-    "send_logger",
-    "is_channel_cmd",
-    "control_buttons",
 ]
 
 import asyncio
@@ -17,19 +12,7 @@ import json
 
 from pytdbot import Client, types
 
-from ._filters import Filter
-from .buttons import SupportButton, control_buttons
-from ... import config
-from ...helpers import CachedTrack
 from ...logger import LOGGER
-
-
-def is_channel_cmd(text: str) -> bool:
-    if not text:
-        return False
-    text = text.strip().lower()
-    return any(text.startswith(prefix) for prefix in ("/c", "!c", ".c", "cplay"))
-
 
 def sec_to_min(seconds):
     """
@@ -42,37 +25,6 @@ def sec_to_min(seconds):
     except Exception as e:
         LOGGER.warning("Failed to convert seconds to minutes:seconds format: %s", e)
         return None
-
-
-async def send_logger(client: Client, chat_id, song: CachedTrack):
-    """
-    Send a message to the logger channel when a song is played.
-
-    Args:
-        client (Client): The client to send the message with.
-        chat_id (int): The ID of the chat that the song is being played in.
-        song (CachedTrack): The song that is being played.
-
-    Returns:
-        None
-    """
-    if not chat_id or not song or chat_id == config.LOGGER_ID or config.LOGGER_ID == 0:
-        return
-
-    text = (
-        f"<b>Song Playing</b> in <code>{chat_id}</code>\n\n"
-        f"▶️ <b>Now Playing:</b> <a href='{song.url}'>{song.name}</a>\n\n"
-        f"• <b>Duration:</b> {sec_to_min(song.duration)}\n"
-        f"• <b>Requested by:</b> {song.user}\n"
-        f"• <b>Platform:</b> {song.platform}"
-    )
-
-    msg = await client.sendTextMessage(
-        config.LOGGER_ID, text, disable_web_page_preview=True, disable_notification=True
-    )
-    if isinstance(msg, types.Error):
-        LOGGER.error("Error sending message: %s", msg)
-    return
 
 
 async def get_audio_duration(file_path):

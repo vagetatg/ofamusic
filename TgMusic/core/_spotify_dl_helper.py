@@ -13,10 +13,10 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from pytdbot import types
 
-from TgMusic import config
+from ._config import config
+from TgMusic.core._httpx import HttpxClient
 from TgMusic.logger import LOGGER
 from ._dataclass import TrackInfo
-from ._httpx import HttpxClient
 
 
 async def rebuild_ogg(filename: str) -> None:

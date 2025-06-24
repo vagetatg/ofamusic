@@ -12,9 +12,8 @@ from pyrogram import Client as PyroClient
 from pyrogram import errors
 from pytdbot import Client, types
 
-from TgMusic import config
-from TgMusic.helpers import call, db
-from TgMusic.helpers import chat_cache
+from TgMusic import config, call, db
+from TgMusic.core import chat_cache
 
 _concurrency_limiter = asyncio.Semaphore(10)
 

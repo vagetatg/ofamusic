@@ -4,38 +4,37 @@
 
 from pytdbot import Client, types
 
-from TgMusic import db
-from TgMusic.helpers import get_string, chat_cache, call, MusicServiceWrapper, ChannelPlay
-from TgMusic.modules.utils import Filter, is_channel_cmd, control_buttons
-from TgMusic.modules.utils.admins import is_admin, load_admin_cache
+from TgMusic import db, call
+from TgMusic.core import Filter, control_buttons, chat_cache
+from TgMusic.core.admins import is_admin, load_admin_cache
 from .play import _get_platform_url, play_music
 from .progress_handler import _handle_play_c_data
 from .utils.play_helpers import edit_text
+from ..core import DownloaderWrapper
 
 
 @Client.on_updateNewCallbackQuery(filters=Filter.regex(r"(c)?play_\w+"))
 async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> None:
-    """Handle all play control callback queries (skip, stop, pause, resume)."""
+    """Handle all playback control callback queries (skip, stop, pause, resume)."""
     data = message.payload.data.decode()
     user_id = message.sender_user_id
-    channel_play = is_channel_cmd(data)
-    lang = await db.get_lang(message.chat_id)
-    get_msg = await message.getMessage()
 
+    # Retrieve message and user info with error handling
+    get_msg = await message.getMessage()
     if isinstance(get_msg, types.Error):
-        c.logger.warning(get_msg.message)
+        c.logger.warning(f"Failed to get message: {get_msg.message}")
         return None
 
     user = await c.getUser(user_id)
     if isinstance(user, types.Error):
-        c.logger.warning(user.message)
+        c.logger.warning(f"Failed to get user info: {user.message}")
         return None
 
     await load_admin_cache(c, message.chat_id)
-    data = data[1:] if channel_play else data
     user_name = user.first_name
 
     def requires_admin(action: str) -> bool:
+        """Check if action requires admin privileges."""
         return action in {
             "play_skip",
             "play_stop",
@@ -45,6 +44,7 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         }
 
     def requires_active_chat(action: str) -> bool:
+        """Check if action requires an active playback session."""
         return action in {
             "play_skip",
             "play_stop",
@@ -54,8 +54,12 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
         }
 
     async def send_response(
-        msg: str, alert: bool = False, delete: bool = False, reply_markup=None
+            msg: str,
+            alert: bool = False,
+            delete: bool = False,
+            reply_markup=None
     ) -> None:
+        """Helper function to send standardized responses."""
         if alert:
             await message.answer(msg, show_alert=True)
         else:
@@ -67,117 +71,130 @@ async def callback_query(c: Client, message: types.UpdateNewCallbackQuery) -> No
             await edit_func(msg, reply_markup=reply_markup)
 
         if delete:
-            _delete = await c.deleteMessages(
+            _del_result = await c.deleteMessages(
                 message.chat_id, [message.message_id], revoke=True
             )
-            if isinstance(_delete, types.Error):
-                c.logger.warning("Error deleting message: %s", _delete.message)
+            if isinstance(_del_result, types.Error):
+                c.logger.warning(f"Message deletion failed: {_del_result.message}")
 
+    # Check admin permissions if required
     if requires_admin(data) and not await is_admin(message.chat_id, user_id):
-        await message.answer(f"⚠️ {get_string('admin_required', lang)}", show_alert=True)
+        await message.answer(
+            "⛔ Administrator privileges required for this action.",
+            show_alert=True
+        )
         return None
 
     chat_id = message.chat_id
-    _chat_id = await db.get_channel_id(chat_id) if channel_play else chat_id
-    if requires_active_chat(data) and not chat_cache.is_active(_chat_id):
+    if requires_active_chat(data) and not chat_cache.is_active(chat_id):
         return await send_response(
-            f"❌ {get_string('no_active_chat', lang)}", alert=True
+            "⏹️ No active playback session in this chat.",
+            alert=True
         )
 
+    # Handle different control actions
     if data == "play_skip":
-        result = await call.play_next(_chat_id)
+        result = await call.play_next(chat_id)
         if isinstance(result, types.Error):
             return await send_response(
-                f"⚠️ {get_string('error_occurred', lang)}\n\n{result.message}",
+                f"⚠️ Playback error\nDetails: {result.message}",
                 alert=True,
             )
-        return await send_response(get_string("song_skipped", lang), delete=True)
+        return await send_response("⏭️ Track skipped successfully", delete=True)
 
     if data == "play_stop":
-        result = await call.end(_chat_id)
+        result = await call.end(chat_id)
         if isinstance(result, types.Error):
-            return await send_response(result.message, alert=True)
+            return await send_response(
+                f"⚠️ Failed to stop playback\n{result.message}",
+                alert=True
+            )
         return await send_response(
-            f"<b>➻ {get_string('stream_stopped', lang)}:</b>\n└ {get_string('requested_by', lang)}: {user_name}"
+            f"<b>⏹ Playback Stopped</b>\n└ Requested by: {user_name}"
         )
 
     if data == "play_pause":
-        result = await call.pause(_chat_id)
+        result = await call.pause(chat_id)
         if isinstance(result, types.Error):
             return await send_response(
-                f"⚠️ {get_string('error_occurred', lang)}\n\n{result.message}",
+                f"⚠️ Pause failed\n{result.message}",
                 alert=True,
             )
         markup = (
-            control_buttons("pause", channel_play)
+            control_buttons("pause")
             if await db.get_buttons_status(chat_id)
             else None
         )
         return await send_response(
-            f"<b>➻ {get_string('stream_paused', lang)}:</b>\n└ {get_string('requested_by', lang)}: {user_name}",
+            f"<b>⏸ Playback Paused</b>\n└ Requested by: {user_name}",
             reply_markup=markup,
         )
 
     if data == "play_resume":
-        result = await call.resume(_chat_id)
+        result = await call.resume(chat_id)
         if isinstance(result, types.Error):
-            return await send_response(result.message, alert=True)
+            return await send_response(
+                f"⚠️ Resume failed\n{result.message}",
+                alert=True
+            )
         markup = (
-            control_buttons("resume", channel_play)
+            control_buttons("resume")
             if await db.get_buttons_status(chat_id)
             else None
         )
         return await send_response(
-            f"<b>➻ {get_string('stream_resumed', lang)}:</b>\n└ {get_string('requested_by', lang)}: {user_name}",
+            f"<b>▶ Playback Resumed</b>\n└ Requested by: {user_name}",
             reply_markup=markup,
         )
 
     if data == "play_close":
-        _del = await c.deleteMessages(chat_id, [message.message_id], revoke=True)
-        if isinstance(_del, types.Error):
-            await message.answer(f"Failed to close {_del.message}", show_alert=True)
+        delete_result = await c.deleteMessages(chat_id, [message.message_id], revoke=True)
+        if isinstance(delete_result, types.Error):
+            await message.answer(
+                f"⚠️ Interface closure failed\n{delete_result.message}",
+                show_alert=True
+            )
             return None
-        await message.answer(get_string("closed", lang), show_alert=True)
+        await message.answer("✅ Interface closed successfully", show_alert=True)
         return None
 
     if data.startswith("play_c_"):
         return await _handle_play_c_data(data, message, chat_id, user_id, user_name, c)
 
-    # Playing from source
+    # Handle music playback requests
     try:
         _, platform, song_id = data.split("_", 2)
     except ValueError:
-        c.logger.error(f"Invalid callback data format: {data}")
+        c.logger.error(f"Malformed callback data received: {data}")
         return await send_response(
-            get_string("invalid_request_format", lang), alert=True
+            "⚠️ Invalid request format",
+            alert=True
         )
 
     await message.answer(
-        f"{get_string('playing_song', lang)} {user_name}", show_alert=True
+        f"🔍 Preparing playback for {user_name}",
+        show_alert=True
     )
     reply = await message.edit_message_text(
-        f"🎶 {get_string('searching', lang)} ...\n{get_string('requested_by', lang)}: {user_name} 🥀"
+        f"🔍 Searching...\nRequested by: {user_name}"
     )
     if isinstance(reply, types.Error):
-        c.logger.warning(f"Error editing message: {reply}")
+        c.logger.warning(f"Message edit failed: {reply.message}")
         return None
 
     url = _get_platform_url(platform, song_id)
     if not url:
-        c.logger.error(f"Invalid platform: {platform}; data: {data}")
-        await edit_text(
-            reply, text=f"⚠️ {get_string('invalid_platform', lang)} {platform}"
-        )
+        c.logger.error(f"Unsupported platform: {platform} | Data: {data}")
+        await edit_text(reply, text=f"⚠️ Unsupported platform: {platform}")
         return None
 
-    if song := await MusicServiceWrapper(url).get_info():
-        return await play_music(
-            c,
-            reply,
-            song,
-            user_name,
-            channel=ChannelPlay(chat_id=_chat_id, is_channel=channel_play),
-        )
+    song = await DownloaderWrapper(url).get_info()
+    if song:
+        if isinstance(song, types.Error):
+            await edit_text(reply, text=f"⚠️ Retrieval error\n{song.message}")
+            return None
 
-    await edit_text(reply, text=get_string("song_not_found", lang))
+        return await play_music(c, reply, song, user_name)
+
+    await edit_text(reply, text="⚠️ Requested content not found")
     return None

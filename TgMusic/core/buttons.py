@@ -7,13 +7,11 @@ from typing import Literal
 
 from pytdbot import types
 
-from TgMusic import config
+from ._config import config
 
 
-def control_buttons(
-    mode: Literal["play", "pause", "resume"], is_channel: bool
-) -> types.ReplyMarkupInlineKeyboard:
-    prefix = "cplay" if is_channel else "play"
+def control_buttons(mode: Literal["play", "pause", "resume"]) -> types.ReplyMarkupInlineKeyboard:
+    prefix =  "play"
 
     def btn(text: str, name: str) -> types.InlineKeyboardButton:
         return types.InlineKeyboardButton(

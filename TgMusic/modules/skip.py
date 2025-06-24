@@ -4,8 +4,7 @@
 
 from pytdbot import Client, types
 
-from TgMusic.helpers import call
-from TgMusic.modules.utils import Filter
+from TgMusic.core import Filter, call
 from .funcs import is_admin_or_reply
 from .utils.play_helpers import del_msg
 

@@ -8,11 +8,6 @@ from typing import Union
 from pydantic import BaseModel
 
 
-class ChannelPlay(BaseModel):
-    chat_id: int
-    is_channel: bool
-
-
 class CachedTrack(BaseModel):
     url: str
     name: str
@@ -25,7 +20,7 @@ class CachedTrack(BaseModel):
     duration: int = 0
     is_video: bool
     platform: str
-    channel: ChannelPlay
+
 
 
 class TrackInfo(BaseModel):
