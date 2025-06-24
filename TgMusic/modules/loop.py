@@ -37,11 +37,7 @@ async def modify_loop(c: Client, msg: types.Message) -> None:
     loop = int(args)
     chat_cache.set_loop_count(chat_id, loop)
 
-    if loop == 0:
-        action = "Looping disabled"
-    else:
-        action = f"Set to loop {loop} time(s)"
-
+    action = "Looping disabled" if loop == 0 else f"Set to loop {loop} time(s)"
     reply = await msg.reply_text(
         f"🔁 {action}\n" f"└ Changed by: {await msg.mention()}"
     )

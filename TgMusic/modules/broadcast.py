@@ -162,7 +162,7 @@ async def broadcast(c: Client, message: types.Message) -> None:
 
     if isinstance(started, types.Error):
         c.logger.warning("Error starting broadcast: %s", started)
-        await message.reply_text("Failed to start broadcast." + started.message)
+        await message.reply_text(f"Failed to start broadcast.{started.message}")
         return None
 
     start_time = time.monotonic()

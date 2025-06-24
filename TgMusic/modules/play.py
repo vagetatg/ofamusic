@@ -147,7 +147,7 @@ async def _handle_single_track(
 
         song.file_path = file_path
         if not file_path:
-            return await edit_text(msg, f"❌ Error downloading the song.")
+            return await edit_text(msg, "❌ Error downloading the song.")
 
     song.duration = song.duration or await get_audio_duration(song.file_path)
     if chat_cache.is_active(chat_id):
@@ -392,8 +392,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
 
     await del_msg(msg)
     wrapper = (YouTubeData if is_video else DownloaderWrapper)(url or args)
-    # No args or reply
-    if not args and not url and not (reply and tg.is_valid(reply)):
+    if not args and not url and (not reply or not tg.is_valid(reply)):
         if is_video:
             return await edit_text(
                 reply_message,
@@ -427,40 +426,38 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
 
         return await play_music(c, reply_message, song, user_by, is_video=is_video)
 
-    # Search
-    if is_video:
-        search = await wrapper.search()
-        if isinstance(search, types.Error):
-            return await edit_text(
-                reply_message,
-                text=search.message,
-                reply_markup=SupportButton,
-            )
-
-        if not search or not search.tracks:
-            return await edit_text(
-                reply_message,
-                text="No results found.",
-                reply_markup=SupportButton,
-            )
-
-        if song := await DownloaderWrapper(search.tracks[0].url).get_info():
-            if isinstance(song, types.Error):
-                return await edit_text(
-                    reply_message,
-                    text=song.message,
-                    reply_markup=SupportButton,
-                )
-
-            return await play_music(c, reply_message, song, user_by, is_video=True)
-
+    if not is_video:
+        return await _handle_text_search(c, reply_message, wrapper, user_by)
+    search = await wrapper.search()
+    if isinstance(search, types.Error):
         return await edit_text(
             reply_message,
-            text="Unable to retrieve song info.",
+            text=search.message,
             reply_markup=SupportButton,
         )
-    else:
-        return await _handle_text_search(c, reply_message, wrapper, user_by)
+
+    if not search or not search.tracks:
+        return await edit_text(
+            reply_message,
+            text="No results found.",
+            reply_markup=SupportButton,
+        )
+
+    if song := await DownloaderWrapper(search.tracks[0].url).get_info():
+        if isinstance(song, types.Error):
+            return await edit_text(
+                reply_message,
+                text=song.message,
+                reply_markup=SupportButton,
+            )
+
+        return await play_music(c, reply_message, song, user_by, is_video=True)
+
+    return await edit_text(
+        reply_message,
+        text="Unable to retrieve song info.",
+        reply_markup=SupportButton,
+    )
 
 
 @Client.on_message(filters=Filter.command("play"))

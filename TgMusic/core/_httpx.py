@@ -96,8 +96,8 @@ class HttpxClient:
 
         try:
             async with self._session.stream(
-                "GET", url, timeout=self._download_timeout, headers=headers
-            ) as response:
+                        "GET", url, timeout=self._download_timeout, headers=headers
+                    ) as response:
                 if not response.is_success:
                     error_msg = await self._parse_error_response(response)
                     LOGGER.error(
@@ -127,7 +127,7 @@ class HttpxClient:
                     return DownloadResult(success=True, file_path=path)
 
                 # Write to temp file first
-                temp_path = path.with_suffix(path.suffix + ".part")
+                temp_path = path.with_suffix(f"{path.suffix}.part")
                 path.parent.mkdir(parents=True, exist_ok=True)
 
                 try:

@@ -30,11 +30,13 @@ class Database:
             await self.mongo_client.aconnect()
             await self.mongo_client.admin.command("ping")
             LOGGER.info("Database connection completed.")
-        except ConnectionFailure:
-            raise ConnectionFailure("Database connection failed : Server not available")
+        except ConnectionFailure as e:
+            raise ConnectionFailure(
+                "Database connection failed : Server not available"
+            ) from e
         except Exception as e:
             LOGGER.error("Database connection failed: %s", e)
-            raise RuntimeError("Database connection failed." + str(e)) from e
+            raise RuntimeError(f"Database connection failed.{str(e)}") from e
 
     async def get_chat(self, chat_id: int) -> Optional[dict]:
         if chat_id in self.chat_cache:

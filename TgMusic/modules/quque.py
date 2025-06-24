@@ -46,10 +46,10 @@ async def queue_info(_: Client, msg: types.Message) -> None:
 
     if len(_queue) > 1:
         text.extend(["", f"<b>⏭ Next Up ({len(_queue) - 1}):</b>"])
-        for i, song in enumerate(_queue[1:11], 1):
-            text.append(
-                f"{i}. <code>{song.name[:45]}</code> | {sec_to_min(song.duration)} min"
-            )
+        text.extend(
+            f"{i}. <code>{song.name[:45]}</code> | {sec_to_min(song.duration)} min"
+            for i, song in enumerate(_queue[1:11], 1)
+        )
         if len(_queue) > 11:
             text.append(f"...and {len(_queue) - 11} more")
 

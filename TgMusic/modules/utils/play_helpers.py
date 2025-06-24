@@ -34,8 +34,7 @@ async def get_url(
         if entity.type and entity.type["@type"] == "textEntityTypeUrl":
             offset = entity.offset
             length = entity.length
-            url = text_content[offset : offset + length]
-            return url
+            return text_content[offset : offset + length]
     return None
 
 
