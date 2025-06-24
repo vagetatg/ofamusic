@@ -10,9 +10,8 @@ __all__ = [
 import asyncio
 import json
 
-from pytdbot import Client, types
-
 from ...logger import LOGGER
+
 
 def sec_to_min(seconds):
     """
