@@ -7,7 +7,7 @@ import time
 
 from pytdbot import Client, types
 
-from TgMusic import tg
+from TgMusic.core import tg
 from TgMusic.logger import LOGGER
 from TgMusic.core.admins import is_admin
 

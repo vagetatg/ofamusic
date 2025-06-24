@@ -370,6 +370,7 @@ class YouTubeUtils:
 
 class YouTubeData(MusicService):
     """A class to handle YouTube music data fetching and processing."""
+
     def __init__(self, query: Optional[str] = None) -> None:
         self.query = YouTubeUtils.clean_query(query) if query else None
 
@@ -382,7 +383,11 @@ class YouTubeData(MusicService):
         if not self.query or not self.is_valid(self.query):
             return types.Error(code=400, message="Invalid URL provided for get info")
         data = await self._fetch_data(self.query)
-        return YouTubeUtils.create_platform_tracks(data) if data else types.Error(code=404, message="Track not found")
+        return (
+            YouTubeUtils.create_platform_tracks(data)
+            if data
+            else types.Error(code=404, message="Track not found")
+        )
 
     async def search(self) -> Union[PlatformTracks, types.Error]:
         if not self.query:
@@ -395,13 +400,17 @@ class YouTubeData(MusicService):
             search = VideosSearch(self.query, limit=5)
             results = await search.next()
             if not results or not results.get("result"):
-                return types.Error(code=404, message="No results found for search query")
+                return types.Error(
+                    code=404, message="No results found for search query"
+                )
 
             tracks = [YouTubeUtils.format_track(video) for video in results["result"]]
             return PlatformTracks(tracks=[MusicTrack(**track) for track in tracks])
         except Exception as e:
             LOGGER.error(f"Error searching for '{self.query}': {e!r}")
-            return types.Error(code=500, message=f"Failed to search for '{self.query}: {e!r}'")
+            return types.Error(
+                code=500, message=f"Failed to search for '{self.query}: {e!r}'"
+            )
 
     async def get_track(self) -> Union[TrackInfo, types.Error]:
         if not self.query:
@@ -418,7 +427,9 @@ class YouTubeData(MusicService):
 
         return await YouTubeUtils.create_track_info(data["results"][0])
 
-    async def download_track(self, track: TrackInfo, video: bool = False) -> Union[Path, types.Error]:
+    async def download_track(
+        self, track: TrackInfo, video: bool = False
+    ) -> Union[Path, types.Error]:
         if not track:
             return types.Error(code=400, message="No track provided for download")
 

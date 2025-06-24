@@ -14,6 +14,7 @@ StartTime = datetime.now()
 
 from TgMusic.core import call, tg, db, config
 
+
 class Bot(Client):
     """Main bot class handling initialization and lifecycle management."""
 
@@ -37,6 +38,7 @@ class Bot(Client):
     def _initialize_services(self) -> None:
         """Initialize all service dependencies."""
         from TgMusic.modules.jobs import InactiveCallManager
+
         self.call_manager = InactiveCallManager(self)
         self.config = config
         self.db = db
@@ -71,6 +73,7 @@ class Bot(Client):
     async def _initialize_components(self) -> None:
         """Initialize all bot components in proper sequence."""
         from TgMusic.core import save_all_cookies
+
         await save_all_cookies(config.COOKIES_URL)
         await self.db.ping()
         await self.start_clients()
@@ -97,5 +100,6 @@ class Bot(Client):
     def _get_uptime(self) -> float:
         """Calculate bot uptime in seconds."""
         return (datetime.now() - self._start_time).total_seconds()
+
 
 client = Bot()

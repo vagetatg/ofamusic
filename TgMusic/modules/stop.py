@@ -25,7 +25,6 @@ async def stop_song(c: Client, msg: types.Message) -> None:
         return None
 
     await msg.reply_text(
-        f"⏹️ Playback stopped by {await msg.mention()}\n"
-        "🔇 The queue has been cleared"
+        f"⏹️ Playback stopped by {await msg.mention()}\n" "🔇 The queue has been cleared"
     )
     return None

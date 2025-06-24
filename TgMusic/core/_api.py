@@ -19,6 +19,7 @@ from ._dataclass import PlatformTracks, MusicTrack, TrackInfo
 
 class ApiData(MusicService):
     """Handles music data from various streaming platforms through API integration."""
+
     URL_PATTERNS = {
         "apple_music": re.compile(
             r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
@@ -106,7 +107,8 @@ class ApiData(MusicService):
         if not result.success:
             LOGGER.error("Download failed for track %s", track.tc)
             return types.Error(
-                code=500, message=result.error or f"Download failed for track: {track.tc}"
+                code=500,
+                message=result.error or f"Download failed for track: {track.tc}",
             )
         return result.file_path
 

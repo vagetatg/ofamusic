@@ -25,7 +25,12 @@ from pytgcalls.types import (
     CallConfig,
 )
 
-from ._cacher import chat_cache, ChatMemberStatusResult, user_status_cache, chat_invite_cache
+from ._cacher import (
+    chat_cache,
+    ChatMemberStatusResult,
+    user_status_cache,
+    chat_invite_cache,
+)
 from ._database import db
 from .buttons import control_buttons
 from ._api import ApiData
@@ -366,8 +371,13 @@ class Calls:
 
         handler = platform_handlers.get(song.platform.lower())
         if not handler:
-            LOGGER.warning("Unsupported platform: %s for track: %s", song.platform, song.track_id)
-            return types.Error(code=400, message=f"Unsupported platform: {song.platform} for track: {song.track_id}")
+            LOGGER.warning(
+                "Unsupported platform: %s for track: %s", song.platform, song.track_id
+            )
+            return types.Error(
+                code=400,
+                message=f"Unsupported platform: {song.platform} for track: {song.track_id}",
+            )
 
         track = await handler.get_track()
         return await handler.download_track(track, song.is_video) if track else None
@@ -785,5 +795,6 @@ class Calls:
             )
         except Exception as e:
             return types.Error(code=400, message=f"Failed to join {user_id}: {e}")
+
 
 call = Calls()

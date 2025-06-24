@@ -7,9 +7,8 @@ import re
 
 from pytdbot import Client, types
 
-from TgMusic.core import Filter, chat_cache
+from TgMusic.core import Filter, chat_cache, call
 from TgMusic.core.admins import is_admin
-from .. import call
 
 
 def extract_number(text: str) -> float | None:

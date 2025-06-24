@@ -5,11 +5,10 @@
 from typing import Union
 from pytdbot import Client, types
 
-from TgMusic import call, db
-
-from TgMusic.core import Filter, chat_cache
+from TgMusic.core import Filter, chat_cache, call, db
 from TgMusic.core.admins import is_admin
 from TgMusic.modules.utils.play_helpers import extract_argument
+
 
 @Client.on_message(filters=Filter.command(["playtype", "setPlayType"]))
 async def set_play_type(_: Client, msg: types.Message) -> None:
@@ -36,7 +35,10 @@ async def set_play_type(_: Client, msg: types.Message) -> None:
     await db.set_play_type(chat_id, play_type)
     await msg.reply_text(f"🔀 Playback mode set to: <b>{play_type}</b>")
 
-async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message, types.Error]:
+
+async def is_admin_or_reply(
+    msg: types.Message,
+) -> Union[int, types.Message, types.Error]:
     """Verify admin status and active playback session."""
     chat_id = msg.chat_id
 
@@ -50,11 +52,7 @@ async def is_admin_or_reply(msg: types.Message) -> Union[int, types.Message, typ
 
 
 async def handle_playback_action(
-        c: Client,
-        msg: types.Message,
-        action,
-        success_msg: str,
-        fail_msg: str
+    c: Client, msg: types.Message, action, success_msg: str, fail_msg: str
 ) -> None:
     """Handle common playback control operations."""
     _chat_id = await is_admin_or_reply(msg)
@@ -70,19 +68,14 @@ async def handle_playback_action(
         await msg.reply_text(f"⚠️ {fail_msg}\n<code>{result.message}</code>")
         return
 
-    await msg.reply_text(
-        f"{success_msg}\n"
-        f"└ Requested by: {await msg.mention()}"
-    )
+    await msg.reply_text(f"{success_msg}\n" f"└ Requested by: {await msg.mention()}")
 
 
 @Client.on_message(filters=Filter.command("pause"))
 async def pause_song(c: Client, msg: types.Message) -> None:
     """Pause current playback."""
     await handle_playback_action(
-        c, msg, call.pause,
-        "⏸ Playback paused",
-        "Failed to pause playback"
+        c, msg, call.pause, "⏸ Playback paused", "Failed to pause playback"
     )
 
 
@@ -90,9 +83,7 @@ async def pause_song(c: Client, msg: types.Message) -> None:
 async def resume(c: Client, msg: types.Message) -> None:
     """Resume paused playback."""
     await handle_playback_action(
-        c, msg, call.resume,
-        "▶️ Playback resumed",
-        "Failed to resume playback"
+        c, msg, call.resume, "▶️ Playback resumed", "Failed to resume playback"
     )
 
 
@@ -100,9 +91,7 @@ async def resume(c: Client, msg: types.Message) -> None:
 async def mute_song(c: Client, msg: types.Message) -> None:
     """Mute audio playback."""
     await handle_playback_action(
-        c, msg, call.mute,
-        "🔇 Audio muted",
-        "Failed to mute audio"
+        c, msg, call.mute, "🔇 Audio muted", "Failed to mute audio"
     )
 
 
@@ -110,7 +99,5 @@ async def mute_song(c: Client, msg: types.Message) -> None:
 async def unmute_song(c: Client, msg: types.Message) -> None:
     """Unmute audio playback."""
     await handle_playback_action(
-        c, msg, call.unmute,
-        "🔊 Audio unmuted",
-        "Failed to unmute audio"
+        c, msg, call.unmute, "🔊 Audio unmuted", "Failed to unmute audio"
     )

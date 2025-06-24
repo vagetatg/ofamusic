@@ -8,13 +8,17 @@ from datetime import datetime
 from cachetools import TTLCache
 from pytdbot import Client, types
 
-from TgMusic import __version__, StartTime, config, call
+from TgMusic import __version__, StartTime
 from TgMusic.core import (
     chat_invite_cache,
     user_status_cache,
     chat_cache,
+    config,
+    call,
+    Filter,
+    SupportButton,
 )
-from TgMusic.core import Filter, SupportButton
+
 from TgMusic.core.admins import load_admin_cache
 from TgMusic.core.buttons import add_me_markup, HelpMenu, BackHelpMenu
 from TgMusic.modules.utils import sec_to_min
@@ -63,14 +67,14 @@ async def start_cmd(c: Client, message: types.Message):
 
         bot_username = c.me.usernames.editable_username
         reply = await message.reply_text(
-            text=welcome_text,
-            reply_markup=add_me_markup(bot_username)
+            text=welcome_text, reply_markup=add_me_markup(bot_username)
         )
 
     if isinstance(reply, types.Error):
         c.logger.warning(f"⚠️ Failed to send welcome message: {reply.message}")
 
     return None
+
 
 @Client.on_message(filters=Filter.command("privacy"))
 async def privacy_handler(c: Client, message: types.Message):
@@ -256,10 +260,7 @@ async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) 
             "• YouTube • Spotify • Apple Music • SoundCloud\n\n"
             "🔍 <i>Select a help category below:</i>"
         )
-        await message.edit_message_text(
-            text=welcome_text,
-            reply_markup=HelpMenu
-        )
+        await message.edit_message_text(text=welcome_text, reply_markup=HelpMenu)
         return None
 
     # Help category definitions
@@ -277,7 +278,7 @@ async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) 
                 "/privacy - View privacy policy\n"
                 "/lang - Change language"
             ),
-            "markup": BackHelpMenu
+            "markup": BackHelpMenu,
         },
         "help_admin": {
             "title": "⚙️ Admin Commands",
@@ -294,7 +295,7 @@ async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) 
                 "/clear - Empty the queue\n"
                 "/loop [0-10] - Set repeat mode"
             ),
-            "markup": BackHelpMenu
+            "markup": BackHelpMenu,
         },
         "help_owner": {
             "title": "🔐 Owner Commands",
@@ -309,7 +310,7 @@ async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) 
                 "/autoend - Auto-leave empty VCs\n"
                 "/channelplay - Link to channel"
             ),
-            "markup": BackHelpMenu
+            "markup": BackHelpMenu,
         },
         "help_devs": {
             "title": "🛠 Developer Tools",
@@ -322,8 +323,8 @@ async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) 
                 "/activevc - Active voice chats\n"
                 "/clearallassistants - Reset assistants"
             ),
-            "markup": BackHelpMenu
-        }
+            "markup": BackHelpMenu,
+        },
     }
 
     if category := help_categories.get(data):
@@ -334,8 +335,7 @@ async def callback_query_help(c: Client, message: types.UpdateNewCallbackQuery) 
             "🔙 <i>Use buttons to navigate</i>"
         )
         await message.edit_message_text(
-            text=formatted_text,
-            reply_markup=category['markup']
+            text=formatted_text, reply_markup=category["markup"]
         )
         return None
 

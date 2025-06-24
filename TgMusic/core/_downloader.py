@@ -30,7 +30,9 @@ class MusicService(ABC):
         pass
 
     @abstractmethod
-    async def download_track(self, track_info: TrackInfo, video: bool = False) -> Union[Path, types.Error]:
+    async def download_track(
+        self, track_info: TrackInfo, video: bool = False
+    ) -> Union[Path, types.Error]:
         pass
 
 
@@ -44,6 +46,7 @@ class DownloaderWrapper(MusicService):
         from ._youtube import YouTubeData
         from ._api import ApiData
         from ._jiosaavn import JiosaavnData
+
         if YouTubeData().is_valid(query):
             return YouTubeData(query)
         elif JiosaavnData().is_valid(query):
@@ -73,6 +76,6 @@ class DownloaderWrapper(MusicService):
         return await self.service.get_track()
 
     async def download_track(
-            self, track_info: TrackInfo, video: bool = False
+        self, track_info: TrackInfo, video: bool = False
     ) -> Union[Path, types.Error]:
         return await self.service.download_track(track_info)

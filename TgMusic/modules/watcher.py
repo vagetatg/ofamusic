@@ -6,7 +6,6 @@ import asyncio
 
 from pytdbot import Client, types
 
-from TgMusic import config
 from TgMusic.core import (
     chat_invite_cache,
     ChatMemberStatus,
@@ -14,7 +13,8 @@ from TgMusic.core import (
     chat_cache,
     call,
     db,
-   SupportButton,
+    SupportButton,
+    config,
 )
 from TgMusic.logger import LOGGER
 from TgMusic.core.admins import load_admin_cache

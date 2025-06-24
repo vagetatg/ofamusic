@@ -43,8 +43,7 @@ async def modify_loop(c: Client, msg: types.Message) -> None:
         action = f"Set to loop {loop} time(s)"
 
     reply = await msg.reply_text(
-        f"🔁 {action}\n"
-        f"└ Changed by: {await msg.mention()}"
+        f"🔁 {action}\n" f"└ Changed by: {await msg.mention()}"
     )
     if isinstance(reply, types.Error):
         c.logger.warning(f"⚠️ Failed to send reply: {reply.message}")

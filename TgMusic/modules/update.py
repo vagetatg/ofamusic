@@ -11,9 +11,7 @@ from os import execvp
 
 from pytdbot import Client, types
 
-from TgMusic import config
-from TgMusic.core import Filter
-from TgMusic.core import chat_cache, call
+from TgMusic.core import chat_cache, call, Filter, config
 from TgMusic.logger import LOGGER
 from TgMusic.modules.utils.play_helpers import del_msg
 

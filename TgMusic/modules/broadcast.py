@@ -7,9 +7,8 @@ import time
 
 from pytdbot import Client, types
 
-from TgMusic import config, db
+from TgMusic.core import Filter, config, db
 from TgMusic.logger import LOGGER
-from TgMusic.core import Filter
 from TgMusic.modules.utils.play_helpers import del_msg, extract_argument
 
 REQUEST_LIMIT = 30
@@ -58,7 +57,11 @@ async def send_message_with_retry(
                     "USER_IS_BLOCKED",
                     "Chat not found",
                 }:
-                    await db.remove_chat(target_id) if target_id < 0 else await db.remove_user(target_id)
+                    (
+                        await db.remove_chat(target_id)
+                        if target_id < 0
+                        else await db.remove_user(target_id)
+                    )
                     return 0
 
                 LOGGER.warning(
@@ -73,15 +76,20 @@ async def send_message_with_retry(
     return 0
 
 
-async def broadcast_to_targets(targets: list[int], message: types.Message, is_copy: bool) -> tuple[int, int]:
+async def broadcast_to_targets(
+    targets: list[int], message: types.Message, is_copy: bool
+) -> tuple[int, int]:
     sent = failed = 0
+
     async def process_batch(_batch: list[int], index: int):
         results = await asyncio.gather(
             *[send_message_with_retry(tid, message, is_copy) for tid in _batch]
         )
         _batch_sent = sum(results)
         _batch_failed = len(_batch) - _batch_sent
-        LOGGER.info("Batch %s sent: %s, failed: %s", index + 1, _batch_sent, _batch_failed)
+        LOGGER.info(
+            "Batch %s sent: %s, failed: %s", index + 1, _batch_sent, _batch_failed
+        )
         return _batch_sent, _batch_failed
 
     batches = [targets[i : i + BATCH_SIZE] for i in range(0, len(targets), BATCH_SIZE)]

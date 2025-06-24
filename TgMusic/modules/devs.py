@@ -24,8 +24,8 @@ from pytdbot import Client, types
 from pytdbot import __version__ as py_td_ver
 from pytgcalls import __version__ as pytgver
 
-from TgMusic import StartTime, config, call, db
-from TgMusic.core import Filter, chat_cache
+from TgMusic import StartTime
+from TgMusic.core import Filter, chat_cache, config, call, db
 from TgMusic.modules.utils.play_helpers import del_msg, extract_argument
 
 
@@ -346,7 +346,11 @@ async def logger(c: Client, message: types.Message) -> None:
 
     if not args:
         status = "enabled ✅" if enabled else "disabled ❌"
-        reply = await message.reply_text("Usage: /logger [enable|disable|on|off]\n\nCurrent status: {status}".format(status=status))
+        reply = await message.reply_text(
+            "Usage: /logger [enable|disable|on|off]\n\nCurrent status: {status}".format(
+                status=status
+            )
+        )
         if isinstance(reply, types.Error):
             c.logger.warning(reply.message)
         return
@@ -354,7 +358,7 @@ async def logger(c: Client, message: types.Message) -> None:
     arg = args.lower()
     if arg in ["on", "enable"]:
         await db.set_logger_status(c.me.id, True)
-        reply = await message.reply_text( "Logger enabled.")
+        reply = await message.reply_text("Logger enabled.")
         if isinstance(reply, types.Error):
             c.logger.warning(reply.message)
         return
@@ -365,7 +369,9 @@ async def logger(c: Client, message: types.Message) -> None:
             c.logger.warning(reply.message)
         return
 
-    await message.reply_text("Usage: /logger [enable|disable]\n\nYour argument is {arg}".format(arg=args))
+    await message.reply_text(
+        "Usage: /logger [enable|disable]\n\nYour argument is {arg}".format(arg=args)
+    )
 
 
 @Client.on_message(filters=Filter.command(["autoend", "auto_end"]))
@@ -426,7 +432,6 @@ async def logs(c: Client, message: types.Message) -> None:
     if message.from_id not in config.DEVS:
         await del_msg(message)
         return
-
 
     reply = await message.reply_document(
         document=types.InputFileLocal("bot.log"),

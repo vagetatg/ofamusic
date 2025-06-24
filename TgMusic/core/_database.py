@@ -241,4 +241,5 @@ class Database:
         await self.mongo_client.close()
         LOGGER.info("Database connection closed.")
 
+
 db = Database()

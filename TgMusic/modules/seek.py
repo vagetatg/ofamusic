@@ -5,11 +5,10 @@
 
 from pytdbot import Client, types
 
-from TgMusic.core import Filter, chat_cache
+from TgMusic.core import Filter, chat_cache, call
 from TgMusic.core.admins import is_admin
 from .utils import sec_to_min
 from .utils.play_helpers import extract_argument
-from .. import call
 
 
 @Client.on_message(filters=Filter.command("seek"))
@@ -55,9 +54,7 @@ async def seek_song(_: Client, msg: types.Message) -> None:
     seek_to = curr_dur + seek_time
     if seek_to >= curr_song.duration:
         max_duration = sec_to_min(curr_song.duration)
-        await msg.reply_text(
-            f"⚠️ Cannot seek beyond track duration ({max_duration})."
-        )
+        await msg.reply_text(f"⚠️ Cannot seek beyond track duration ({max_duration}).")
         return
 
     _seek = await call.seek_stream(

@@ -6,10 +6,9 @@ from typing import Union
 
 from pytdbot import Client, types
 
-from TgMusic import db
-from TgMusic.logger import LOGGER
-from TgMusic.core import Filter
+from TgMusic.core import Filter, db
 from TgMusic.core.admins import is_admin, is_owner, load_admin_cache
+from TgMusic.logger import LOGGER
 from TgMusic.modules.utils.play_helpers import extract_argument
 
 
@@ -26,7 +25,9 @@ async def _validate_auth_command(msg: types.Message) -> Union[types.Message, Non
         return None
 
     if not msg.reply_to_message_id:
-        reply = await msg.reply_text("🔍 Please reply to a user to manage their permissions.")
+        reply = await msg.reply_text(
+            "🔍 Please reply to a user to manage their permissions."
+        )
         if isinstance(reply, types.Error):
             LOGGER.warning(reply.message)
         return None
@@ -69,7 +70,9 @@ async def auth(c: Client, msg: types.Message) -> None:
             c.logger.warning(reply.message)
     else:
         await db.add_auth_user(chat_id, user_id)
-        reply = await msg.reply_text("✅ User successfully granted authorization permissions.")
+        reply = await msg.reply_text(
+            "✅ User successfully granted authorization permissions."
+        )
         if isinstance(reply, types.Error):
             c.logger.warning(reply.message)
 
@@ -90,7 +93,9 @@ async def un_auth(c: Client, msg: types.Message) -> None:
             c.logger.warning(reply.message)
     else:
         await db.remove_auth_user(chat_id, user_id)
-        reply = await msg.reply_text("✅ User's authorization permissions have been revoked.")
+        reply = await msg.reply_text(
+            "✅ User's authorization permissions have been revoked."
+        )
         if isinstance(reply, types.Error):
             c.logger.warning(reply.message)
 
@@ -118,7 +123,9 @@ async def auth_list(c: Client, msg: types.Message) -> None:
             c.logger.warning(reply.message)
         return
 
-    text = "<b>🔐 Authorized Users:</b>\n\n" + "\n".join([f"• <code>{uid}</code>" for uid in auth_users])
+    text = "<b>🔐 Authorized Users:</b>\n\n" + "\n".join(
+        [f"• <code>{uid}</code>" for uid in auth_users]
+    )
     reply = await msg.reply_text(text)
     if isinstance(reply, types.Error):
         c.logger.warning(reply.message)
@@ -253,7 +260,9 @@ async def set_channel_id(c: Client, msg: types.Message) -> None:
 
     # Verify bot admin status
     if not await is_admin(chat_id, c.me.id):
-        await msg.reply_text("❌ I need administrator privileges in this chat. Use /reload if I already have them.")
+        await msg.reply_text(
+            "❌ I need administrator privileges in this chat. Use /reload if I already have them."
+        )
         return None
     if not await is_admin(channel_id, c.me.id):
         await msg.reply_text("❌ I also need administrator privileges in the channel.")
@@ -269,5 +278,7 @@ async def set_channel_id(c: Client, msg: types.Message) -> None:
         return None
 
     await db.set_channel_id(chat_id, channel_id)
-    await msg.reply_text(f"✅ Successfully linked to channel: <code>{channel_id}</code>")
+    await msg.reply_text(
+        f"✅ Successfully linked to channel: <code>{channel_id}</code>"
+    )
     return None

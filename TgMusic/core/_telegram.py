@@ -69,7 +69,9 @@ class Telegram:
         file_size, _ = self._extract_file_info(content)
         return 0 < file_size <= self.MAX_FILE_SIZE
 
-    async def download_msg(self, dl_msg: types.Message, message: types.Message) -> tuple[Union[types.Error, types.LocalFile], str]:
+    async def download_msg(
+        self, dl_msg: types.Message, message: types.Message
+    ) -> tuple[Union[types.Error, types.LocalFile], str]:
         if not self.is_valid(dl_msg):
             return (
                 types.Error(code=0, message="Invalid or unsupported media file."),
@@ -100,5 +102,6 @@ class Telegram:
     @staticmethod
     def clear_cache(unique_id: str):
         return Telegram.DownloaderCache.pop(unique_id, None)
+
 
 tg = Telegram()

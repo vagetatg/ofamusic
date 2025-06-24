@@ -4,8 +4,7 @@
 
 from pytdbot import Client, types
 
-from TgMusic import call
-from TgMusic.core import Filter, chat_cache
+from TgMusic.core import Filter, chat_cache, call
 from TgMusic.modules.utils import sec_to_min
 
 
@@ -28,7 +27,9 @@ async def queue_info(_: Client, msg: types.Message) -> None:
 
     chat = await msg.getChat()
     if isinstance(chat, types.Error):
-        await msg.reply_text(f"⚠️ <b>Error:</b> Could not fetch chat details\n<code>{chat.message}</code>")
+        await msg.reply_text(
+            f"⚠️ <b>Error:</b> Could not fetch chat details\n<code>{chat.message}</code>"
+        )
         return
 
     current_song = _queue[0]
@@ -44,10 +45,7 @@ async def queue_info(_: Client, msg: types.Message) -> None:
     ]
 
     if len(_queue) > 1:
-        text.extend([
-            "",
-            f"<b>⏭ Next Up ({len(_queue) - 1}):</b>"
-        ])
+        text.extend(["", f"<b>⏭ Next Up ({len(_queue) - 1}):</b>"])
         for i, song in enumerate(_queue[1:11], 1):
             text.append(
                 f"{i}. <code>{song.name[:45]}</code> | {sec_to_min(song.duration)} min"
@@ -60,17 +58,16 @@ async def queue_info(_: Client, msg: types.Message) -> None:
     # Handle message length limit
     formatted_text = "\n".join(text)
     if len(formatted_text) > 4096:
-        formatted_text = "\n".join([
-            f"<b>🎧 Queue for {chat.title}</b>",
-            "",
-            "<b>▶️ Now Playing:</b>",
-            f"├ <code>{current_song.name[:45]}</code>",
-            f"└ {sec_to_min(await call.played_time(chat.id))}/{sec_to_min(current_song.duration)} min",
-            "",
-            f"<b>📊 Total:</b> {len(_queue)} track(s) in queue"
-        ])
+        formatted_text = "\n".join(
+            [
+                f"<b>🎧 Queue for {chat.title}</b>",
+                "",
+                "<b>▶️ Now Playing:</b>",
+                f"├ <code>{current_song.name[:45]}</code>",
+                f"└ {sec_to_min(await call.played_time(chat.id))}/{sec_to_min(current_song.duration)} min",
+                "",
+                f"<b>📊 Total:</b> {len(_queue)} track(s) in queue",
+            ]
+        )
 
-    await msg.reply_text(
-        text=formatted_text,
-        disable_web_page_preview=True
-    )
+    await msg.reply_text(text=formatted_text, disable_web_page_preview=True)

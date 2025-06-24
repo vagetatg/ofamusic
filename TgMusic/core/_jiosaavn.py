@@ -22,6 +22,7 @@ class JiosaavnData(MusicService):
     """
     JioSaavn music service handler for searching, parsing and downloading tracks.
     """
+
     JIOSAAVN_SONG_PATTERN = re.compile(
         r"^(https?://)?(www\.)?jiosaavn\.com/song/[\w-]+/[a-zA-Z0-9_-]+", re.IGNORECASE
     )
@@ -73,14 +74,18 @@ class JiosaavnData(MusicService):
         if not response or not response.get("songs", {}).get("data"):
             return types.Error(code=404, message="No results found for search query")
 
-        data = {"results": [self._format_track(track) for track in response["songs"]["data"] if track]}
+        data = {
+            "results": [
+                self._format_track(track)
+                for track in response["songs"]["data"]
+                if track
+            ]
+        }
         return self._create_platform_tracks(data)
 
     async def get_info(self) -> Union[PlatformTracks, types.Error]:
         if not self.query or not self.is_valid(self.query):
-            return types.Error(
-                code=400, message="Invalid URL provided for get_info"
-            )
+            return types.Error(code=400, message="Invalid URL provided for get_info")
 
         url = self.query
         if self.JIOSAAVN_SONG_PATTERN.match(url):
@@ -153,12 +158,21 @@ class JiosaavnData(MusicService):
         self, track: TrackInfo, video: bool = False
     ) -> Union[Path, types.Error]:
         if not track or not track.cdnurl:
-            return types.Error(code=400, message=f"No download URL available for track: {track.tc}")
+            return types.Error(
+                code=400, message=f"No download URL available for track: {track.tc}"
+            )
 
         download_path = config.DOWNLOADS_DIR / f"{track.tc}.m4a"
-        dl: DownloadResult = await HttpxClient(max_redirects=1).download_file(track.cdnurl, download_path)
-        return dl.file_path if dl.success else types.Error(code=500,
-                                                           message=dl.error or f"Download failed for track: {track.tc}")
+        dl: DownloadResult = await HttpxClient(max_redirects=1).download_file(
+            track.cdnurl, download_path
+        )
+        return (
+            dl.file_path
+            if dl.success
+            else types.Error(
+                code=500, message=dl.error or f"Download failed for track: {track.tc}"
+            )
+        )
 
     @staticmethod
     def format_jiosaavn_url(name_and_id: str) -> str:
@@ -206,11 +220,11 @@ class JiosaavnData(MusicService):
         }
 
     @staticmethod
-    def _create_platform_tracks(data: dict[str, Any]) -> Union[PlatformTracks, types.Error]:
+    def _create_platform_tracks(
+        data: dict[str, Any],
+    ) -> Union[PlatformTracks, types.Error]:
         if not data or not data.get("results"):
-            return types.Error(
-                code=404, message="No results found"
-            )
+            return types.Error(code=404, message="No results found")
 
         return PlatformTracks(
             tracks=[MusicTrack(**track) for track in data["results"] if track]

@@ -6,8 +6,7 @@ import re
 
 from pytdbot import Client, types
 
-from TgMusic import db, call, tg
-from TgMusic.core import YouTubeData, DownloaderWrapper
+from TgMusic.core import YouTubeData, DownloaderWrapper, db, call, tg
 from TgMusic.core import (
     CachedTrack,
     MusicTrack,
@@ -58,7 +57,9 @@ def _get_platform_url(platform: str, track_id: str) -> str:
     return url_map.get(platform, "")
 
 
-def build_song_selection_message(user_by: str, tracks: list[MusicTrack]) -> tuple[str, types.ReplyMarkupInlineKeyboard]:
+def build_song_selection_message(
+    user_by: str, tracks: list[MusicTrack]
+) -> tuple[str, types.ReplyMarkupInlineKeyboard]:
     """
     Build a message and inline keyboard for song selection.
     """
@@ -158,8 +159,16 @@ async def _handle_single_track(
             f"‣ <b>Duration:</b> {sec_to_min(song.duration)}\n"
             f"‣ <b>Requested by:</b> {song.user}"
         )
-        thumb = ""  # await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
-        await _update_msg_with_thumb(c, msg, text, thumb, control_buttons("play") if await db.get_buttons_status(chat_id) else None)
+        thumb = (
+            ""  # await gen_thumb(song) if await db.get_thumb_status(chat_id) else ""
+        )
+        await _update_msg_with_thumb(
+            c,
+            msg,
+            text,
+            thumb,
+            control_buttons("play") if await db.get_buttons_status(chat_id) else None,
+        )
         return None
 
     chat_cache.set_active(chat_id, True)
@@ -177,25 +186,29 @@ async def _handle_single_track(
         f"‣ <b>Requested by:</b> {song.user}"
     )
 
-    reply = await _update_msg_with_thumb(c, msg, text, thumb, control_buttons("play") if await db.get_buttons_status(chat_id) else None)
+    reply = await _update_msg_with_thumb(
+        c,
+        msg,
+        text,
+        thumb,
+        control_buttons("play") if await db.get_buttons_status(chat_id) else None,
+    )
     if isinstance(reply, types.Error):
         LOGGER.info("sending reply: %s", reply)
         return None
     return None
 
 
-async def _handle_multiple_tracks(msg: types.Message, tracks: list[MusicTrack], user_by: str):
+async def _handle_multiple_tracks(
+    msg: types.Message, tracks: list[MusicTrack], user_by: str
+):
     """
     Handle multiple tracks (playlist/album).
     """
     chat_id = msg.chat_id
     is_active = chat_cache.is_active(chat_id)
     queue = chat_cache.get_queue(chat_id)
-    text = (
-        "<b>➻ "
-        + "Added to Queue at"
-        + ":</b>\n<blockquote expandable>\n"
-    )
+    text = "<b>➻ " + "Added to Queue at" + ":</b>\n<blockquote expandable>\n"
 
     for index, track in enumerate(tracks):
         position = len(queue) + index
@@ -254,10 +267,15 @@ async def play_music(
 
     await edit_text(msg, text="🎶 Song found. Downloading...")
     if len(url_data.tracks) == 1:
-        return await _handle_single_track(c, msg, url_data.tracks[0], user_by, tg_file_path, is_video)
+        return await _handle_single_track(
+            c, msg, url_data.tracks[0], user_by, tg_file_path, is_video
+        )
     return await _handle_multiple_tracks(msg, url_data.tracks, user_by)
 
-async def _handle_telegram_file(c: Client, reply: types.Message, reply_message: types.Message, user_by: str):
+
+async def _handle_telegram_file(
+    c: Client, reply: types.Message, reply_message: types.Message, user_by: str
+):
     """
     Handle Telegram audio/video files.
     """
@@ -276,7 +294,10 @@ async def _handle_telegram_file(c: Client, reply: types.Message, reply_message: 
     if isinstance(file_path, types.Error):
         return await edit_text(
             reply_message,
-            text="<b>Download Failed</b>\n\n🎶 <b>File:</b> <code>{file}</code>\n💬 <b>Error:</b> <code>{error}</code>".format(file=file_name, error=file_path.message))
+            text="<b>Download Failed</b>\n\n🎶 <b>File:</b> <code>{file}</code>\n💬 <b>Error:</b> <code>{error}</code>".format(
+                file=file_name, error=file_path.message
+            ),
+        )
 
     duration = await get_audio_duration(file_path.path)
     _song = PlatformTracks(
@@ -349,7 +370,11 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
     # Queue limit
     queue = chat_cache.get_queue(chat_id)
     if len(queue) > 10:
-        return await msg.reply_text("❌ Queue limit reached! You have {count} tracks. Use /end to reset.".format(count=len(queue)))
+        return await msg.reply_text(
+            "❌ Queue limit reached! You have {count} tracks. Use /end to reset.".format(
+                count=len(queue)
+            )
+        )
 
     await load_admin_cache(c, chat_id)
     if not await is_admin(chat_id, c.me.id):
@@ -370,11 +395,14 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
     # No args or reply
     if not args and not url and not (reply and tg.is_valid(reply)):
         if is_video:
-            return await edit_text(reply_message, text="Usage: /play song_name or YouTube link", reply_markup=SupportButton)
+            return await edit_text(
+                reply_message,
+                text="Usage: /play song_name or YouTube link",
+                reply_markup=SupportButton,
+            )
         else:
             text = "ᴜsᴀɢᴇ: /play song_name\n\nSupported platforms are: YouTube, SoundCloud, Spotify, Apple Music & Jiosaavn."
             return await edit_text(reply_message, text=text, reply_markup=SupportButton)
-
 
     user_by = await msg.mention()
     # Telegram file support
@@ -424,9 +452,7 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
                     reply_markup=SupportButton,
                 )
 
-            return await play_music(
-                c, reply_message, song, user_by, is_video=True
-            )
+            return await play_music(c, reply_message, song, user_by, is_video=True)
 
         return await edit_text(
             reply_message,

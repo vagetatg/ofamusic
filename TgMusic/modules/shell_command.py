@@ -8,9 +8,8 @@ import uuid
 
 from pytdbot import Client, types
 
-from TgMusic import config
 from TgMusic.logger import LOGGER
-from TgMusic.core import Filter
+from TgMusic.core import Filter, config
 
 
 async def run_shell_command(cmd: str, timeout: int = 60) -> tuple[str, str, int]:

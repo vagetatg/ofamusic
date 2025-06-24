@@ -154,6 +154,4 @@ class SpotifyDownload:
         except Exception as e:
             LOGGER.error("Error processing track %s: %s", _track_id, e)
             await self._cleanup()
-            return types.Error(
-                code=500, message=f"Error processing track: {_track_id}"
-            )
+            return types.Error(code=500, message=f"Error processing track: {_track_id}")

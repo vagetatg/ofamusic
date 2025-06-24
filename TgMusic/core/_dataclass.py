@@ -22,7 +22,6 @@ class CachedTrack(BaseModel):
     platform: str
 
 
-
 class TrackInfo(BaseModel):
     url: str
     cdnurl: str

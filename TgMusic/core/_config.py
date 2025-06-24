@@ -44,14 +44,22 @@ class BotConfig:
 
         self.DOWNLOADS_DIR: Path = Path(os.getenv("DOWNLOADS_DIR", "database/music"))
 
-        self.SUPPORT_GROUP: str = os.getenv("SUPPORT_GROUP", "https://t.me/GuardxSupport")
-        self.SUPPORT_CHANNEL: str = os.getenv("SUPPORT_CHANNEL", "https://t.me/FallenProjects")
+        self.SUPPORT_GROUP: str = os.getenv(
+            "SUPPORT_GROUP", "https://t.me/GuardxSupport"
+        )
+        self.SUPPORT_CHANNEL: str = os.getenv(
+            "SUPPORT_CHANNEL", "https://t.me/FallenProjects"
+        )
 
-        self.IGNORE_BACKGROUND_UPDATES: bool = self._get_env_bool("IGNORE_BACKGROUND_UPDATES", True)
+        self.IGNORE_BACKGROUND_UPDATES: bool = self._get_env_bool(
+            "IGNORE_BACKGROUND_UPDATES", True
+        )
         self.AUTO_LEAVE: bool = self._get_env_bool("AUTO_LEAVE", True)
 
         # Cookies
-        self.COOKIES_URL: list[str] = self._process_cookie_urls(os.getenv("COOKIES_URL"))
+        self.COOKIES_URL: list[str] = self._process_cookie_urls(
+            os.getenv("COOKIES_URL")
+        )
 
         # Developer
         devs_env: Optional[str] = os.getenv("DEVS")
@@ -78,7 +86,9 @@ class BotConfig:
         try:
             return int(value)
         except (TypeError, ValueError):
-            LOGGER.warning("Invalid value for %s: %s (default: %s)", name, value, default)
+            LOGGER.warning(
+                "Invalid value for %s: %s (default: %s)", name, value, default
+            )
             return default
 
     @staticmethod
@@ -107,7 +117,9 @@ class BotConfig:
         Returns:
             list[str]: A list of valid session strings.
         """
-        return [s.strip() for i in range(1, count + 1) if (s := os.getenv(f"{prefix}{i}"))]
+        return [
+            s.strip() for i in range(1, count + 1) if (s := os.getenv(f"{prefix}{i}"))
+        ]
 
     @staticmethod
     def _process_cookie_urls(value: Optional[str]) -> list[str]:
@@ -127,7 +139,8 @@ class BotConfig:
     def _validate_config(self) -> None:
         """Validate all required environment configuration values."""
         missing = [
-            name for name in ("API_ID", "API_HASH", "TOKEN", "MONGO_URI", "LOGGER_ID")
+            name
+            for name in ("API_ID", "API_HASH", "TOKEN", "MONGO_URI", "LOGGER_ID")
             if not getattr(self, name)
         ]
         if missing:
