@@ -7,8 +7,9 @@ from typing import Optional, Tuple
 from cachetools import TTLCache
 from pytdbot import Client, types
 
-from TgMusic import db
 from TgMusic.logger import LOGGER
+
+from ._database import db
 
 admin_cache = TTLCache(maxsize=1000, ttl=60 * 60)
 

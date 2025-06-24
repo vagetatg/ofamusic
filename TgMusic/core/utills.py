@@ -1,6 +1,7 @@
 from pytdbot import Client, types
 
 from ._config import config
+from ..logger import LOGGER
 from ..modules.utils import sec_to_min
 
 

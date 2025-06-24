@@ -12,9 +12,11 @@ from typing import Any, Optional, Dict, Union
 from py_yt import Playlist, VideosSearch
 from pytdbot import types
 
+from TgMusic.logger import LOGGER
+
+
 from ._config import config
 from ._dataclass import MusicTrack, PlatformTracks, TrackInfo
-from TgMusic.logger import LOGGER
 from ._downloader import MusicService
 from ._httpx import HttpxClient
 

@@ -399,9 +399,8 @@ async def handle_play_command(c: Client, msg: types.Message, is_video: bool = Fa
                 text="Usage: /play song_name or YouTube link",
                 reply_markup=SupportButton,
             )
-        else:
-            text = "ᴜsᴀɢᴇ: /play song_name\n\nSupported platforms are: YouTube, SoundCloud, Spotify, Apple Music & Jiosaavn."
-            return await edit_text(reply_message, text=text, reply_markup=SupportButton)
+        text = "ᴜsᴀɢᴇ: /play song_name\n\nSupported platforms are: YouTube, SoundCloud, Spotify, Apple Music & Jiosaavn."
+        return await edit_text(reply_message, text=text, reply_markup=SupportButton)
 
     user_by = await msg.mention()
     # Telegram file support

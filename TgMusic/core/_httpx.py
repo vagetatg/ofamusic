@@ -96,8 +96,8 @@ class HttpxClient:
 
         try:
             async with self._session.stream(
-                        "GET", url, timeout=self._download_timeout, headers=headers
-                    ) as response:
+                "GET", url, timeout=self._download_timeout, headers=headers
+            ) as response:
                 if not response.is_success:
                     error_msg = await self._parse_error_response(response)
                     LOGGER.error(

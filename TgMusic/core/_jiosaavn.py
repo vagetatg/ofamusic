@@ -10,9 +10,9 @@ from typing import Any, Optional, Union
 import yt_dlp
 from pytdbot import types
 
-from ._config import config
 from TgMusic.logger import LOGGER
 
+from ._config import config
 from ._dataclass import PlatformTracks, MusicTrack, TrackInfo
 from ._downloader import MusicService
 from ._httpx import DownloadResult, HttpxClient

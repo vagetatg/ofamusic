@@ -25,6 +25,12 @@ from pytgcalls.types import (
     CallConfig,
 )
 
+from TgMusic.logger import LOGGER
+from TgMusic.modules.utils import (
+    get_audio_duration,
+    sec_to_min,
+)
+
 from ._cacher import (
     chat_cache,
     ChatMemberStatusResult,
@@ -38,12 +44,7 @@ from ._jiosaavn import JiosaavnData
 from ._youtube import YouTubeData
 from ._dataclass import CachedTrack
 from .utills import send_logger
-from TgMusic.logger import LOGGER
-from TgMusic.modules.utils import (
-    get_audio_duration,
-    sec_to_min,
-)
-from TgMusic.core.thumbnails import gen_thumb
+from .thumbnails import gen_thumb
 
 
 class Calls:

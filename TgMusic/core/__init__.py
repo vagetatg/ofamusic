@@ -9,17 +9,17 @@ from ._tgcalls import call
 from ._telegram import tg
 from ._youtube import YouTubeData
 from ._config import config
-from TgMusic.core._cacher import (
+from ._cacher import (
     user_status_cache,
     ChatMemberStatus,
     chat_invite_cache,
     chat_cache,
     ChatMemberStatusResult,
 )
-from TgMusic.core._dataclass import CachedTrack, MusicTrack, PlatformTracks, TrackInfo
-from TgMusic.core._filters import Filter
-from TgMusic.core.buttons import SupportButton, control_buttons
-from TgMusic.core._save_cookies import save_all_cookies
+from ._dataclass import CachedTrack, MusicTrack, PlatformTracks, TrackInfo
+from ._filters import Filter
+from .buttons import SupportButton, control_buttons
+from ._save_cookies import save_all_cookies
 
 __all__ = [
     "config",
