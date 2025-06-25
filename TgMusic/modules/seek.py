@@ -42,6 +42,10 @@ async def seek_song(_: Client, msg: types.Message) -> None:
         await msg.reply_text("⚠️ Please enter a valid number of seconds.")
         return
 
+    if seek_time < 0:
+        await msg.reply_text("⚠️ Please enter a positive number of seconds.")
+        return
+
     if seek_time < 20:
         await msg.reply_text("⚠️ Minimum seek time is 20 seconds.")
         return

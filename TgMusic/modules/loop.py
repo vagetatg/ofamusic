@@ -30,11 +30,15 @@ async def modify_loop(c: Client, msg: types.Message) -> None:
             "🔁 <b>Loop Control</b>\n\n"
             "Usage: <code>/loop [count]</code>\n"
             "• 0 - Disable loop\n"
-            "• 1-99 - Loop count"
+            "• 1-10 - Loop count"
         )
         return
 
     loop = int(args)
+    if loop < 0 or loop > 10:
+        await msg.reply_text("⚠️ Loop count must be between 0 and 10")
+        return
+
     chat_cache.set_loop_count(chat_id, loop)
 
     action = "Looping disabled" if loop == 0 else f"Set to loop {loop} time(s)"
