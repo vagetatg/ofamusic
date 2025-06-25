@@ -15,6 +15,7 @@ from ._downloader import MusicService
 from ._httpx import HttpxClient
 from ._spotify_dl_helper import SpotifyDownload
 from ._dataclass import PlatformTracks, MusicTrack, TrackInfo
+from ._youtube import YouTubeData
 
 
 class ApiData(MusicService):
@@ -95,6 +96,9 @@ class ApiData(MusicService):
 
         if track.platform.lower() == "spotify":
             return await SpotifyDownload(track).process()
+
+        # if track.platform.lower() == "youtube":
+        #     return await YouTubeData().download_track(track, video)
 
         if not track.cdnurl:
             LOGGER.error("No download URL available for track %s", track.tc)

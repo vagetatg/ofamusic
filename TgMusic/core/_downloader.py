@@ -47,11 +47,14 @@ class DownloaderWrapper(MusicService):
         from ._api import ApiData
         from ._jiosaavn import JiosaavnData
 
-        if YouTubeData().is_valid(query):
+        yt_service = YouTubeData()
+        jio_service = JiosaavnData()
+        api_service = ApiData()
+        if yt_service.is_valid(query):
             return YouTubeData(query)
-        elif JiosaavnData().is_valid(query):
+        elif jio_service.is_valid(query):
             return JiosaavnData(query)
-        elif ApiData().is_valid(query):
+        elif api_service.is_valid(query):
             return ApiData(query)
         elif config.DEFAULT_SERVICE == "youtube":
             return YouTubeData(query)

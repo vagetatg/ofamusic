@@ -43,7 +43,7 @@ from ._api import ApiData
 from ._jiosaavn import JiosaavnData
 from ._youtube import YouTubeData
 from ._dataclass import CachedTrack
-from .utills import send_logger
+from .utils import send_logger
 from .thumbnails import gen_thumb
 
 
