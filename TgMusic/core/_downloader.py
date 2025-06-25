@@ -7,33 +7,27 @@ from pathlib import Path
 from typing import Optional, Union
 
 from pytdbot import types
-
 from ._config import config
 from ._dataclass import PlatformTracks, TrackInfo
 
 
 class MusicService(ABC):
     @abstractmethod
-    def is_valid(self, url: str) -> bool:
-        pass
+    def is_valid(self, url: str) -> bool: ...
 
     @abstractmethod
-    async def get_info(self) -> Union[PlatformTracks, types.Error]:
-        pass
+    async def get_info(self) -> Union[PlatformTracks, types.Error]: ...
 
     @abstractmethod
-    async def search(self) -> Union[PlatformTracks, types.Error]:
-        pass
+    async def search(self) -> Union[PlatformTracks, types.Error]: ...
 
     @abstractmethod
-    async def get_track(self) -> Union[TrackInfo, types.Error]:
-        pass
+    async def get_track(self) -> Union[TrackInfo, types.Error]: ...
 
     @abstractmethod
     async def download_track(
         self, track_info: TrackInfo, video: bool = False
-    ) -> Union[Path, types.Error]:
-        pass
+    ) -> Union[Path, types.Error]: ...
 
 
 class DownloaderWrapper(MusicService):
@@ -42,28 +36,25 @@ class DownloaderWrapper(MusicService):
         self.service = self._get_service()
 
     def _get_service(self) -> MusicService:
-        query = self.query
         from ._youtube import YouTubeData
         from ._api import ApiData
         from ._jiosaavn import JiosaavnData
 
-        yt_service = YouTubeData()
-        jio_service = JiosaavnData()
-        api_service = ApiData()
-        if yt_service.is_valid(query):
-            return YouTubeData(query)
-        elif jio_service.is_valid(query):
-            return JiosaavnData(query)
-        elif api_service.is_valid(query):
-            return ApiData(query)
-        elif config.DEFAULT_SERVICE == "youtube":
-            return YouTubeData(query)
-        elif config.DEFAULT_SERVICE == "spotify":
-            return ApiData(query)
-        elif config.DEFAULT_SERVICE == "jiosaavn":
-            return JiosaavnData(query)
+        services = [YouTubeData, JiosaavnData, ApiData]
+        for service_cls in services:
+            if service_cls().is_valid(self.query):
+                return service_cls(self.query)
+
+        fallback_map = {
+            "youtube": YouTubeData,
+            "spotify": ApiData,
+            "jiosaavn": JiosaavnData,
+        }
+        fallback_cls = fallback_map.get(config.DEFAULT_SERVICE, YouTubeData)
         return (
-            ApiData(query) if config.API_URL and config.API_KEY else YouTubeData(query)
+            ApiData(self.query)
+            if fallback_cls == ApiData and config.API_URL and config.API_KEY
+            else fallback_cls(self.query)
         )
 
     def is_valid(self, url: str) -> bool:
@@ -81,4 +72,4 @@ class DownloaderWrapper(MusicService):
     async def download_track(
         self, track_info: TrackInfo, video: bool = False
     ) -> Union[Path, types.Error]:
-        return await self.service.download_track(track_info)
+        return await self.service.download_track(track_info, video)

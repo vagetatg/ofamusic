@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Optional, Union
 
 from pytdbot import types
-
 from TgMusic.logger import LOGGER
 
 from ._config import config
@@ -15,7 +14,6 @@ from ._downloader import MusicService
 from ._httpx import HttpxClient
 from ._spotify_dl_helper import SpotifyDownload
 from ._dataclass import PlatformTracks, MusicTrack, TrackInfo
-# from ._youtube import YouTubeData
 
 
 class ApiData(MusicService):
@@ -36,7 +34,7 @@ class ApiData(MusicService):
         ),
     }
 
-    def __init__(self, query: Union[str, None] = None) -> None:
+    def __init__(self, query: Optional[str] = None) -> None:
         self.query = self._sanitize_query(query) if query else None
         self.api_url = config.API_URL.rstrip("/") if config.API_URL else None
         self.api_key = config.API_KEY
@@ -44,20 +42,18 @@ class ApiData(MusicService):
 
     @staticmethod
     def _sanitize_query(query: str) -> str:
-        """Clean and normalize the input query."""
         return query.strip().split("?")[0].split("#")[0]
 
-    def is_valid(self, url: Union[str, None]) -> bool:
+    def is_valid(self, url: Optional[str]) -> bool:
         if not url or not self.api_url or not self.api_key:
             return False
-
-        return any(pattern.match(url) for pattern in self.URL_PATTERNS.values())
+        return any(p.match(url) for p in self.URL_PATTERNS.values())
 
     async def _make_api_request(
         self, endpoint: str, params: Optional[dict] = None
-    ) -> Union[dict, None]:
+    ) -> Optional[dict]:
         if not self.api_url or not self.api_key:
-            LOGGER.error("API configuration missing")
+            LOGGER.warning("API configuration missing; get from @FallenAPIBot")
             return None
 
         url = f"{self.api_url}/{endpoint.lstrip('/')}"
@@ -65,40 +61,33 @@ class ApiData(MusicService):
 
     async def get_info(self) -> Union[PlatformTracks, types.Error]:
         if not self.query or not self.is_valid(self.query):
-            return types.Error(code=400, message="Invalid URL provided for get info")
+            return types.Error(400, "Invalid URL provided for get info")
 
         data = await self._make_api_request("get_url", {"url": self.query})
-        return self._parse_tracks_response(data) if data else types.Error(
-            code=404, message="Track not found"
-        )
+        return self._parse_tracks_response(data) or types.Error(404, "Track not found")
 
     async def search(self) -> Union[PlatformTracks, types.Error]:
         if not self.query:
-            return types.Error(code=400, message="No query provided for search")
+            return types.Error(400, "No query provided for search")
 
-        # If query is a URL, get info instead of searching
         if self.is_valid(self.query):
             return await self.get_info()
 
         data = await self._make_api_request("search_track", {"q": self.query})
-        return self._parse_tracks_response(data) if data else types.Error(
-            code=404, message="Track not found"
-        )
+        return self._parse_tracks_response(data) or types.Error(404, "Track not found")
 
     async def get_track(self) -> Union[TrackInfo, types.Error]:
         if not self.query:
-            return types.Error(code=400, message="No query provided for get track")
+            return types.Error(400, "No query provided for get track")
 
         data = await self._make_api_request("get_track", {"id": self.query})
-        return TrackInfo(**data) if data else types.Error(
-            code=404, message="Track not found"
-        )
+        return TrackInfo(**data) if data else types.Error(404, "Track not found")
 
     async def download_track(
         self, track: TrackInfo, video: bool = False
     ) -> Union[Path, types.Error]:
         if not track:
-            return types.Error(code=400, message="Track not found")
+            return types.Error(400, "Track not found")
 
         if track.platform.lower() == "spotify":
             return await SpotifyDownload(track).process()
@@ -107,29 +96,28 @@ class ApiData(MusicService):
         #     return await YouTubeData().download_track(track, video)
 
         if not track.cdnurl:
-            LOGGER.error("No download URL available for track %s", track.tc)
-            return types.Error(
-                code=400, message=f"No download URL available for track: {track.tc}"
-            )
+            msg = f"No download URL available for track: {track.tc}"
+            LOGGER.error(msg)
+            return types.Error(400, msg)
 
         download_path = config.DOWNLOADS_DIR / f"{track.tc}.mp3"
         result = await self.client.download_file(track.cdnurl, download_path)
+
         if not result.success:
-            LOGGER.error("Download failed for track %s", track.tc)
-            return types.Error(
-                code=500,
-                message=result.error or f"Download failed for track: {track.tc}",
-            )
+            LOGGER.warning("Download failed for track %s", track.tc)
+            return types.Error(500, result.error or f"Download failed for: {track.tc}")
         return result.file_path
 
     @staticmethod
-    def _parse_tracks_response(data: dict) -> Union[PlatformTracks, types.Error]:
-        if not data or not isinstance(data, dict) or "results" not in data:
-            return types.Error(code=404, message="No results found")
+    def _parse_tracks_response(
+        data: Optional[dict],
+    ) -> Union[PlatformTracks, types.Error]:
+        if not data or "results" not in data:
+            return types.Error(404, "No results found")
 
-        valid_tracks = [
-            MusicTrack(**track)
-            for track in data["results"]
-            if track and isinstance(track, dict)
-        ]
-        return PlatformTracks(tracks=valid_tracks) if valid_tracks else None
+        tracks = [MusicTrack(**t) for t in data["results"] if isinstance(t, dict)]
+        return (
+            PlatformTracks(tracks=tracks)
+            if tracks
+            else types.Error(404, "Track not found")
+        )
