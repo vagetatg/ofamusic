@@ -89,9 +89,7 @@ class Telegram:
                 "filename": file_name,
                 "message_id": message.id,
             }
-
-        file_obj = await dl_msg.download()
-        return file_obj, file_name
+        return await dl_msg.download(), file_name
 
     @staticmethod
     def get_cached_metadata(
