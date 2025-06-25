@@ -17,8 +17,16 @@ from ._dataclass import PlatformTracks, MusicTrack, TrackInfo
 
 
 class ApiData(MusicService):
-    """Handles music data from various streaming platforms through API integration."""
+    """API integration handler for multiple music streaming platforms.
 
+    Provides functionality to:
+    - Validate and process music URLs
+    - Retrieve track information
+    - Search across platforms
+    - Download tracks
+    """
+
+    # Platform URL validation patterns
     URL_PATTERNS = {
         "apple_music": re.compile(
             r"^(https?://)?(music\.apple\.com/([a-z]{2}/)?(album|playlist|song)/[a-zA-Z0-9\-_]+/[0-9]+)(\?.*)?$",
@@ -35,6 +43,11 @@ class ApiData(MusicService):
     }
 
     def __init__(self, query: Optional[str] = None) -> None:
+        """Initialize the API handler with optional query.
+
+        Args:
+            query: URL or search term to process
+        """
         self.query = self._sanitize_query(query) if query else None
         self.api_url = config.API_URL.rstrip("/") if config.API_URL else None
         self.api_key = config.API_KEY
@@ -42,82 +55,158 @@ class ApiData(MusicService):
 
     @staticmethod
     def _sanitize_query(query: str) -> str:
+        """Clean and standardize input queries.
+
+        Removes:
+        - URL fragments (#)
+        - Query parameters (?)
+        - Leading/trailing whitespace
+        """
         return query.strip().split("?")[0].split("#")[0]
 
     def is_valid(self, url: Optional[str]) -> bool:
+        """Validate if URL matches supported platform patterns.
+
+        Args:
+            url: The URL to validate
+
+        Returns:
+            bool: True if URL matches any platform pattern
+        """
         if not url or not self.api_url or not self.api_key:
             return False
-        return any(p.match(url) for p in self.URL_PATTERNS.values())
+        return any(pattern.match(url) for pattern in self.URL_PATTERNS.values())
 
     async def _make_api_request(
-        self, endpoint: str, params: Optional[dict] = None
+            self, endpoint: str, params: Optional[dict] = None
     ) -> Optional[dict]:
+        """Make authenticated API requests to the music service.
+
+        Args:
+            endpoint: API endpoint to call
+            params: Query parameters for the request
+
+        Returns:
+            dict: JSON response from API or None if failed
+        """
         if not self.api_url or not self.api_key:
-            LOGGER.warning("API configuration missing; get from @FallenAPIBot")
+            LOGGER.warning("API configuration incomplete - Get credentials from @FallenAPIBot")
             return None
 
-        url = f"{self.api_url}/{endpoint.lstrip('/')}"
-        return await self.client.make_request(url, params=params)
+        request_url = f"{self.api_url}/{endpoint.lstrip('/')}"
+        return await self.client.make_request(request_url, params=params)
 
     async def get_info(self) -> Union[PlatformTracks, types.Error]:
-        if not self.query or not self.is_valid(self.query):
-            return types.Error(400, "Invalid URL provided for get info")
+        """Retrieve track information from a valid URL.
 
-        data = await self._make_api_request("get_url", {"url": self.query})
-        return self._parse_tracks_response(data) or types.Error(404, "Track not found")
+        Returns:
+            PlatformTracks: Contains track metadata
+            types.Error: If URL is invalid or request fails
+        """
+        if not self.query or not self.is_valid(self.query):
+            return types.Error(400, "Invalid or unsupported URL provided")
+
+        response = await self._make_api_request("get_url", {"url": self.query})
+        return self._parse_tracks_response(response) or types.Error(
+            404, "No track information found"
+        )
 
     async def search(self) -> Union[PlatformTracks, types.Error]:
-        if not self.query:
-            return types.Error(400, "No query provided for search")
+        """Search for tracks across supported platforms.
 
+        Returns:
+            PlatformTracks: Contains search results
+            types.Error: If query is invalid or search fails
+        """
+        if not self.query:
+            return types.Error(400, "No search query provided")
+
+        # If query is a valid URL, get info directly
         if self.is_valid(self.query):
             return await self.get_info()
 
-        data = await self._make_api_request("search_track", {"q": self.query})
-        return self._parse_tracks_response(data) or types.Error(404, "Track not found")
+        response = await self._make_api_request("search_track", {"q": self.query})
+        return self._parse_tracks_response(response) or types.Error(
+            404, "No results found for search query"
+        )
 
     async def get_track(self) -> Union[TrackInfo, types.Error]:
-        if not self.query:
-            return types.Error(400, "No query provided for get track")
+        """Get detailed track information.
 
-        data = await self._make_api_request("get_track", {"id": self.query})
-        return TrackInfo(**data) if data else types.Error(404, "Track not found")
+        Returns:
+            TrackInfo: Detailed track metadata
+            types.Error: If track cannot be found
+        """
+        if not self.query:
+            return types.Error(400, "No track identifier provided")
+
+        response = await self._make_api_request("get_track", {"id": self.query})
+        return TrackInfo(**response) if response else types.Error(404, "Track not found")
 
     async def download_track(
-        self, track: TrackInfo, video: bool = False
+            self, track: TrackInfo, video: bool = False
     ) -> Union[Path, types.Error]:
-        if not track:
-            return types.Error(400, "Track not found")
+        """Download a track to local storage.
 
+        Args:
+            track: TrackInfo object containing download details
+            video: Whether to download video (default: False)
+
+        Returns:
+            Path: Location of downloaded file
+            types.Error: If download fails
+        """
+        if not track:
+            return types.Error(400, "Invalid track information provided")
+
+        # Handle platform-specific download methods
         if track.platform.lower() == "spotify":
-            return await SpotifyDownload(track).process()
+            spotify_result = await SpotifyDownload(track).process()
+            if isinstance(spotify_result, types.Error):
+                LOGGER.error(f"Spotify download failed: {spotify_result.message}")
+            return spotify_result
 
         # if track.platform.lower() == "youtube":
         #     return await YouTubeData().download_track(track, video)
 
         if not track.cdnurl:
-            msg = f"No download URL available for track: {track.tc}"
-            LOGGER.error(msg)
-            return types.Error(400, msg)
+            error_msg = f"No download URL available for track: {track.tc}"
+            LOGGER.error(error_msg)
+            return types.Error(400, error_msg)
 
+        # Standard download handling
         download_path = config.DOWNLOADS_DIR / f"{track.tc}.mp3"
-        result = await self.client.download_file(track.cdnurl, download_path)
+        download_result = await self.client.download_file(track.cdnurl, download_path)
 
-        if not result.success:
-            LOGGER.warning("Download failed for track %s", track.tc)
-            return types.Error(500, result.error or f"Download failed for: {track.tc}")
-        return result.file_path
+        if not download_result.success:
+            LOGGER.warning(f"Download failed for track {track.tc}: {download_result.error}")
+            return types.Error(500, f"Download failed: {download_result.error or track.tc}")
+
+        return download_result.file_path
 
     @staticmethod
     def _parse_tracks_response(
-        data: Optional[dict],
+            response_data: Optional[dict],
     ) -> Union[PlatformTracks, types.Error]:
-        if not data or "results" not in data:
-            return types.Error(404, "No results found")
+        """Parse and validate API response data.
 
-        tracks = [MusicTrack(**t) for t in data["results"] if isinstance(t, dict)]
-        return (
-            PlatformTracks(tracks=tracks)
-            if tracks
-            else types.Error(404, "Track not found")
-        )
+        Args:
+            response_data: Raw API response
+
+        Returns:
+            PlatformTracks: Validated track data
+            types.Error: If response is invalid
+        """
+        if not response_data or "results" not in response_data:
+            return types.Error(404, "Invalid API response format")
+
+        try:
+            tracks = [
+                MusicTrack(**track_data)
+                for track_data in response_data["results"]
+                if isinstance(track_data, dict)
+            ]
+            return PlatformTracks(tracks=tracks) if tracks else types.Error(404, "No valid tracks found")
+        except Exception as parse_error:
+            LOGGER.error(f"Failed to parse tracks: {parse_error}")
+            return types.Error(500, "Failed to process track data")

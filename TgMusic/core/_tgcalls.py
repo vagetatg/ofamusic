@@ -218,7 +218,7 @@ class Calls:
             # Send playback log if enabled
             if await db.get_logger_status(self.bot.me.id):
                 self.bot.loop.create_task(
-                    send_logger(self.bot, chat_id, chat_cache.get_current_song(chat_id))
+                    send_logger(self.bot, chat_id, chat_cache.get_playing_track(chat_id))
                 )
 
             return types.Ok()
@@ -261,12 +261,12 @@ class Calls:
         loop = chat_cache.get_loop_count(chat_id)
         if loop > 0:
             chat_cache.set_loop_count(chat_id, loop - 1)
-            if current_song := chat_cache.get_current_song(chat_id):
+            if current_song := chat_cache.get_playing_track(chat_id):
                 await self._play_song(chat_id, current_song)
                 return
 
         # Get next song from queue
-        if next_song := chat_cache.get_next_song(chat_id):
+        if next_song := chat_cache.get_upcoming_track(chat_id):
             chat_cache.remove_current_song(chat_id)
             await self._play_song(chat_id, next_song)
         else:
@@ -487,7 +487,7 @@ class Calls:
                 code=400, message="Invalid speed value.\n" "Must be between 0.5 and 4.0"
             )
 
-        curr_song = chat_cache.get_current_song(chat_id)
+        curr_song = chat_cache.get_playing_track(chat_id)
         if not curr_song or not curr_song.file_path:
             return types.Error(code=404, message="No track currently playing")
 

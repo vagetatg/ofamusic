@@ -11,27 +11,33 @@ import yt_dlp
 from pytdbot import types
 
 from TgMusic.logger import LOGGER
-
 from ._config import config
 from ._dataclass import PlatformTracks, MusicTrack, TrackInfo
 from ._downloader import MusicService
-from ._httpx import DownloadResult, HttpxClient
+from ._httpx import HttpxClient
 
 
 class JiosaavnData(MusicService):
-    """
-    JioSaavn music service handler for searching, parsing and downloading tracks.
+    """Handler for JioSaavn music service operations including:
+    - URL validation and parsing
+    - Track information retrieval
+    - Playlist processing
+    - Audio downloads
+
+    Uses both direct API calls and yt-dlp for comprehensive coverage.
     """
 
+    # URL patterns for validation
     JIOSAAVN_SONG_PATTERN = re.compile(
-        r"^(https?://)?(www\.)?jiosaavn\.com/song/[\w-]+/[a-zA-Z0-9_-]+", re.IGNORECASE
+        r"^(https?://)?(www\.)?jiosaavn\.com/song/[\w-]+/[a-zA-Z0-9_-]+",
+        re.IGNORECASE
     )
     JIOSAAVN_PLAYLIST_PATTERN = re.compile(
         r"^(https?://)?(www\.)?jiosaavn\.com/featured/[\w-]+/[a-zA-Z0-9_-]+$",
         re.IGNORECASE,
     )
 
-    # API endpoints
+    # API configuration
     API_SEARCH_ENDPOINT = (
         "https://www.jiosaavn.com/api.php?"
         "__call=autocomplete.get&"
@@ -40,12 +46,19 @@ class JiosaavnData(MusicService):
         "_marker=0&"
         "ctx=wap6dot0"
     )
+
+    # Default values for missing metadata
     DEFAULT_ARTIST = "Unknown Artist"
     DEFAULT_ALBUM = "Unknown Album"
-    DEFAULT_DURATION = 0
+    DEFAULT_DURATION = 0  # seconds
     DEFAULT_YEAR = 0
 
     def __init__(self, query: Optional[str] = None) -> None:
+        """Initialize with optional query (URL or search term).
+
+        Args:
+            query: JioSaavn URL or search term to process
+        """
         self.query = query
         self._ydl_opts = {
             "quiet": True,
@@ -55,57 +68,126 @@ class JiosaavnData(MusicService):
         }
 
     def is_valid(self, url: str) -> bool:
+        """Validate if URL matches JioSaavn patterns.
+
+        Args:
+            url: URL to validate
+
+        Returns:
+            bool: True if URL matches song or playlist pattern
+        """
         if not url:
             return False
         return bool(
-            self.JIOSAAVN_SONG_PATTERN.match(url)
-            or self.JIOSAAVN_PLAYLIST_PATTERN.match(url)
+            self.JIOSAAVN_SONG_PATTERN.match(url) or
+            self.JIOSAAVN_PLAYLIST_PATTERN.match(url)
         )
 
     async def search(self) -> Union[PlatformTracks, types.Error]:
-        if not self.query:
-            return types.Error(code=400, message="No query provided for search")
+        """Search JioSaavn for tracks matching the query.
 
+        Returns:
+            PlatformTracks: Contains search results
+            types.Error: If query is invalid or search fails
+        """
+        if not self.query:
+            return types.Error(
+                code=400,
+                message="Search query cannot be empty"
+            )
+
+        # Handle direct URL searches
         if self.is_valid(self.query):
             return await self.get_info()
 
-        url = self.API_SEARCH_ENDPOINT.format(query=self.query)
-        response = await HttpxClient().make_request(url)
-        if not response or not response.get("songs", {}).get("data"):
-            return types.Error(code=404, message="No results found for search query")
+        try:
+            # Make API request to JioSaavn search endpoint
+            response = await HttpxClient().make_request(
+                self.API_SEARCH_ENDPOINT.format(query=self.query)
+            )
 
-        data = {
-            "results": [
+            if not response or not response.get("songs", {}).get("data"):
+                return types.Error(
+                    code=404,
+                    message=f"No results found for: {self.query}"
+                )
+
+            # Format and return results
+            formatted_tracks = [
                 self._format_track(track)
                 for track in response["songs"]["data"]
                 if track
             ]
-        }
-        return self._create_platform_tracks(data)
+            return PlatformTracks(tracks=[
+                MusicTrack(**track) for track in formatted_tracks
+            ])
+
+        except Exception as error:
+            LOGGER.error(f"JioSaavn search failed for '{self.query}': {error}")
+            return types.Error(
+                code=500,
+                message=f"Search failed: {str(error)}"
+            )
 
     async def get_info(self) -> Union[PlatformTracks, types.Error]:
-        if not self.query or not self.is_valid(self.query):
-            return types.Error(code=400, message="Invalid URL provided for get_info")
+        """Retrieve track/playlist information from JioSaavn URL.
 
-        url = self.query
-        if self.JIOSAAVN_SONG_PATTERN.match(url):
-            data = await self.get_track_data(url)
-        else:
-            data = await self.get_playlist_data(url)
-        return self._create_platform_tracks(data)
+        Returns:
+            PlatformTracks: Contains track metadata
+            types.Error: If URL is invalid or request fails
+        """
+        if not self.query or not self.is_valid(self.query):
+            return types.Error(
+                code=400,
+                message="Invalid JioSaavn URL provided"
+            )
+
+        try:
+            if self.JIOSAAVN_SONG_PATTERN.match(self.query):
+                data = await self.get_track_data(self.query)
+            else:
+                data = await self.get_playlist_data(self.query)
+
+            if not data:
+                return types.Error(
+                    code=404,
+                    message="No data found for the provided URL"
+                )
+
+            return self._create_platform_tracks(data)
+        except Exception as error:
+            LOGGER.error(f"Failed to get info for {self.query}: {error}")
+            return types.Error(
+                code=500,
+                message="Failed to retrieve track information"
+            )
 
     async def get_track(self) -> Union[TrackInfo, types.Error]:
-        if not self.query:
-            return types.Error(code=400, message="No query provided for get track")
+        """Get detailed track information including download URL.
 
+        Returns:
+            TrackInfo: Detailed track metadata
+            types.Error: If track cannot be found
+        """
+        if not self.query:
+            return types.Error(
+                code=400,
+                message="No track identifier provided"
+            )
+
+        # Normalize URL format
         url = (
             self.query
             if self.is_valid(self.query)
             else self.format_jiosaavn_url(self.query)
         )
+
         data = await self.get_track_data(url)
         if not data or not data.get("results"):
-            return types.Error(code=404, message="Track not found")
+            return types.Error(
+                code=404,
+                message="Could not retrieve track details"
+            )
 
         track_data = data["results"][0]
         return TrackInfo(
@@ -124,86 +206,137 @@ class JiosaavnData(MusicService):
         )
 
     async def get_track_data(self, url: str) -> Optional[dict[str, Any]]:
+        """Retrieve metadata for a single JioSaavn track.
+
+        Args:
+            url: JioSaavn track URL
+
+        Returns:
+            dict: Parsed track metadata or None if failed
+        """
         try:
             with yt_dlp.YoutubeDL(self._ydl_opts) as ydl:
                 info = await asyncio.to_thread(ydl.extract_info, url, download=False)
                 return {"results": [self._format_track(info)]} if info else None
-        except yt_dlp.DownloadError as e:
-            LOGGER.error("YT-DLP error getting track %s: %s", url, str(e))
-        except Exception as e:
-            LOGGER.error("Unexpected error getting track %s: %s", url, str(e))
+        except yt_dlp.DownloadError as error:
+            LOGGER.error(f"Download error for track {url}: {error}")
+        except Exception as error:
+            LOGGER.error(f"Unexpected error processing track {url}: {error}")
         return None
 
     async def get_playlist_data(self, url: str) -> Optional[dict[str, Any]]:
+        """Retrieve metadata for a JioSaavn playlist.
+
+        Args:
+            url: JioSaavn playlist URL
+
+        Returns:
+            dict: Parsed playlist tracks or None if failed
+        """
         try:
             with yt_dlp.YoutubeDL(self._ydl_opts) as ydl:
                 info = await asyncio.to_thread(ydl.extract_info, url, download=False)
 
                 if not info or not info.get("entries"):
-                    LOGGER.warning("No entries found in playlist: %s", url)
+                    LOGGER.warning(f"Empty playlist response for {url}")
                     return None
 
                 return {
                     "results": [
-                        self._format_track(track) for track in info["entries"] if track
+                        self._format_track(track)
+                        for track in info["entries"]
+                        if track
                     ]
                 }
-        except yt_dlp.DownloadError as e:
-            LOGGER.error("YT-DLP error getting playlist %s: %s", url, str(e))
-        except Exception as e:
-            LOGGER.error("Unexpected error getting playlist %s: %s", url, str(e))
+        except yt_dlp.DownloadError as error:
+            LOGGER.error(f"Download error for playlist {url}: {error}")
+        except Exception as error:
+            LOGGER.error(f"Unexpected error processing playlist {url}: {error}")
         return None
 
     async def download_track(
-        self, track: TrackInfo, video: bool = False
+            self, track: TrackInfo, video: bool = False
     ) -> Union[Path, types.Error]:
+        """Download audio track from JioSaavn.
+
+        Args:
+            track: TrackInfo containing download details
+            video: Whether to download video (not supported for JioSaavn)
+
+        Returns:
+            Path: Location of downloaded file
+            types.Error: If download fails
+        """
         if not track or not track.cdnurl:
             return types.Error(
-                code=400, message=f"No download URL available for track: {track.tc}"
+                code=400,
+                message=f"No download URL available for track: {track.tc}"
             )
 
         download_path = config.DOWNLOADS_DIR / f"{track.tc}.m4a"
-        dl: DownloadResult = await HttpxClient(max_redirects=1).download_file(
-            track.cdnurl, download_path
+        result = await HttpxClient(max_redirects=1).download_file(
+            track.cdnurl,
+            download_path
         )
-        return (
-            dl.file_path
-            if dl.success
-            else types.Error(
-                code=500, message=dl.error or f"Download failed for track: {track.tc}"
-            )
-        )
+
+        if not result.success:
+            error_msg = result.error or f"Download failed for track: {track.tc}"
+            LOGGER.error(error_msg)
+            return types.Error(code=500, message=error_msg)
+
+        return result.file_path
 
     @staticmethod
     def format_jiosaavn_url(name_and_id: str) -> str:
+        """Format a JioSaavn URL from track name and ID.
+
+        Args:
+            name_and_id: String in format "title/track_id"
+
+        Returns:
+            str: Formatted JioSaavn URL or empty string if invalid
+        """
         if not name_and_id:
             return ""
 
         try:
             title, song_id = name_and_id.rsplit("/", 1)
+            # Clean and format title for URL
             title = re.sub(r'[\(\)"\',]', "", title.lower())
             title = re.sub(r"\s+", "-", title.strip())
             return f"https://www.jiosaavn.com/song/{title}/{song_id}"
         except ValueError:
-            LOGGER.warning("Invalid name_and_id format: %s", name_and_id)
+            LOGGER.warning(f"Invalid name_and_id format: {name_and_id}")
             return ""
 
     @classmethod
     def _format_track(cls, track_data: dict[str, Any]) -> dict[str, Any]:
+        """Format raw track data into standardized structure.
+
+        Args:
+            track_data: Raw track metadata from API
+
+        Returns:
+            dict: Formatted track metadata
+        """
         if not track_data:
             return {}
 
-        # Get the highest quality format
+        # Get best available audio format
         formats = track_data.get("formats", [])
         best_format = max(formats, key=lambda x: x.get("abr", 0), default={})
 
         # Extract artist information
         artists = track_data.get("artists", [])
-        artist = track_data.get("artist", artists[0] if artists else cls.DEFAULT_ARTIST)
+        artist = (
+                track_data.get("artist") or
+                (artists[0] if artists else cls.DEFAULT_ARTIST)
+        )
 
-        # Generate display ID
+        # Generate display ID from title and URL
         title = track_data.get("title", "")
-        display_id = f"{title}/{track_data.get('url', '').split('/')[-1]}"
+        url_parts = track_data.get("url", "").split("/")
+        display_id = f"{title}/{url_parts[-1]}" if url_parts else title
 
         return {
             "id": track_data.get("display_id", display_id),
@@ -221,10 +354,22 @@ class JiosaavnData(MusicService):
 
     @staticmethod
     def _create_platform_tracks(
-        data: dict[str, Any],
+            data: dict[str, Any],
     ) -> Union[PlatformTracks, types.Error]:
+        """Create PlatformTracks object from raw API data.
+
+        Args:
+            data: Raw API response data
+
+        Returns:
+            PlatformTracks: Contains formatted tracks
+            types.Error: If no valid tracks found
+        """
         if not data or not data.get("results"):
-            return types.Error(code=404, message="No results found")
+            return types.Error(
+                code=404,
+                message="No valid tracks found in response"
+            )
 
         return PlatformTracks(
             tracks=[MusicTrack(**track) for track in data["results"] if track]

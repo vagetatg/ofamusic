@@ -23,7 +23,7 @@ async def seek_song(_: Client, msg: types.Message) -> None:
         await msg.reply_text("⛔ Administrator privileges required.")
         return
 
-    curr_song = chat_cache.get_current_song(chat_id)
+    curr_song = chat_cache.get_playing_track(chat_id)
     if not curr_song:
         await msg.reply_text("⏸ No track is currently playing.")
         return

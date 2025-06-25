@@ -371,115 +371,207 @@ class YouTubeUtils:
 
 
 class YouTubeData(MusicService):
-    """A class to handle YouTube music data fetching and processing."""
+    """Handles YouTube music data operations including:
+    - URL validation
+    - Track information retrieval
+    - Search functionality
+    - Audio/video downloads
+
+    Uses both direct API calls and YouTube Data API for comprehensive coverage.
+    """
 
     def __init__(self, query: Optional[str] = None) -> None:
+        """Initialize with optional query (URL or search term).
+
+        Args:
+            query: YouTube URL or search term to process
+        """
         self.query = YouTubeUtils.clean_query(query) if query else None
 
     def is_valid(self, url: Optional[str]) -> bool:
-        """Check if URL is valid using YouTubeUtils."""
+        """Validate YouTube URL format.
+
+        Args:
+            url: URL to validate
+
+        Returns:
+            bool: True if URL matches YouTube patterns
+        """
         return YouTubeUtils.is_valid_url(url)
 
     async def get_info(self) -> Union[PlatformTracks, types.Error]:
-        """Get track information from YouTube URL."""
+        """Retrieve track information from YouTube URL.
+
+        Returns:
+            PlatformTracks: Contains track metadata
+            types.Error: If URL is invalid or request fails
+        """
         if not self.query or not self.is_valid(self.query):
-            return types.Error(code=400, message="Invalid URL provided for get info")
+            return types.Error(
+                code=400,
+                message="Invalid YouTube URL provided"
+            )
+
         data = await self._fetch_data(self.query)
-        return (
-            YouTubeUtils.create_platform_tracks(data)
-            if data
-            else types.Error(code=404, message="Track not found")
-        )
+        if not data:
+            return types.Error(
+                code=404,
+                message="Could not retrieve track information"
+            )
+
+        return YouTubeUtils.create_platform_tracks(data)
 
     async def search(self) -> Union[PlatformTracks, types.Error]:
-        if not self.query:
-            return types.Error(code=400, message="No query provided for search")
+        """Search YouTube for tracks matching the query.
 
+        Returns:
+            PlatformTracks: Contains search results
+            types.Error: If query is invalid or search fails
+        """
+        if not self.query:
+            return types.Error(
+                code=400,
+                message="No search query provided"
+            )
+
+        # Handle direct URL searches
         if self.is_valid(self.query):
             return await self.get_info()
 
         try:
             search = VideosSearch(self.query, limit=5)
             results = await search.next()
+
             if not results or not results.get("result"):
                 return types.Error(
-                    code=404, message="No results found for search query"
+                    code=404,
+                    message=f"No results found for: {self.query}"
                 )
 
-            tracks = [YouTubeUtils.format_track(video) for video in results["result"]]
-            return PlatformTracks(tracks=[MusicTrack(**track) for track in tracks])
-        except Exception as e:
-            LOGGER.error(f"Error searching for '{self.query}': {e!r}")
+            tracks = [
+                MusicTrack(**YouTubeUtils.format_track(video))
+                for video in results["result"]
+            ]
+            return PlatformTracks(tracks=tracks)
+
+        except Exception as error:
+            LOGGER.error(f"YouTube search failed for '{self.query}': {error}")
             return types.Error(
-                code=500, message=f"Failed to search for '{self.query}: {e!r}'"
+                code=500,
+                message=f"Search failed: {str(error)}"
             )
 
     async def get_track(self) -> Union[TrackInfo, types.Error]:
-        if not self.query:
-            return types.Error(code=400, message="No query provided for get track")
+        """Get detailed track information.
 
+        Returns:
+            TrackInfo: Detailed track metadata
+            types.Error: If track cannot be found
+        """
+        if not self.query:
+            return types.Error(
+                code=400,
+                message="No track identifier provided"
+            )
+
+        # Normalize URL/ID format
         url = (
             self.query
             if re.match("^https?://", self.query)
             else f"https://youtube.com/watch?v={self.query}"
         )
+
         data = await self._fetch_data(url)
         if not data or not data.get("results"):
-            return types.Error(code=404, message="Track not found")
+            return types.Error(
+                code=404,
+                message="Could not retrieve track details"
+            )
 
         return await YouTubeUtils.create_track_info(data["results"][0])
 
     async def download_track(
-        self, track: TrackInfo, video: bool = False
+            self, track: TrackInfo, video: bool = False
     ) -> Union[Path, types.Error]:
+        """Download audio/video track from YouTube.
+
+        Args:
+            track: TrackInfo containing download details
+            video: Whether to download video (default: False)
+
+        Returns:
+            Path: Location of downloaded file
+            types.Error: If download fails
+        """
         if not track:
-            return types.Error(code=400, message="No track provided for download")
+            return types.Error(
+                code=400,
+                message="Invalid track information provided"
+            )
 
+        # Try API download first if configured
         if config.API_URL and config.API_KEY:
-            if file_path := await YouTubeUtils.download_with_api(track.tc, video):
-                return file_path
+            api_result = await YouTubeUtils.download_with_api(track.tc, video)
+            if api_result:
+                return api_result
 
+        # Fall back to yt-dlp if API fails or not configured
         dl_path = await YouTubeUtils.download_with_yt_dlp(track.tc, video)
         if not dl_path:
-            return types.Error(code=500, message="Failed to download track")
+            return types.Error(
+                code=500,
+                message="Failed to download track from YouTube"
+            )
+
         return Path(dl_path)
 
     async def _fetch_data(self, url: str) -> Optional[Dict[str, Any]]:
+        """Internal method to fetch YouTube data.
+
+        Handles both videos and playlists.
+        """
         try:
             if YouTubeUtils.YOUTUBE_PLAYLIST_PATTERN.match(url):
-                LOGGER.debug(f"Fetching playlist data: {url}")
+                LOGGER.debug(f"Processing YouTube playlist: {url}")
                 return await self._get_playlist_data(url)
 
-            LOGGER.debug(f"Fetching video data: {url}")
+            LOGGER.debug(f"Processing YouTube video: {url}")
             return await self._get_video_data(url)
-        except Exception as e:
-            LOGGER.error(f"Error fetching data from {url}: {e!r}")
+        except Exception as error:
+            LOGGER.error(f"Data fetch failed for {url}: {error}")
             return None
 
     @staticmethod
     async def _get_video_data(url: str) -> Optional[Dict[str, Any]]:
-        """Get YouTube video data from the URL."""
+        """Retrieve metadata for a single YouTube video."""
         normalized_url = await YouTubeUtils.normalize_youtube_url(url)
         if not normalized_url:
             return None
 
-        if data := await YouTubeUtils.fetch_oembed_data(normalized_url):
-            return data
+        # Try oEmbed first
+        if oembed_data := await YouTubeUtils.fetch_oembed_data(normalized_url):
+            return oembed_data
 
+        # Fall back to search API
         try:
             search = VideosSearch(normalized_url, limit=1)
             results = await search.next()
+
             if not results or not results.get("result"):
                 return None
 
-            return {"results": [YouTubeUtils.format_track(results["result"][0])]}
-        except Exception as e:
-            LOGGER.error(f"Error searching video: {e!r}")
+            return {
+                "results": [
+                    YouTubeUtils.format_track(results["result"][0])
+                ]
+            }
+        except Exception as error:
+            LOGGER.error(f"Video data fetch failed: {error}")
             return None
 
     @staticmethod
     async def _get_playlist_data(url: str) -> Optional[Dict[str, Any]]:
-        """Get YouTube playlist data."""
+        """Retrieve metadata for a YouTube playlist."""
         try:
             playlist = await Playlist.getVideos(url)
             if not playlist or not playlist.get("videos"):
@@ -489,9 +581,9 @@ class YouTubeData(MusicService):
                 "results": [
                     YouTubeUtils.format_track(track)
                     for track in playlist["videos"]
-                    if track.get("id")  # Only include valid tracks
+                    if track.get("id")  # Filter valid tracks
                 ]
             }
-        except Exception as e:
-            LOGGER.error(f"Error getting playlist: {e!r}")
+        except Exception as error:
+            LOGGER.error(f"Playlist data fetch failed: {error}")
             return None

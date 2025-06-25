@@ -30,41 +30,33 @@ class ChatCacher:
         self.chat_cache: dict[int, dict[str, Any]] = {}
 
     def add_song(self, chat_id: int, song: CachedTrack) -> CachedTrack:
-        if chat_id not in self.chat_cache:
-            self.chat_cache[chat_id] = {"is_active": True, "queue": deque()}
-        self.chat_cache[chat_id]["queue"].append(song)
+        data = self.chat_cache.setdefault(chat_id, {"is_active": True, "queue": deque()})
+        data["queue"].append(song)
         return song
 
-    def get_next_song(self, chat_id: int) -> Optional[CachedTrack]:
-        queue = self.chat_cache.get(chat_id, {}).get("queue", deque())
-        return queue[1] if len(queue) > 1 else None
+    def get_upcoming_track(self, chat_id: int) -> Optional[CachedTrack]:
+        queue = self.chat_cache.get(chat_id, {}).get("queue")
+        return queue[1] if queue and len(queue) > 1 else None
 
-    def get_current_song(self, chat_id: int) -> Optional[CachedTrack]:
-        queue = self.chat_cache.get(chat_id, {}).get("queue", deque())
+    def get_playing_track(self, chat_id: int) -> Optional[CachedTrack]:
+        queue = self.chat_cache.get(chat_id, {}).get("queue")
         return queue[0] if queue else None
 
     def remove_current_song(self, chat_id: int) -> Optional[CachedTrack]:
-        queue = self.chat_cache.get(chat_id, {}).get("queue", deque())
+        queue = self.chat_cache.get(chat_id, {}).get("queue")
         return queue.popleft() if queue else None
 
     def is_active(self, chat_id: int) -> bool:
         return self.chat_cache.get(chat_id, {}).get("is_active", False)
 
     def set_active(self, chat_id: int, active: bool):
-        if chat_id not in self.chat_cache:
-            self.chat_cache[chat_id] = {"is_active": active, "queue": deque()}
-        else:
-            self.chat_cache[chat_id]["is_active"] = active
-            if "queue" not in self.chat_cache[chat_id]:
-                self.chat_cache[chat_id]["queue"] = deque()
+        data = self.chat_cache.setdefault(chat_id, {"is_active": active, "queue": deque()})
+        data["is_active"] = active
 
     def clear_chat(self, chat_id: int):
         self.chat_cache.pop(chat_id, None)
 
-    def clear_all(self):
-        self.chat_cache.clear()
-
-    def count(self, chat_id: int) -> int:
+    def get_queue_length(self, chat_id: int) -> int:
         return len(self.chat_cache.get(chat_id, {}).get("queue", deque()))
 
     def get_loop_count(self, chat_id: int) -> int:
@@ -78,8 +70,8 @@ class ChatCacher:
         return False
 
     def remove_track(self, chat_id: int, queue_index: int) -> bool:
-        queue = self.chat_cache.get(chat_id, {}).get("queue", deque())
-        if len(queue) > queue_index:
+        queue = self.chat_cache.get(chat_id, {}).get("queue")
+        if queue and 0 <= queue_index < len(queue):
             queue_list = list(queue)
             queue_list.pop(queue_index)
             self.chat_cache[chat_id]["queue"] = deque(queue_list)

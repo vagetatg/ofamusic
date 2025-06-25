@@ -71,7 +71,6 @@ class Bot(Client):
             raise SystemExit(1) from exc
 
     async def _initialize_components(self) -> None:
-        """Initialize all bot components in proper sequence."""
         from TgMusic.core import save_all_cookies
 
         await save_all_cookies(config.COOKIES_URL)

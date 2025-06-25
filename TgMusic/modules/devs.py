@@ -303,8 +303,8 @@ async def active_vc(c: Client, message: types.Message) -> None:
     text = f"🎵 <b>Active Voice Chats</b> ({len(active_chats)}):\n\n"
 
     for chat_id in active_chats:
-        queue_length = chat_cache.count(chat_id)
-        if current_song := chat_cache.get_current_song(chat_id):
+        queue_length = chat_cache.get_queue_length(chat_id)
+        if current_song := chat_cache.get_playing_track(chat_id):
             song_info = f"🎶 <b>Now Playing:</b> <a href='{current_song.url}'>{current_song.name}</a> - {current_song.artist} ({current_song.duration}s)"
         else:
             song_info = "🔇 No song playing."
