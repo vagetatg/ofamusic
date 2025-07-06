@@ -147,6 +147,18 @@ wheels = [
 ]
 
 [[package]]
+name = "aiosqlite-black"
+version = "0.21.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c1/cb/f6433099abbc6208021b8b53717f957f3d3661cc38bd88c4b85a78d79f69/aiosqlite_black-0.21.0.tar.gz", hash = "sha256:db36416d340d95aab71e4993a45c256cb1c7a3bb62df21dcdce20d06aed9c358", size = 21502, upload-time = "2024-04-05T21:54:14.884Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/10/cd/fc17018de28eefd0374c83f3a794586f197eda7a77ca8e699dee12e5f324/aiosqlite_black-0.21.0-py3-none-any.whl", hash = "sha256:30fed8cb055d0e0465553a6143c72097dcffdfc3e4ef884a0ad03c26ca7e5b9f", size = 15765, upload-time = "2024-04-05T21:54:06.826Z" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -456,19 +468,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f1/70/7703c29685631f5a7590aa73f1f1d3fa9a380e654b86af429e0934a32f7d/idna-3.10.tar.gz", hash = "sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9", size = 190490, upload-time = "2024-09-15T18:07:39.745Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/76/c6/c88e154df9c4e1a2a66ccf0005a88dfb2650c1dffb6f5ce603dfbd452ce3/idna-3.10-py3-none-any.whl", hash = "sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3", size = 70442, upload-time = "2024-09-15T18:07:37.964Z" },
-]
-
-[[package]]
-name = "kurigram"
-version = "2.2.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pyaes" },
-    { name = "pysocks" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/7e/b6/f6bacbdf59181901ef4056506e93363a32b60ccc8b1d637f9be69cfd041f/kurigram-2.2.6.tar.gz", hash = "sha256:15b64199a076c12b2c73915f66fb580294ea4ca6c1cba05f33e19a364a569d3d", size = 484918, upload-time = "2025-06-12T21:26:48.422Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/15/88/d7cf7236d222ff92faabe6d581d0e069765cae7bfc7be004c4c6ff3a79ae/kurigram-2.2.6-py3-none-any.whl", hash = "sha256:0fd245a7117e2b6479149995857c81b93cb19979ddadcf3fc8063dca05465847", size = 4885322, upload-time = "2025-06-12T21:26:46.649Z" },
 ]
 
 [[package]]
@@ -1033,6 +1032,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pymediainfo-pyroblack"
+version = "6.1.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/ad/298e7468c7fcc6471397b50d229327ae24f38d5ebe3e89e8682e6e7e98a8/pymediainfo-pyroblack-6.1.1.tar.gz", hash = "sha256:bc6f5db6f991232d859c243dfb1238bd6192f745ee8391b6822b2da79325539b", size = 447098, upload-time = "2024-03-30T23:30:28.476Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ba/f5/fd10dd65bf1d91ec7fd7ab30d8cbf65b42d15b53bb5fc59605376cad718e/pymediainfo_pyroblack-6.1.1-py2.py3-none-any.whl", hash = "sha256:eeec6f606ea6412ba1d794796874ab491054731b0c9cd7a7aecc9804ee66945a", size = 9504, upload-time = "2024-03-30T23:30:29.936Z" },
+]
+
+[[package]]
 name = "pymongo"
 version = "4.13.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1086,6 +1094,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/a1/69/d56f0897cc4932a336820c5d2470ffed50be04c624b07d1ad6ea75aaa975/pymongo-4.13.2-cp313-cp313t-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:51040e1ba78d6671f8c65b29e2864483451e789ce93b1536de9cc4456ede87fa", size = 2219378, upload-time = "2025-06-16T18:16:04.108Z" },
     { url = "https://files.pythonhosted.org/packages/04/1e/427e7f99801ee318b6331062d682d3816d7e1d6b6013077636bd75d49c87/pymongo-4.13.2-cp313-cp313t-win32.whl", hash = "sha256:7ab86b98a18c8689514a9f8d0ec7d9ad23a949369b31c9a06ce4a45dcbffcc5e", size = 979460, upload-time = "2025-06-16T18:16:06.128Z" },
     { url = "https://files.pythonhosted.org/packages/b5/9c/00301a6df26f0f8d5c5955192892241e803742e7c3da8c2c222efabc0df6/pymongo-4.13.2-cp313-cp313t-win_amd64.whl", hash = "sha256:c38168263ed94a250fc5cf9c6d33adea8ab11c9178994da1c3481c2a49d235f8", size = 1011057, upload-time = "2025-06-16T18:16:07.917Z" },
+]
+
+[[package]]
+name = "pyroblack"
+version = "2.7.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiosqlite-black" },
+    { name = "pyaes" },
+    { name = "pymediainfo-pyroblack" },
+    { name = "pysocks" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5b/27/75ae6dfcd44e54a86ac0c64301d274689a2dbd1205c5319d7b26960f7178/pyroblack-2.7.1.tar.gz", hash = "sha256:d96ec70b23d04c601907d6b5d0014a1ce36aff75f925930356f1dd7af9f69724", size = 481451, upload-time = "2025-07-04T22:00:54.426Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f8/7d/b5ef8dcf5b16070fd279ba1857ecb7aa7da721c8aa45dd4adc5de1b3469a/pyroblack-2.7.1-py3-none-any.whl", hash = "sha256:6b227c14e056b835cf5c139c46405e79b27496171c044cdfbfb0e0b1909ace29", size = 5033078, upload-time = "2025-07-04T22:00:52.305Z" },
 ]
 
 [[package]]
@@ -1274,7 +1297,6 @@ dependencies = [
     { name = "aiofiles" },
     { name = "apscheduler" },
     { name = "cachetools" },
-    { name = "kurigram" },
     { name = "meval" },
     { name = "ntgcalls" },
     { name = "pillow" },
@@ -1284,6 +1306,7 @@ dependencies = [
     { name = "pycryptodome" },
     { name = "pydantic" },
     { name = "pymongo" },
+    { name = "pyroblack" },
     { name = "pytdbot" },
     { name = "pytgcrypto" },
     { name = "pytz" },
@@ -1305,7 +1328,6 @@ requires-dist = [
     { name = "apscheduler", specifier = "~=3.11.0" },
     { name = "black", marker = "extra == 'dev'" },
     { name = "cachetools", specifier = "~=6.1.0" },
-    { name = "kurigram", specifier = "~=2.2.6" },
     { name = "meval", specifier = "~=2.5" },
     { name = "ntgcalls", specifier = "~=2.0.5" },
     { name = "pillow", specifier = "~=11.3.0" },
@@ -1315,6 +1337,7 @@ requires-dist = [
     { name = "pycryptodome", specifier = "~=3.23.0" },
     { name = "pydantic", specifier = "~=2.11.7" },
     { name = "pymongo", specifier = "~=4.13.2" },
+    { name = "pyroblack", specifier = "~=2.7.1" },
     { name = "pytdbot", specifier = "~=0.9.5" },
     { name = "pytgcrypto", specifier = "~=1.2.11" },
     { name = "pytz", specifier = "~=2025.2" },
